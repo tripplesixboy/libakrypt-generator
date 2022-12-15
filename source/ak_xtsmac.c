@@ -794,7 +794,9 @@
      return ak_error_message( error, __func__, "incorrect secret keys context creation" );
    }
 
-   ctx->tag_size = ctx->iv_size = ctx->block_size = 16; /* длина блока алгоритма Магма */
+   ctx->tag_size = 16; /* два блока алгоритма Магма */
+   ctx->iv_size = 16;
+   ctx->block_size = 16;
    ctx->auth_clean = ak_xtsmac_authentication_clean;
    ctx->auth_update = ak_xtsmac_authentication_update;
    ctx->auth_finalize = ak_xtsmac_authentication_finalize;
