@@ -350,8 +350,10 @@
   if( user != NULL ) return 0;
   if( strncmp( section, "libakrypt", 9 ) != 0 ) return 0;
   if( strncmp( name, "certificate_repository", 25 ) == 0 ) {
-    if( ak_certificate_set_repository( valstr ) != ak_error_ok ) return 0;
-     else return 1;
+    ak_certificate_set_repository( valstr );
+   /* если каталог с доверенными сертификатами не существует,
+      мы выдаём сообщение об ошибке и продолжаем работу программы */
+    return 1;
   }
 
  /* теперь детальный разбор каждой опции */
@@ -398,7 +400,8 @@
                                             "all options have been read from the %s file", name );
      return ak_true;
    } else {
-       ak_error_message_fmt( error, __func__, "file %s exists, but contains invalid data", name );
+       ak_error_message_fmt( ak_error_wrong_option, __func__,
+                           "file %s exists, but contains invalid data in line: %d", name, error );
        return ak_false;
      }
  }
@@ -418,7 +421,8 @@
                                              "all options have been read from the %s file", name );
      return ak_true;
    } else {
-       ak_error_message_fmt( error, __func__, "wrong options reading from %s file", name );
+       ak_error_message_fmt( ak_error_wrong_option, __func__,
+                           "file %s exists, but contains invalid data in line: %d", name, error );
        return ak_false;
      }
  } else ak_error_message( ak_error_access_file, __func__,
