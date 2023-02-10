@@ -273,31 +273,31 @@
  static const char *asn1_pcmd_i[] =        { "1.2.643.2.52.1.127.3.6", NULL };
 
 /* добавляем аттрибуты типов (X.500) и расширенные аттрибуты */
- static const char *asn1_email_n[] =       { "email-address", "em", "email", NULL };
+ static const char *asn1_email_n[] =       { "email-address", "em", "Почта", NULL };
  static const char *asn1_email_i[] =       { "1.2.840.113549.1.9.1", NULL };
- static const char *asn1_cn_n[] =          { "common-name", "cn", NULL };
+ static const char *asn1_cn_n[] =          { "common-name", "cn", "Имя", NULL };
  static const char *asn1_cn_i[] =          { "2.5.4.3", NULL };
- static const char *asn1_s_n[] =           { "surname", "su", NULL };
+ static const char *asn1_s_n[] =           { "surname", "su", "Фамилия", NULL };
  static const char *asn1_s_i[] =           { "2.5.4.4", NULL };
- static const char *asn1_sn_n[] =          { "serial-number", "sn", NULL };
+ static const char *asn1_sn_n[] =          { "serial-number", "sn", "Серийный номер", NULL };
  static const char *asn1_sn_i[] =          { "2.5.4.5", NULL };
- static const char *asn1_c_n[] =           { "country-name", "ct", NULL };
+ static const char *asn1_c_n[] =           { "country-name", "ct", "Страна", NULL };
  static const char *asn1_c_i[] =           { "2.5.4.6", NULL };
- static const char *asn1_l_n[] =           { "locality-name", "ln", NULL };
+ static const char *asn1_l_n[] =           { "locality-name", "ln", "Населенный пункт", NULL };
  static const char *asn1_l_i[] =           { "2.5.4.7", NULL };
- static const char *asn1_st_n[] =          { "state-or-province-name", "st", NULL };
+ static const char *asn1_st_n[] =          { "state-or-province-name", "st", "Область", NULL };
  static const char *asn1_st_i[] =          { "2.5.4.8", NULL };
- static const char *asn1_sa_n[] =          { "street-address", "sa", NULL };
+ static const char *asn1_sa_n[] =          { "street-address", "sa", "Адрес", NULL };
  static const char *asn1_sa_i[] =          { "2.5.4.9", NULL };
- static const char *asn1_o_n[] =           { "organization", "or", NULL };
+ static const char *asn1_o_n[] =           { "organization", "or", "Организация", NULL };
  static const char *asn1_o_i[] =           { "2.5.4.10", NULL };
- static const char *asn1_ou_n[] =          { "organization-unit", "ou", NULL };
+ static const char *asn1_ou_n[] =          { "organization-unit", "ou", "Подразделение", NULL };
  static const char *asn1_ou_i[] =          { "2.5.4.11", NULL };
- static const char *asn1_title_n[] =       { "title", "tl", NULL };
+ static const char *asn1_title_n[] =       { "title", "tl", "Название", NULL };
  static const char *asn1_title_i[] =       { "2.5.4.12", NULL };
- static const char *asn1_gn_n[] =          { "given-name", "gn", NULL };
+ static const char *asn1_gn_n[] =          { "given-name", "gn", "Имя, данное при рождении", NULL };
  static const char *asn1_gn_i[] =          { "2.5.4.42", NULL };
- static const char *asn1_ps_n[] =          { "pseudonym", "ps", NULL };
+ static const char *asn1_ps_n[] =          { "pseudonym", "ps", "Псевдоним", NULL };
  static const char *asn1_ps_i[] =          { "2.5.4.65", NULL };
 
  static const char *asn1_ski_n[] =         { "subject-key-identifier", NULL };
@@ -339,19 +339,19 @@
  static const char *asn1_pkix_exAD_i[] =   { "1.3.6.1.5.5.7.48.2", NULL };
 
 /* следующее добро из Приказа ФСБ N 795 */
- static const char *asn1_ogrn_n[] =        { "ogrn", "og", NULL };
+ static const char *asn1_ogrn_n[] =        { "ogrn", "og", "ОГРН", NULL };
  static const char *asn1_ogrn_i[] =        { "1.2.643.100.1", NULL };
- static const char *asn1_snils_n[] =       { "snils", "si", NULL };
+ static const char *asn1_snils_n[] =       { "snils", "si", "СНИЛС", NULL };
  static const char *asn1_snils_i[] =       { "1.2.643.100.3", NULL };
- static const char *asn1_ogrnip_n[] =      { "ogrnip", "oi", NULL };
+ static const char *asn1_ogrnip_n[] =      { "ogrnip", "oi", "ОГРНИП", NULL };
  static const char *asn1_ogrnip_i[] =      { "1.2.643.100.5", NULL };
  static const char *asn1_owner_mod_n[] =   { "subject-crypto-module", NULL };
  static const char *asn1_owner_mod_i[] =   { "1.2.643.100.111", NULL };
  static const char *asn1_issuer_mod_n[] =  { "issuer-crypto-module", NULL };
  static const char *asn1_issuer_mod_i[] =  { "1.2.643.100.112", NULL };
- static const char *asn1_inn_n[] =         { "inn", "in", NULL }; /* ИНН физлица */
+ static const char *asn1_inn_n[] =         { "inn", "in", "ИНН физлица", NULL }; /* ИНН физлица */
  static const char *asn1_inn_i[] =         { "1.2.643.3.131.1.1", NULL };
- static const char *asn1_innle_n[] =       { "inn-legal-entity", "le", NULL }; /* ИНН юрлица, начиная с 2021 г. */
+ static const char *asn1_innle_n[] =       { "inn-legal-entity", "le", "ИНН юрлица", NULL }; /* ИНН юрлица, начиная с 2021 г. */
  static const char *asn1_innle_i[] =       { "1.2.643.100.4", NULL };
  static const char *asn1_class_kc1_n[] =   { "digital-signature-module, class kc1", "kc1", NULL };
  static const char *asn1_class_kc1_i[] =   { "1.2.643.100.113.1", NULL };

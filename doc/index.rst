@@ -94,9 +94,8 @@ libakrypt
 
    * `FreeBSD`,
 
-   * семейство `Windows` (от `Windows 7` и старше)
+   * семейство `Windows` (от `Windows 7` и старше).
 
-   * `MacOS`.
 
 Также были проведены успешные запуски библиотеки под управлением следующих операционных систем: `ReactOS <https://reactos.org/>`__ и `SailfishOS <https://sailfishos.org/>`__.
 
