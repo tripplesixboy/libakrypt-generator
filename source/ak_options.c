@@ -350,7 +350,7 @@
   if( user != NULL ) return 0;
   if( strncmp( section, "libakrypt", 9 ) != 0 ) return 0;
   if( strncmp( name, "certificate_repository", 25 ) == 0 ) {
-    ak_certificate_set_repository( valstr );
+    if( ak_certificate_set_repository( valstr ) != ak_error_ok ) ak_error_set_value( ak_error_ok );
    /* если каталог с доверенными сертификатами не существует,
       мы выдаём сообщение об ошибке и продолжаем работу программы */
     return 1;
@@ -395,8 +395,7 @@
  if( ak_file_open_to_read( &fd, name ) == ak_error_ok ) {
    ak_file_close( &fd );
    if(( error = ak_ini_parse( name, ak_libakrypt_load_option_from_file, NULL )) == ak_error_ok ) {
-     if( ak_libakrypt_get_option_by_name( "log_level" ) > ak_log_none )
-       ak_error_message_fmt( ak_error_ok, "ak_libakrypt_log_options",
+     if( ak_log_get_level() > ak_log_none ) ak_error_message_fmt( ak_error_ok, __func__,
                                             "all options have been read from the %s file", name );
      return ak_true;
    } else {
@@ -416,8 +415,7 @@
  if( ak_file_open_to_read( &fd, name ) == ak_error_ok ) {
    ak_file_close( &fd );
    if(( error = ak_ini_parse( name, ak_libakrypt_load_option_from_file, NULL )) == ak_error_ok ) {
-     if( ak_libakrypt_get_option_by_name( "log_level" ) > ak_log_none )
-       ak_error_message_fmt( ak_error_ok, "ak_libakrypt_log_options",
+     if( ak_log_get_level() > ak_log_none ) ak_error_message_fmt( ak_error_ok, __func__,
                                              "all options have been read from the %s file", name );
      return ak_true;
    } else {
