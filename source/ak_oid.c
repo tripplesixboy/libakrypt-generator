@@ -201,24 +201,25 @@
  static const char *asn1_w256_pst_n[] =    { "id-tc26-gost-3410-2012-256-paramSetTest", NULL };
  static const char *asn1_w256_pst_i[] =    { "1.2.643.7.1.2.1.1.0",
                                              "1.2.643.2.2.35.0", NULL };
- static const char *asn1_w256_psa_n[] =    { "id-tc26-gost-3410-2012-256-paramSetA", NULL };
+ static const char *asn1_w256_psa_n[] =    { "id-tc26-gost-3410-2012-256-paramSetA", 
+                                             "tc26a", NULL };
  static const char *asn1_w256_psa_i[] =    { "1.2.643.7.1.2.1.1.1", NULL };
  static const char *asn1_w256_psb_n[] =    { "id-tc26-gost-3410-2012-256-paramSetB",
                                              "id-rfc4357-gost-3410-2001-paramSetA",
                                              "id-rfc4357-2001dh-paramSet",
                                              "cspdh",
-                                             "cspa", NULL };
+                                             "cspa", "tc26b", NULL };
  static const char *asn1_w256_psb_i[] =    { "1.2.643.7.1.2.1.1.2",
                                              "1.2.643.2.2.35.1",
                                              "1.2.643.2.2.36.0", NULL };
  static const char *asn1_w256_psc_n[] =    { "id-tc26-gost-3410-2012-256-paramSetC",
                                              "id-rfc4357-gost-3410-2001-paramSetB",
-                                             "cspb", NULL };
+                                             "cspb", "tc26c", NULL };
  static const char *asn1_w256_psc_i[] =    { "1.2.643.7.1.2.1.1.3",
                                              "1.2.643.2.2.35.2", NULL };
  static const char *asn1_w256_psd_n[] =    { "id-tc26-gost-3410-2012-256-paramSetD",
                                              "id-rfc4357-gost-3410-2001-paramSetC",
-                                             "cspc", NULL };
+                                             "cspc", "tc26d", NULL };
  static const char *asn1_w256_psd_i[] =    { "1.2.643.7.1.2.1.1.4",
                                              "1.2.643.2.2.35.3", NULL };
  static const char *asn1_w256_axel_n[] =   { "id-axel-gost-3410-2012-256-paramSetN0",
