@@ -122,6 +122,8 @@ extern "C" {
  #define ak_error_certificate_engine          (-168)
 /*! \brief Ошибка при импорте сертификата: электроннная подпись под сертификатом не верна. */
  #define ak_error_certificate_signature       (-169)
+/*! \brief Ошибка при проверке электроннной подписи под произвольными данными */
+ #define ak_error_signature                   (-170)
 
 /*! \brief Ошибка при выборе схемы асимметричного шифрования */
  #define ak_error_encrypt_scheme              (-180)
