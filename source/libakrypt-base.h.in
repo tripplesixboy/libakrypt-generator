@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------------------------- */
-/*  Copyright (c) 2014 - 2021 by Axel Kenzo, axelkenzo@mail.ru                                     */
+/*  Copyright (c) 2014 - 2023 by Axel Kenzo, axelkenzo@mail.ru                                     */
 /*                                                                                                 */
 /*  Файл libakrypt-base.h (определение платформозависимых функций)                                 */
 /* ----------------------------------------------------------------------------------------------- */
@@ -93,8 +93,13 @@ extern "C" {
  #include <sys/mman.h>
 #endif
 
-#cmakedefine AK_HAVE_ERRNO_H
 #cmakedefine AK_HAVE_SYSTYPES_H
+#ifdef AK_HAVE_SYSTYPES_H
+ #include <sys/types.h>
+#endif
+
+/* ----------------------------------------------------------------------------------------------- */
+#cmakedefine AK_HAVE_ERRNO_H
 #cmakedefine AK_HAVE_STRINGS_H
 #cmakedefine AK_HAVE_ENDIAN_H
 #cmakedefine AK_HAVE_SYSTIME_H
@@ -138,7 +143,6 @@ extern "C" {
  typedef unsigned __int32 ak_uint32;
  typedef __int64 ak_int64;
  typedef unsigned __int64 ak_uint64;
- typedef __int64 ssize_t;
 #endif
 #ifdef __MINGW32__
  typedef __int32 ak_int32;
@@ -158,6 +162,11 @@ extern "C" {
  typedef unsigned int ak_uint32;
  typedef signed long long int ak_int64;
  typedef unsigned long long int ak_uint64;
+#endif
+
+#cmakedefine AK_HAVE_SSIZE_T
+#ifndef AK_HAVE_SSIZE_T
+ typedef ak_int64 ssize_t;
 #endif
 
 /* ----------------------------------------------------------------------------------------------- */

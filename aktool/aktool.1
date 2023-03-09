@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "AKTOOL" "1" "дек. 15, 2022" "" "libakrypt"
+.TH "AKTOOL" "1" "мар. 09, 2023" "" "libakrypt"
 .SH NAME
 aktool \- Правила пользования
 .sp
@@ -592,7 +592,7 @@ aktool \-\-version
 (в расширение \fBKeyUsage\fP добавляется бит \fBCRL Sign\fP)
 .SS Примеры выработки ключей симметричных криптографических алгоритмов
 .sp
-Создать секретный ключ алгоритма блочного шифрования «Магма» можно с помощью следующей команды:
+Создать секретный ключ алгоритма блочного шифрования \(dqМагма\(dq можно с помощью следующей команды:
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -609,7 +609,7 @@ aktool k \-nt magma \-o magma.key
 можно определить пароль доступа к созданному ключу прямо в командной строке.
 .sp
 Аналогично, создание нового секретного ключа выработки имитовставки для алгоритма HMAC,
-основанного на использовании функции хеширования «Стрибог256»,
+основанного на использовании функции хеширования \(dqСтрибог256\(dq,
 можно выполнить с помощью следующего вызова:
 .INDENT 0.0
 .INDENT 3.5
@@ -617,7 +617,7 @@ aktool k \-nt magma \-o magma.key
 .nf
 .ft C
 aktool k \-nt hmac\-streebog256 \-o secret\-hmac256.key \e\e
-   \-\-label "used for testing purpose" \-\-random\-file /dev/random
+   \-\-label \(dqused for testing purpose\(dq \-\-random\-file /dev/random
 .ft P
 .fi
 .UNINDENT
@@ -710,7 +710,7 @@ aktool k \-v aktool256_request.csr \-\-verbose
 .nf
 .ft C
 aktool k \-nt sign512 \-\-curve ec512b \-o aktool512.key \-\-op aktool512_ca.crt \e\e
-   \-\-to certificate \-\-id "/cn=Aktool CA Team"
+   \-\-to certificate \-\-id \(dq/cn=Aktool CA Team\(dq
 .ft P
 .fi
 .UNINDENT
@@ -867,7 +867,7 @@ aktool k \-na blom\-pairwise \-\-key IDa.key \-\-id IDb \-o pairwise\-ab.plain \
 .nf
 .ft C
 aktool k \-na blom\-pairwise \-\-key IDa.key \-\-id IDb \-o pairwise\-ab.key \e\e
-   \-\-target kuznechik \-\-to pem \-\-label "used for testing purpose"
+   \-\-target kuznechik \-\-to pem \-\-label \(dqused for testing purpose\(dq
 .ft P
 .fi
 .UNINDENT
@@ -919,11 +919,11 @@ aktool k \-na blom\-pairwise \-\-key IDb.key \-\-id IDa \-o pairwise\-ba.plain \
 .nf
 .ft C
 xxd \-g1 pairwise\-ab.plain
-00000000: e2 fd af 33 30 55 22 b3 45 fd 2f 06 2b 91 45 50  ...30U".E./.+.EP
+00000000: e2 fd af 33 30 55 22 b3 45 fd 2f 06 2b 91 45 50  ...30U\(dq.E./.+.EP
 00000010: f5 70 a6 0d 3f 78 f7 0d 9e c4 41 b2 7b 5b f1 6b  .p..?x....A.{[.k
 
 xxd \-g1 pairwise\-ba.plain
-00000000: e2 fd af 33 30 55 22 b3 45 fd 2f 06 2b 91 45 50  ...30U".E./.+.EP
+00000000: e2 fd af 33 30 55 22 b3 45 fd 2f 06 2b 91 45 50  ...30U\(dq.E./.+.EP
 00000010: f5 70 a6 0d 3f 78 f7 0d 9e c4 41 b2 7b 5b f1 6b  .p..?x....A.{[.k
 .ft P
 .fi
@@ -1033,7 +1033,7 @@ xxd \-g1 pairwise\-ba.plain
 .UNINDENT
 .sp
 По\-умолчанию, для вычисления имитовставки вырабатывается производный ключ,
-зависящий от указанного опцией :option::\fI–key\fP исходного ключа и имени имитозащищаемого файла. Использование данной опции
+зависящий от указанного опцией :option::\fI\-\-key\fP исходного ключа и имени имитозащищаемого файла. Использование данной опции
 приводит к запрету вычисления производного ключа и вычислению имитовставки на исходном ключе.
 .INDENT 0.0
 .TP
@@ -1103,7 +1103,7 @@ aktool i file.txt \-o result.txt
 .UNINDENT
 .sp
 Следующая последовательность вызовов позволяет
-создать секретный ключ блочного алгоритма шифрования «Кузнечик»,
+создать секретный ключ блочного алгоритма шифрования \(dqКузнечик\(dq,
 а после, вычислить имитовставки всех файлов,
 удовлетворяющих шаблону \fB*.t??\fP (файлы, имеющие расширение из трех
 символов, начинающееся с символа \fIt\fP) в текущем каталоге (на это указывает
@@ -1115,7 +1115,7 @@ aktool i file.txt \-o result.txt
 .nf
 .ft C
 aktool k \-nt kuznechik \-o kuznechik.key
-aktool i \-rp "*.t??" \-\-key kuznechik.key \-m cmac\-kuznechik .
+aktool i \-rp \(dq*.t??\(dq \-\-key kuznechik.key \-m cmac\-kuznechik .
 .ft P
 .fi
 .UNINDENT
@@ -1539,7 +1539,7 @@ aktool s \-\-oids
 .sp
 Выборочный поиск идентификаторов можно осуществить с помощью опции \fI\%\-\-oid\fP (без \fIs\fP на конце). Например,
 следующий вызов позволяет найти все идентификаторы, имена которых
-регламентированы Техническим комитетом «Криптографическая защита информации» (ТК26):
+регламентированы Техническим комитетом \(dqКриптографическая защита информации\(dq (ТК26):
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -1614,7 +1614,7 @@ aktool s \-\-oid curve
 всех реализованных в библиотеке \fIlibakrypt\fP
 криптографических преобразований. В ходе тестирования
 проверяется совпадение вычисляемых значений со значениями, приведенными в различных
-регламетирующих документах (см., далее, раздел «Стандарты»).
+регламетирующих документах (см., далее, раздел \(dqСтандарты\(dq).
 В ряде случае проверяется
 совпадение результатов, полученных при помощи нескольких доступных реализаций.
 .INDENT 0.0
@@ -1826,7 +1826,7 @@ aktool test \-\-crypto \-\-audit 2 \-\-audit\-file stderr
 .sp
 Реализованные утилитой \fIaktool\fP криптографические преобразования и форматы данных
 соотвествуют следующим стандартам Российской Федерации и рекомендациям по стандартизации
-Технического комитета РФ «\fI\%Криптографическая защита информации\fP».
+Технического комитета РФ \(dq\fI\%Криптографическая защита информации\fP\(dq.
 .INDENT 0.0
 .INDENT 3.5
 .INDENT 0.0
