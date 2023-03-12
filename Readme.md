@@ -7,7 +7,7 @@
 Цель разработки библиотеки заключается в создании программного модуля с
 открытыми исходными текстами для СКЗИ, удовлетворяющего рекомендациям по стандартизации Р 1323565.1.012-2017
 «[Принципы разработки и модернизации шифровальных (криптографических) средств защиты
-информации](https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-012-2017-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-printsipy-razrabotki-i-modernizatsii-shifrovalnykh-kriptograficheskikh-sredstv-zashchity-informatsii.html>)» 
+информации](https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-012-2017-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-printsipy-razrabotki-i-modernizatsii-shifrovalnykh-kriptograficheskikh-sredstv-zashchity-informatsii.html)» 
 по классу КС3.
 
 Библиотека распространяется по лицензии [MIT](https://git.miem.hse.ru/axelkenzo/libakrypt-0.x/-/raw/master/LICENSE) 
@@ -23,7 +23,7 @@
   5. Режимы аутентификационного шифрования, включая режим MGM (Multilinear Galois mode), 
      рекомендуемый в Р 1323565.026-2019, см. также [RFC 9058](https://tools.ietf.org/html/rfc9058);
   6. Функции хеширования семейства "Стрибог", стандартизированные в ГОСТ Р 34.11-2012, 
-     см. также [RFC-6986](https://tools.ietf.org/html/rfc6986);
+     см. также [RFC 6986](https://tools.ietf.org/html/rfc6986);
   7. Криптографические алгоритмы из рекомендаций Р 50.1.113-2016, включая алгоритм HMAC;
   8. Функция выработки ключа из пароля (PBKDF2), рекомендованная в Р 50.1.111-2016;
   9. Несколько генераторов псевдослучайных чисел, включая алгоритм рекомендованный в Р 1323565.1.006-2017;
@@ -46,4 +46,24 @@
 Библиотека может применяться в различных операционных системах: `Linux`, `Windows` и `FreeBSD`.
 Также были успешные тестовые запуски библиотеки под 
 [ReactOS](https://reactos.org) и [Sailfish OS](https://sailfishos.org/).
+
+# Libakrypt: сборка
+
+Получить исходные коды библиотеки можно с помощью следующего вызова.
+
+    git clone https://git.miem.hse.ru/axelkenzo/libakrypt-0.x
+
+Cборка библиотеки осуществляется привычным способом.
+
+    mkdir build
+    cd build
+    cmake ../libakrypt-0.x
+
+После сборки библиотеки буду собраны две библиотеки `libakrypt-base` и `libakrypt`,
+а также консольная утилита `aktool`.
+Установка собранных библиотек и консольной утилиты выполняется с правами суперпользователя следующим образом.
+
+    make install
+
+Подробная инструкция по установке и сборке библиотеки находится в подкаталоге `doc` дерева исходных текстов.
 
