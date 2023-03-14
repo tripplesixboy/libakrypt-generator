@@ -199,6 +199,7 @@ set( EXAMPLES_LIST
      g01n03
      g02n01
      g02n02
+     g02n03
    )
 
 if( AK_EXAMPLES )

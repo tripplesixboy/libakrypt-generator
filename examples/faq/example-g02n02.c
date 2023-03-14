@@ -23,9 +23,7 @@
      return ( node = NULL );
    }
 
-   md = node->data;
-   md->x = x;
-   md->y = y;
+   md = node->data; md->x = x; md->y = y;
    memset( md->name, 0, sizeof( md->name ));
    memcpy( md->name, str, ak_min( sizeof( md->name ) -1, strlen( str )));
 
