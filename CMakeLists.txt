@@ -185,7 +185,6 @@ endif()
 # начинаем с примеров
 # определяем перечень примеров и тестов для akbase
 set( BASE_EXAMPLES_LIST
-     log
      ini
      ini-file
      file
@@ -196,6 +195,10 @@ set( BASE_EXAMPLES_LIST
 # определяем перечень примеров из FAQ
 set( EXAMPLES_LIST
      g01n01
+     g01n02
+     g01n03
+     g02n01
+     g02n02
    )
 
 if( AK_EXAMPLES )

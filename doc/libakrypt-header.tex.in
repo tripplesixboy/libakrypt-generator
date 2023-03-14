@@ -206,10 +206,10 @@
 {\noindent\Huge\bfseries библиотека libakrypt}\\[1\baselineskip]
 \textsc{версия @HEAD_VERSION@.@MAIN_VERSION@.@MINOR_VERSION@} \\[5\baselineskip]
 
-{\bfseries\textsc{Справочная документация}}\\[1\baselineskip]
+{\bfseries\textsc{Описание API библиотеки}}\\[1\baselineskip]
 
 \vspace{0.5\textheight}
-{\small\textsc{Алексей Нестеренко и <<Компания изящной словесности>>~~\copyright~~\today}}\\[1\baselineskip]
+{\small\textsc{Алексей Юрьевич Нестеренко и сотоварищи~~\copyright~~\today}}\\[1\baselineskip]
 
 } % end vbox
 } % end parbox

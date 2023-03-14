@@ -18,9 +18,8 @@ sys.path.insert(0, '../source');
 
 # -- Project information -----------------------------------------------------
 project = 'libakrypt'
-copyright = '2014 - 2022, Axel Kenzo и Компания изящной словесности'
-author = 'Axel Kenzo'
-
+copyright = '2014 - 2023, Алексей Юрьевич Нестеренко и сотоварищи'
+author = 'Алексей Юрьевич Нестеренко'
 
 # -- General configuration ---------------------------------------------------
 
@@ -45,12 +44,16 @@ language = 'ru'
 exclude_patterns = []
 
 # -- Options for HTML output -------------------------------------------------
+html_logo = '../logo.png'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
-#html_theme = 'sphinxdoc'
+html_theme = 'sphinxdoc'
+#html_theme = 'nature'
+#html_theme = 'traditional'
+#html_theme = 'agogo'
+#html_theme = 'sphinx_rtd_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -66,6 +69,46 @@ man_pages = [
 ]
 
 # If true, show URL addresses after external links.
-#
 # man_show_urls = False
 #
+
+# -- Настройки для сборки latex
+latex_engine = 'xelatex'
+latex_elements = {
+'pointsize': r'a4paper,11pt,oneside',
+
+   'fontpkg': r'''
+\setmainfont{CMU Sans Serif}
+\setsansfont{CMU Sans Serif}
+\setmonofont{CMU Typewriter Text}
+''',
+
+  'geometry': r'\usepackage[left=15mm,right=12mm, headheight=15pt]{geometry}',
+  'preamble': r'''
+  ''',
+  'printindex': r'\footnotesize\raggedright\printindex',
+  'maketitle': r'''
+  \thispagestyle{empty}
+  \vfill
+  \hspace{12mm}\hbox{%
+  \rule{1pt}{1.0\textheight}
+  \hspace*{0.05\textwidth}%
+  \parbox[b]{0.95\textwidth}{
+  \vbox{%
+  \vspace{0.1\textwidth}
+  {\noindent\Huge\bfseries библиотека libakrypt}\\[1\baselineskip]
+  \textsc{версия x.y.z} \\[5\baselineskip]
+
+  {{\bfseries\textsc{Справочная документация}} \\
+   ~\\
+   {\small\textsc{Алексей Юрьевич Нестеренко и сотоварищи~~\copyright~~\today}}
+  }\\[1\baselineskip]
+
+  \vspace{0.5\textwidth}
+  } % end vbox
+  } % end parbox
+  } % end hbox
+  \vfill
+''',
+}
+
