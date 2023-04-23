@@ -17,8 +17,8 @@
    struct my_data *md = NULL;
    struct list_node *node = NULL;
 
-   if(( node = malloc( sizeof( struct list_node ))) == NULL ) return NULL;
-   if(( node->data = malloc( sizeof( struct my_data ))) == NULL ) {
+   if(( node = calloc( 1, sizeof( struct list_node ))) == NULL ) return NULL;
+   if(( node->data = calloc( 1, sizeof( struct my_data ))) == NULL ) {
      free( node );
      return ( node = NULL );
    }
@@ -44,8 +44,9 @@
       каждому узлу даем собственное имя */
     for( i = 1; i < 8; i++ ) {
        char name[16];
-       ak_snprintf( name, 16, "hello-%d", i );
 
+       memset( name, 0, 16 );
+       ak_snprintf( name, 15, "hello-%d", i );
        ak_list_add_node( &ll, create_new_node( rand(), rand(), name ));
     }
 

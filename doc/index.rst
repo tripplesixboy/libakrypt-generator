@@ -8,6 +8,9 @@ libakrypt
 Цель разработки библиотеки заключается в создании модуля с открытым исходными текстами,
 удовлетворяющего рекомендациям по стандартизации [P1323565.1.012-2017]_ .
 
+
+Git: `https://git.miem.hse.ru/axelkenzo/libakrypt-0.x <https://git.miem.hse.ru/axelkenzo/libakrypt-0.x>`__
+
 .. toctree::
    :maxdepth: 1
 
@@ -16,7 +19,5 @@ libakrypt
    faq.rst
    aktool.rst
    bibliography.rst
-
-Git: `https://git.miem.hse.ru/axelkenzo/libakrypt-0.x <https://git.miem.hse.ru/axelkenzo/libakrypt-0.x>`__
 
 

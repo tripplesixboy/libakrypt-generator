@@ -826,7 +826,7 @@
                                "function call with wrong value of initial vector" );
 
   /* помещаем во внутренний буффер значение синхропосылки */
-   memcpy( bkey->ivector, iv, iv_size);
+   if( iv != NULL ) memcpy( bkey->ivector, iv, iv_size);
   /* поднимаем значение флага: синхропосылка установлена */
    bkey->key.flags = ( bkey->key.flags&( ~key_flag_not_ctr ))^key_flag_not_ctr;
 

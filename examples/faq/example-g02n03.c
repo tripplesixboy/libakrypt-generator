@@ -8,7 +8,7 @@
 {
    ak_list lp = ak_list_new();
 
-  /* помещаем в созданный список несколько строк */
+  /* помещаем в созданный список несколько бессмертных строк */
    ak_list_add_node( lp,
      ak_list_node_new_string( "I kill'd the slave that was a-hanging thee." ));
    ak_list_add_node( lp,
