@@ -11,6 +11,7 @@
    :maxdepth: 2
 
    simpleprogs.rst
+   random.rst
    encrypt.rst
    libakrypt-base.rst
 

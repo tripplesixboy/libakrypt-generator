@@ -196,7 +196,8 @@ set( BASE_EXAMPLES_LIST
 set( EXAMPLES_LIST
      g01n01 g01n02 g01n03
      g02n01 g02n02 g02n03
-     g03n01 g03n02
+     g03n01 g03n02 g03n03 g03n04
+     g04n01
    )
 
 if( AK_EXAMPLES )

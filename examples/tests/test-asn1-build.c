@@ -32,7 +32,7 @@
   size_t len = 0;
   struct file file;
   ak_uint32 u32 = 0;
-  bool_t bool = ak_true;
+  bool_t bl = ak_true;
   ak_uint32 i = 0;
   int result = EXIT_FAILURE;
   ak_uint8 buf[13] = { 0x01, 0x02, 0x03, 4, 5, 6, 7, 8, 9, 0xa, 0xb, 0xc, 0xe },
@@ -52,13 +52,13 @@
 
  /* создаем вложенный уровень дерева, используя указатель asn1,
     и добавляем в него булевы элементы */
-  ak_asn1_add_bool( asn1, bool ); /* используется инициализированная ячейка памяти */
+  ak_asn1_add_bool( asn1, bl ); /* используется инициализированная ячейка памяти */
   ak_asn1_add_bool( asn1, ak_false ); /* используется константа */
 
    /* иллюстрируем доступ к данным, хранящимся в узлах дерева
       и проверяем значение последней булевой переменной */
-     if( ak_tlv_get_bool( asn1->current, &bool ) == ak_error_ok )
-       printf(" bool variable: %u (must be false)\n", bool );
+     if( ak_tlv_get_bool( asn1->current, &bl ) == ak_error_ok )
+       printf(" bool variable: %u (must be false)\n", bl );
 
  /* добавляем во вложенный уровень целые, 32-х битные числа */
   ak_asn1_add_uint32( asn1, 0x8FFFFFFa ); /* используется константа,
