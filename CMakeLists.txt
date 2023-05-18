@@ -387,6 +387,7 @@ endif()
 
 # -------------------------------------------------------------------------------------------------- #
 # инсталляция библиотеки (только для UNIX)
+message("-- Install path:" ${CMAKE_INSTALL_PREFIX} )
 if( CMAKE_HOST_UNIX )
   if( AK_STATIC_LIB )
     install( TARGETS akbase-static LIBRARY DESTINATION lib ARCHIVE DESTINATION lib )

@@ -169,7 +169,7 @@ echo ""
 ## реализуем обратную процедуру - теперь aktool вырабатывает сертификаты
 #
 #
-${AKTOOL} k -c openssl256_request.csr --ca-key aktool512.key --inpass 321azO --ca-cert aktool512_ca.crt --op openssl256_aktool_certificate.crt --to pem
+${AKTOOL} k -s openssl256_request.csr --ca-key aktool512.key --inpass 321azO --ca-cert aktool512_ca.crt --op openssl256_aktool_certificate.crt --to pem
 #
 openssl verify -CAfile aktool512_ca.crt openssl256_aktool_certificate.crt
 #
@@ -180,7 +180,7 @@ then echo "aktool не может верифицировать сертифик�
 fi
 
 echo ""
-${AKTOOL} k -c aktool256_request.csr --ca-key aktool512.key --inpass 321azO --ca-cert aktool512_ca.crt --op aktool256_aktool_certificate.crt --to pem
+${AKTOOL} k -s aktool256_request.csr --ca-key aktool512.key --inpass 321azO --ca-cert aktool512_ca.crt --op aktool256_aktool_certificate.crt --to pem
 #
 openssl verify -CAfile aktool512_ca.crt aktool256_aktool_certificate.crt
 ${AKTOOL} k -v aktool256_aktool_certificate.crt --ca-cert aktool512_ca.crt

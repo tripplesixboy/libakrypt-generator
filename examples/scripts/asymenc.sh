@@ -11,16 +11,20 @@ aktool k -nt sign512 --curve ec512b --ca -o ca.key --outpass z12Ajq --op ca.crt 
 # 2. Создаем ключевую пару для получателя сообщений
 aktool k -nt sign256 -o user.key --outpass 1Qlm21u --op user_request.csr --to pem --id "Local User"
 aktool k -v user_request.csr
-aktool k -s user.key
+aktool k --show user.key
 #
 # 3. Вырабатываем сертификат пользователя 
 #    (с добавлением расширения, содержащего номер секретного ключа)
-aktool k -c user_request.csr --key-encipherment --secret-key-number `aktool k --show-number user.key` --ca-key ca.key --inpass z12Ajq --ca-cert ca.crt --op user.crt --to pem
+aktool k --sign user_request.csr --key-encipherment --secret-key-number `aktool k --show-number user.key` --ca-key ca.key --inpass z12Ajq --ca-cert ca.crt --op user.crt --to pem
 aktool k -v user.crt --ca-cert ca.crt --verbose
 #
 # 4. Вырабатываем данные для тестирования
 dd if=/dev/zero of=file bs=1M count=72
 aktool i file -o results.streebog
+
+# выводим информацию об исходном файле
+echo; echo "Значение хешкода для исходного (не зашифрованного) файла"
+cat results.streebog
 
 # -------------------------------------------------------------------------------------
 # Первый эксперимент, используется пароль для шифрования контейнера,

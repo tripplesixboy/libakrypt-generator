@@ -37,7 +37,7 @@ fi
 aktool k -v public-l1.csr
 echo;
 #
-aktool k -c public-l1.csr --op public-l1.crt --to pem --ca-key secret-ca.key --inpass 321azO --ca-cert public-ca.crt --days 1 --ca-ext true --key-cert-sign
+aktool k -s public-l1.csr --op public-l1.crt --to pem --ca-key secret-ca.key --inpass 321azO --ca-cert public-ca.crt --days 1 --ca-ext true --key-cert-sign
 if [[ $? -ne 0 ]]
 then echo "aktool не может создать сертификат !!!"; exit;
 fi
@@ -60,7 +60,7 @@ fi
 aktool k -v public-l2.csr
 echo;
 #
-aktool k -c public-l2.csr --op public-l2.crt --to pem --ca-key secret-l1.key --inpass 321azO --ca-cert public-l1.crt --days 1 --ca --repo .ca
+aktool k -s public-l2.csr --op public-l2.crt --to pem --ca-key secret-l1.key --inpass 321azO --ca-cert public-l1.crt --days 1 --ca --repo .ca
 if [[ $? -ne 0 ]]
 then echo "aktool не может создать сертификат !!!"; exit;
 fi
@@ -82,7 +82,7 @@ fi
 aktool k -v public-l3.csr
 echo;
 #
-aktool k -c public-l3.csr --op public-l3.crt --to pem --ca-key secret-l2.key --inpass 321azO --ca-cert public-l2.crt --days 1 --ca --repo .ca
+aktool k -s public-l3.csr --op public-l3.crt --to pem --ca-key secret-l2.key --inpass 321azO --ca-cert public-l2.crt --days 1 --ca --repo .ca
 if [[ $? -ne 0 ]]
 then echo "aktool не может создать сертификат (уровень три)"; exit;
 fi
@@ -104,7 +104,7 @@ fi
 aktool k -v public-l4.csr
 echo;
 #
-aktool k -c public-l4.csr --op public-l4.crt --to pem --ca-key secret-l3.key --inpass 321azO --ca-cert public-l3.crt --days 1 --ca --repo .ca
+aktool k -s public-l4.csr --op public-l4.crt --to pem --ca-key secret-l3.key --inpass 321azO --ca-cert public-l3.crt --days 1 --ca --repo .ca
 if [[ $? -ne 0 ]]
 then echo "aktool не может создать сертификат (уровень 4)"; exit;
 fi
@@ -126,7 +126,7 @@ fi
 aktool k -v public-user.csr
 echo;
 #
-aktool k -c public-user.csr --op public-user.crt --to pem --ca-key secret-l4.key --inpass 321azO --ca-cert public-l4.crt --days 1 --repo .ca
+aktool k -s public-user.csr --op public-user.crt --to pem --ca-key secret-l4.key --inpass 321azO --ca-cert public-l4.crt --days 1 --repo .ca
 if [[ $? -ne 0 ]]
 then echo "aktool не может создать сертификат"; exit;
 fi
@@ -189,7 +189,7 @@ aktool k --repo-add *.p7b --repo .ca
 ##########################################################################
 # на-последок, показываем, что натворили и удаляем созданные файлы
 aktool k --repo-ls --repo .ca
-# aktool k --repo-check --repo .ca
+aktool k --repo-check --repo .ca
 #
 rm -f secret-ca.key public-ca.crt
 rm -f secret-l1.key public-l1.csr public-l1.crt

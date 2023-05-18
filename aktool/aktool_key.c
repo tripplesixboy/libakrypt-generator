@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------------------------- */
-/*  Copyright (c) 2018 - 2022 by Axel Kenzo, axelkenzo@mail.ru                                     */
+/*  Copyright (c) 2018 - 2023 by Axel Kenzo, axelkenzo@mail.ru                                     */
 /*                                                                                                 */
 /*  Прикладной модуль, реализующий процедуры выработки ключевой информации,                        */
 /*  используемой криптографическими алгоритмами библиотеки libakrypt                               */
@@ -68,9 +68,9 @@
    /* сначала уникальные */
      { "algorithm",           1, NULL,  'a' },
      { "new",                 0, NULL,  'n' },
-     { "show",                1, NULL,  's' },
+     { "show",                1, NULL,  254 },
      { "verify",              0, NULL,  'v' },
-     { "cert",                0, NULL,  'c' },
+     { "sign",                0, NULL,  's' },
      { "output-secret-key",   1, NULL,  'o' },
      { "to",                  1, NULL,  250 },
      { "format",              1, NULL,  250 },
@@ -139,7 +139,7 @@
 
  /* разбираем опции командной строки */
   do {
-       next_option = getopt_long( argc, argv, aktool_common_letters_definition"hns:a:o:t:vcs:", long_options, NULL );
+       next_option = getopt_long( argc, argv, aktool_common_letters_definition"hna:o:t:vs", long_options, NULL );
        switch( next_option )
       {
         aktool_common_functions_run( aktool_key_help );
@@ -152,11 +152,11 @@
                    work = do_verify;
                    break;
 
-        case 'c': /* --cert */
+        case 's': /* --sign */
                    work = do_cert;
                    break;
 
-        case 's': /* --show */
+        case 254: /* --show */
                    work = do_show;
                    what_show = show_all;
                    #ifdef _WIN32
@@ -2433,7 +2433,6 @@
      "                         this option needs to be used in some key generation schemes, e.g. in Blom scheme\n"
      "     --ca-cert           set the file with certificate of authorithy's public key\n"
      "     --ca-key            another form of --key option used to sign the certificate\n"
-     " -c, --cert              sign the request and generate the certificate of public key\n"
      "     --curve             set the elliptic curve name or identifier for asymmetric keys\n"
      "     --days              set the days count to expiration date of secret or public key\n"
      "     --field             bit length which used to define the galois field [ enabled values: 256, 512 ]\n"
@@ -2469,13 +2468,14 @@
      "     --repo-ls           list all public keys in the certificate's repository\n"
      "     --repo-rm           remove public key from the certificate's repository\n"
      "     --secret-key-number use the hexademal string as the number of secret key\n"
-     " -s, --show              output all unencrypted parameters of the secret key\n"
+     "     --show              output all unencrypted parameters of the secret key\n"
      "     --show-algorithm    show the identifier of secret key's algorithm\n"
      "     --show-curve        show the identifier of elliptic curve for related public key (if defined)\n"
      "     --show-label        show the secret key label (if defined)\n"
      "     --show-number       show the unique number of secret key\n"
      "     --show-public-key   show the number of related public key (if defined)\n"
      "     --show-resource     show the available resource of secret key\n"
+     " -s, --sign              sign the request and generate the certificate of public key\n"
      "     --size              set the dimension of secret master key, in particular, for blom scheme [ maximal value: 4096 ]\n"
      " -t, --target            specify the name of the cryptographic algorithm for the new generated key\n"
      "                         one can use any supported names or identifiers of algorithm,\n"
