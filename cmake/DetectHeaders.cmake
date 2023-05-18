@@ -214,6 +214,14 @@ check_c_source_compiles("
 
 # -------------------------------------------------------------------------------------------------- #
 check_c_source_compiles("
+  #include <libintl.h>
+  int main( void ) {
+     setlocale( LC_ALL, \"\" );
+     return 0;
+  }" AK_HAVE_LIBINTL_H )
+
+# -------------------------------------------------------------------------------------------------- #
+check_c_source_compiles("
   #include <signal.h>
   int main( void ) {
      return 0;

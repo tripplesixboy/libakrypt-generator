@@ -39,12 +39,6 @@ else()
 endif()
 
 # -------------------------------------------------------------------------------------------------- #
-if( DOXYGEN )
-  # doxygen найден и документация может быть сгенерирована
-  # configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY )
-endif()
-
-# -------------------------------------------------------------------------------------------------- #
 if( UNIX )
   if( SPHINX )
     configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/doc/Makefile.in ${CMAKE_CURRENT_BINARY_DIR}/sphinx/Makefile @ONLY )

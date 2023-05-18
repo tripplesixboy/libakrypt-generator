@@ -911,6 +911,34 @@ INPUT                  = @CMAKE_CURREN_SOURCE_DIR@/source \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_tools.c \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_list.c \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_base64.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_file.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_options.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_libakrypt.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_oid.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_random.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_gf2n.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_mpzn.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_curves.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_parameters.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_mac.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_hash.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_skey.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_hmac.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_bckey.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_cmac.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_magma.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_kuznechik.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_acpkm.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_mgm.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_aead.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_xts.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_xtsmac.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_asn1.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_sign.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_asn1_keys.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_asn1_cert.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_blom.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_kdf.c \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_encrypt.c \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/libakrypt.h \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/libakrypt-internal.h \
