@@ -1868,15 +1868,10 @@
   if(( ca_cert_ptr = aktool_key_verify_ca( &ca_cert, ki.capubkey_file )) == NULL )
     return EXIT_FAILURE;
 
- /* запрашиваем пароль для доступа к секретному ключу (однократно, без дублирования) */
+ /* не
+    запрашиваем пароль для доступа к секретному ключу (однократно, без дублирования)
+    он будет запрошен позже, при необходимости */
   if( !ki.quiet ) printf(_("loading the CA secret key: %s\n"), ki.key_file );
-  if( ki.leninpass == 0 ) {
-    if(( ki.leninpass = aktool_load_user_password( NULL, ki.inpass, sizeof( ki.inpass ), 0 )) < 1 )
-    {
-       aktool_error(_("incorrect password reading"));
-       return exitcode;
-    }
-  }
 
  /* считываем ключ из заданного файла
     если пароль определен в командой строке, то используем именно его */
