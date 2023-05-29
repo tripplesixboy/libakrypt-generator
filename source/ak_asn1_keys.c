@@ -1523,7 +1523,7 @@
   /* проверяем контейнер на формат хранящихся данных */
    ak_asn1_first( asn );
    if( !ak_tlv_check_libakrypt_container( asn->current, &basicKey, &content )) {
-     ak_error_message( error = ak_error_invalid_asn1_content, __func__,
+     ak_error_message( ak_error_invalid_asn1_content, __func__,
                                                       "incorrect format of secret key container" );
      goto lab1;
    }
