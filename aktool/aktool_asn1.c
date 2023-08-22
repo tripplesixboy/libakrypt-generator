@@ -132,7 +132,7 @@
 
   if( exitcode ) {
     if( exitcode > 0 )
-      aktool_error(_("aktool found %d error(s), rerun aktool with \"--audit stderr\" option or see syslog messages"), exitcode );
+      aktool_error(_("aktool found %d error(s), rerun aktool with \"--audit 2 --audit-file stderr\" option or see syslog messages"), exitcode );
     return EXIT_FAILURE;
   }
 

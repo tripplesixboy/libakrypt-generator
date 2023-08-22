@@ -726,7 +726,8 @@
  */
  int ak_random_create_nlfsr( ak_random generator )
 {
-   return ak_random_create_nlfsr_with_params( generator, 21, 849314 );
+//   return ak_random_create_nlfsr_with_params( generator, 21, 849314 );
+   return ak_random_create_nlfsr_with_params( generator, 32, 183599831 );
 }
 
 /* ----------------------------------------------------------------------------------------------- */
