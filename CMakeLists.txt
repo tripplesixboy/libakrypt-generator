@@ -262,11 +262,13 @@ set ( ARITHMETIC_TESTS_LIST
     )
 
 if( AK_TESTS_GMP )
+  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAK_HAVE_GMP_H" )
   set( ARITHMETIC_TESTS_LIST ${ARITHMETIC_TESTS_LIST}
       mpzn-arithmetic
       mpzn-convert
       mpzn-montgomery
       mpzn-rem
+      mpzn-password
      )
 endif()
 

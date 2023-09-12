@@ -1,6 +1,6 @@
 # -------------------------------------------------------------------------------------------------- #
 # поиск gmp
-if( LIBAKRYPT_GMP_TESTS )
+if( AK_TESTS_GMP )
 
   find_library( LIBGMP gmp )
   if( LIBGMP )
