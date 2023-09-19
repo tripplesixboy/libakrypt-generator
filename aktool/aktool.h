@@ -153,7 +153,7 @@
 /* вывод длинной справки о программе */
  int aktool_help( void );
 /* вывод информации об ощих опциях */
- int aktool_print_common_options();
+ int aktool_print_common_options( void );
 /* вывод произвольного сообщения через gettext() */
  int aktool_print_gettext( const char * );
 /* проверка корректности заданной пользователем команды */

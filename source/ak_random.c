@@ -16,6 +16,9 @@
 #ifdef AK_HAVE_FCNTL_H
  #include <fcntl.h>
 #endif
+#ifdef AK_HAVE_STDLIB_H
+ #include <stdlib.h>
+#endif
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Инициализация генератора псевдо-случайных чисел.
@@ -726,8 +729,170 @@
  */
  int ak_random_create_nlfsr( ak_random generator )
 {
-//   return ak_random_create_nlfsr_with_params( generator, 21, 849314 );
-   return ak_random_create_nlfsr_with_params( generator, 32, 183599831 );
+  /*  для последовательностей с которотким циклом
+   *  можно использовать следующие параметры инициализации генератора
+   *    return ak_random_create_nlfsr_with_params( generator, 21, 849314 ); */
+ return ak_random_create_nlfsr_with_params( generator, 32, 183599831 );
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*                                   реализация класса hrng                                        */
+/* ----------------------------------------------------------------------------------------------- */
+/*! \brief Класс для хранения внутренних состояний генератора hrng */
+ typedef struct random_hrng {
+  /*! \brief структура используемой бесключевой функции хеширования */
+   struct hash hctx;
+  /*! \brief текущее внутреннее состояние генератора, включая счетчик обработанных блоков */
+   ak_mpzn512 counter;
+  /*! \brief массив выработанных значений */
+   ak_uint8 buffer[64];
+  /*! \brief текущее количество доступных для выдачи октетов */
+   size_t capacity;
+ } *ak_random_hrng;
+
+/* ----------------------------------------------------------------------------------------------- */
+/**
+ * @brief Функция вычисляет новое значение внутреннего состояния генератора
+ *
+ * @param rnd Контекст создаваемого генератора.
+ * @return int В случае успеха, функция возвращает \ref ak_error_ok. В противном случае
+            возвращается код ошибки.
+ */
+ static int ak_random_hrng_next( ak_random rnd )
+{
+  int error = ak_error_ok;
+  ak_random_hrng hrng = NULL;
+
+  if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                     "use a null pointer to a random generator" );
+  if(( hrng = (ak_random_hrng) rnd->data.ctx ) == NULL )
+   return ak_error_message( ak_error_undefined_value, __func__, "using non initialized context" );
+
+  hrng->counter[7]++;
+  hrng->capacity = 64;
+  if(( error = ak_hash_ptr( &hrng->hctx, hrng->counter, 64, hrng->buffer, 64 )) != ak_error_ok )
+    ak_error_message( error, __func__, "incorrect hashing of internal state" );
+
+ return error;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/**
+ * @param rnd контекст генератора псевдослучайных чисел
+ * @param ptr указатель на область памяти, где располагаются данные,
+ *            которыми инициализируется генератор псевдослучайных чисел
+ * @param size размер данных (в байтах)
+   @return int В случае успеха, функция возвращает \ref ak_error_ok. В противном случае
+            возвращается код ошибки.
+ */
+ static int ak_random_hrng_randomize_ptr( ak_random rnd, const ak_pointer ptr, const ssize_t size )
+{
+  int error = ak_error_ok;
+  ak_random_hrng hrng = NULL;
+
+  if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                     "use a null pointer to a random generator" );
+  if(( hrng = (ak_random_hrng) rnd->data.ctx ) == NULL )
+   return ak_error_message( ak_error_undefined_value, __func__, "using non initialized context" );
+
+ /* формируем внутреннее состояние */
+  if(( error = ak_hash_ptr( &hrng->hctx, ptr, size, hrng->counter, 64 )) != ak_error_ok )
+    return ak_error_message( error, __func__, "incorrect hashing of input data");
+ /* вычисляем новое состояние промежуточного буфера */
+ return rnd->next( rnd );
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/**
+ * @param rnd контекст генератора псевдослучайных чисел
+ * @param ptr указатель на область памяти, куда помещаются случайные данные
+ * @param size размер данных (в байтах)
+   @return int В случае успеха, функция возвращает \ref ak_error_ok. В противном случае
+            возвращается код ошибки.
+ */
+ static int ak_random_hrng_random( ak_random rnd, const ak_pointer ptr, const ssize_t size )
+{
+  ssize_t cursize = size;
+  ak_uint8 *outbuf = ptr;
+  ak_random_hrng hrng = NULL;
+
+  if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                     "use a null pointer to a random generator" );
+  if(( hrng = (ak_random_hrng) rnd->data.ctx ) == NULL )
+   return ak_error_message( ak_error_undefined_value, __func__, "using non initialized context" );
+
+  while( hrng->capacity < cursize ) {
+     memcpy( outbuf, hrng->buffer + (64 - hrng->capacity), hrng->capacity );
+     cursize -= hrng->capacity;
+     outbuf += hrng->capacity;
+     rnd->next( rnd );
+  }
+
+  memcpy( outbuf, hrng->buffer + (64 - hrng->capacity), cursize );
+  hrng->capacity -= cursize;
+
+ return ak_error_ok;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/**
+ * @param rnd контекст генератора псевдослучайных чисел
+   @return int В случае успеха, функция возвращает \ref ak_error_ok. В противном случае
+            возвращается код ошибки.
+ */
+ static int ak_random_hrng_free( ak_random rnd )
+{
+  ak_random_hrng hrng = NULL;
+  if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                     "use a null pointer to a random generator" );
+  if(( hrng = (ak_random_hrng) rnd->data.ctx ) != NULL ) {
+    ak_hash_destroy( &hrng->hctx );
+    memset( hrng, 0, sizeof( struct random_hrng ));
+    free( hrng );
+  }
+
+ return ak_error_ok;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/**
+ * @param rnd контекст генератора псевдослучайных чисел
+   @return int В случае успеха, функция возвращает \ref ak_error_ok. В противном случае
+            возвращается код ошибки.
+ */
+ int ak_random_create_hrng( ak_random rnd )
+{
+  int error = ak_error_ok;
+  ak_random_hrng hrng = NULL;
+  ak_uint64 value = ak_random_value();
+
+  if(( error = ak_random_create( rnd )) != ak_error_ok )
+    return ak_error_message( error, __func__ , "wrong initialization of random generator" );
+
+ /* выделяем память под внутренний контекст генератора */
+  if(( rnd->data.ctx = calloc( 1, sizeof( struct random_hrng ))) == NULL ) {
+    ak_random_destroy( rnd );
+    return ak_error_message( ak_error_null_pointer, __func__, "incorrect memory allocation ");
+  }
+
+ /* создаем контекст функции хеширования */
+  hrng = (ak_random_hrng) rnd->data.ctx;
+  if(( error =
+          ak_hash_create_streebog512( &hrng->hctx )) != ak_error_ok )
+    return ak_error_message( error, __func__ , "incorrect creation of hash function context" );
+
+ /* устанавливаем обработчики событий */
+  rnd->oid = ak_oid_find_by_name("hrng");
+  rnd->next = ak_random_hrng_next;
+  rnd->randomize_ptr = ak_random_hrng_randomize_ptr;
+  rnd->random = ak_random_hrng_random;
+  rnd->free = ak_random_hrng_free;
+
+ /* инициализируем начальное состояние */
+  if(( error = rnd->randomize_ptr( rnd, &value, sizeof( value ))) != ak_error_ok )
+   ak_error_message( error, __func__, "incorrect initialization of internal state" );
+
+ return error;
 }
 
 /* ----------------------------------------------------------------------------------------------- */

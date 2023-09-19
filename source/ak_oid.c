@@ -59,10 +59,9 @@
  static const char *asn1_winrtl_n[] =       { "winrtl", NULL };
  static const char *asn1_winrtl_i[] =       { "1.2.643.2.52.1.1.4", NULL };
 #endif
-/* генератор, использующий функцию хеширования
+/* генератор, использующий функцию хеширования согласно Р 1323565.1.006-2017 */
  static const char *asn1_hrng_n[] =     { "hrng", NULL };
  static const char *asn1_hrng_i[] =     { "1.2.643.2.52.1.1.5", NULL };
-*/
  static const char *asn1_nlfsr_n[] =     { "nlfsr", NULL };
  static const char *asn1_nlfsr_i[] =     { "1.2.643.2.52.1.1.6", NULL };
 
@@ -533,6 +532,11 @@ static struct oid libakrypt_oids[] =
                               (ak_function_destroy_object *)ak_random_destroy, NULL, NULL, NULL },
                                                                 ak_object_undefined, NULL, NULL }},
 #endif
+
+ { random_generator, algorithm, asn1_hrng_i, asn1_hrng_n, NULL,
+  {{ sizeof( struct random ), (ak_function_create_object *)ak_random_create_hrng,
+                              (ak_function_destroy_object *)ak_random_destroy, NULL, NULL, NULL },
+                                                                ak_object_undefined, NULL, NULL }},
 
  { random_generator, algorithm, asn1_nlfsr_i, asn1_nlfsr_n, NULL,
   {{ sizeof( struct random ), (ak_function_create_object *)ak_random_create_nlfsr,

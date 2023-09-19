@@ -60,7 +60,11 @@
      error = EXIT_FAILURE;
 
    if( test_function( ak_random_create_nlfsr,
-      "578e3e9c0e85850e8037d519a05f8c1d4e88ed3393c869ccded3000d68d524cb" ) != ak_true )
+      "564efe09877d05d4929b52aaf89a7923b1d6a4af4d2c180686e58e231c71826e" ) != ak_true )
+     error = EXIT_FAILURE;
+
+   if( test_function( ak_random_create_hrng,
+      "ea225f4cf869abf48af25ae23c42a9408b2589d5bc0a218ad0e809e270f40913" ) != ak_true )
      error = EXIT_FAILURE;
 
   #ifdef _WIN32

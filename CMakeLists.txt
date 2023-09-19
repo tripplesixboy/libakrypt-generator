@@ -245,6 +245,7 @@ endif()
 
 set ( ARITHMETIC_TESTS_LIST
       random01
+      random02
       gf2n
       mgm01
       xtsmac01
