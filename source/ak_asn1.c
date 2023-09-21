@@ -2715,8 +2715,6 @@ AlgorithmIdentifier  ::=  SEQUENCE  {
         if(( error = ak_asn1_add_tlv( asn1, tlv )) != ak_error_ok )
           return ak_error_message( error, __func__,
                                            "incorrect addition of tlv context into asn1 context" );
-        printf("primitive\n");
-        ak_asn1_print( asn1 );
         break;
 
      /* добавляем в дерево составной элемент */
@@ -2730,8 +2728,6 @@ AlgorithmIdentifier  ::=  SEQUENCE  {
           return ak_error_message( error, __func__,
                                           "incorrect addition of asn1 context into asn1 context" );
         }
-        printf("constructed\n");
-        ak_asn1_print( asn1 );
         break;
 
       default: return ak_error_message_fmt( ak_error_invalid_asn1_tag, __func__,
@@ -3172,8 +3168,6 @@ AlgorithmIdentifier  ::=  SEQUENCE  {
   if(( ptr = ak_ptr_load_from_base64_file( buffer, &size, filename )) == NULL )
    return ak_error_message_fmt( ak_error_get_value(), __func__,
                                   "incorrect reading base64 encoded data from file %s", filename );
-
-  printf("PTR: %s\n", ak_ptr_to_hexstr(  ptr, size, ak_false ));
 
   if(( error = ak_asn1_decode( asn, ptr, size, ak_true )) != ak_error_ok )
     ak_error_message_fmt( error, __func__,
