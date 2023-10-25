@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------------------------- */
-/*  Copyright (c) 2014 - 2022 by Axel Kenzo, axelkenzo@mail.ru                                     */
+/*  Copyright (c) 2014 - 2023 by Axel Kenzo, axelkenzo@mail.ru                                     */
 /*                                                                                                 */
 /* ----------------------------------------------------------------------------------------------- */
 /*  Copyright (c) 2018 by Mikhail Lavrinovich, mikhail.lavrinovich@netcracker.com                  */
@@ -2172,6 +2172,9 @@ extern "C" {
 /*! \brief Функция вырабатывает серийный номер сертификата. */
  dll_export int ak_certificate_generate_serial_number( ak_verifykey , ak_signkey ,
                                                                         ak_uint8 *, const size_t );
+/*! \brief Функция формирует полный путь к сертификату в репозирории */
+ dll_export int ak_ceritifcate_generate_repository_name( char * , size_t ,
+                                                                 const ak_uint8 * , const size_t );
 /*! \brief Функция создает asn1 дерево, содержащее сертификат открытого ключа. */
  dll_export ak_asn1 ak_certificate_export_to_asn1( ak_certificate ,
                                                          ak_signkey , ak_certificate , ak_random );
@@ -2179,6 +2182,20 @@ extern "C" {
     в сертификат открытого ключа. */
  dll_export int ak_certificate_export_to_file( ak_certificate , ak_signkey , ak_certificate ,
                                              ak_random , char * , const size_t , export_format_t );
+
+/*! \brief Функция экспортирует открытый ключ асиметричного криптографического алгоритма
+    в сертификат открытого ключа и помещает его в хранилище сертификатов. */
+ dll_export int ak_certificate_export_to_repository( ak_certificate ,
+                                                         ak_signkey , ak_certificate , ak_random );
+/*! \brief Функция сохраняет сертификат в текущем репозитории */
+ dll_export int ak_certificate_add_file_to_repository( const char * );
+/*! \brief Функция сохраняет сертификат в текущем репозитории */
+ dll_export int ak_certificate_add_ptr_to_repository( ak_uint8 * , const size_t );
+/*! \brief Функция сохраняет сертификат в текущем репозитории */
+ dll_export int ak_certificate_add_asn1_to_repository( ak_asn1 );
+/*! \brief Функция переводит код ошибки при проверке сертификата в человеко-читаемую строку */
+ dll_export char *ak_certificate_get_error_message( int );
+
 /*! \brief Функция импортирует открытый ключ асимметричного преобразования из сертификата
    открытого ключа, представленного в виде asn1 дерева */
  dll_export int ak_certificate_import_from_asn1( ak_certificate , ak_certificate , ak_asn1 );
@@ -2189,12 +2206,16 @@ extern "C" {
    открытого ключа, расположенного в памяти */
  dll_export int ak_certificate_import_from_ptr( ak_certificate , ak_certificate ,
                                                                  const ak_pointer , const size_t );
+/*! \brief Функция импортирует открытый ключ асимметричного преобразования из сертификата
+   открытого ключа, хранящегося в репозитории открытых ключей */
+ dll_export int ak_certificate_import_from_repository( ak_certificate , ak_certificate ,
+                                                                 const ak_uint8 * , const size_t );
 /*! \brief Функция изменяет установленный по-умолчанию каталог с расположением
     хранилища сертификатов */
  dll_export int ak_certificate_set_repository( const char * );
 /*! \brief Функция возвращает указатель на установленный каталог с расположением
     хранилища сертификатов */
- dll_export const char *ak_certificate_get_repository( void );
+ dll_export const char *ak_certificate_get_repository( void ); 
 /*! \brief Функция освобождает контекст сертификата открытого ключа. */
  dll_export int ak_certificate_destroy( ak_certificate );
 

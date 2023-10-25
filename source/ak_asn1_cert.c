@@ -1371,8 +1371,8 @@
     После этого сформированное дерево сохраняется в файл (сертификат открытого ключа)
     в заданном пользователем формате.
 
-   \param subject_cert контекст сертификата, содержащий как открытый ключ, также опции и расширения
-   создаваемого сертификата;
+   \param subject_cert контекст создаваемого сертификата, содержащий как открытый ключ,
+   также опции и расширения создаваемого сертификата;
    \param issuer_skey контекст секретного ключа, с помощью которого подписывается создаваемый сертификат;
    \param issuer_cert контекст сертификата открытого ключа, соответствующий секретному ключу подписи;
    данный контекст используется для получения расширенного имени лица,
@@ -1392,7 +1392,7 @@
    \return Функция возвращает \ref ak_error_ok (ноль) в случае успеха, в случае неудачи
    возвращается код ошибки.                                                                        */
 /* ----------------------------------------------------------------------------------------------- */
- dll_export int ak_certificate_export_to_file( ak_certificate subject_cert,
+ int ak_certificate_export_to_file( ak_certificate subject_cert,
                    ak_signkey issuer_skey, ak_certificate issuer_cert, ak_random generator,
                                        char *filename, const size_t size, export_format_t format )
 {
@@ -1436,6 +1436,216 @@
 
   labex: if( certificate != NULL ) ak_asn1_delete( certificate );
  return error;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! Функция формирует полное имя, состоящее из пути к репозиторию и имени файла,
+    созданного из серийного номера сертификата с расширением "cer"
+    (сертификат хранится в репозитории в формате der).
+
+    @param full_name Указатель на область памяти, куда помещается создаваемое имя
+    @param full_name_size Размер области памяти (в октетах)
+    @param serial_number Последовательность октетов, содержащая серийный номер сертификата
+    @param serial_number_size Размер серийного номера (в октетах)
+   \return Функция возвращает \ref ak_error_ok (ноль) в случае успеха, в случае неудачи
+   возвращается код ошибки.                                                                        */
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_ceritifcate_generate_repository_name( char *full_name, size_t full_name_size,
+                                   const ak_uint8 *serial_number, const size_t serial_number_size )
+{
+   if( full_name == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
+                                                                              "using null pointer");
+   if( full_name_size == 0 ) return ak_error_message( ak_error_zero_length, __func__ ,
+                                                "using zero length of output (full_name) buffer " );
+   if( serial_number_size == 0 ) return ak_error_message( ak_error_zero_length, __func__ ,
+                                             "using zero length of input (serial_number) buffer " );
+
+ return
+   ak_snprintf( full_name, full_name_size, "%s%s%s.cer", ak_certificate_get_repository(),
+         #ifdef AK_HAVE_WINDOWS_H
+           "\\"
+         #else
+           "/"
+         #endif
+         , ak_ptr_to_hexstr( serial_number, serial_number_size, ak_false ));
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! Функция помещает информацию об открытом ключе в asn1 дерево, подписывает эту информацию,
+    помещает в это же asn1 дерево информацию о подписывающем лице и правилах применения ключа.
+    После этого сформированное дерево сохраняется в виде сертификата открытого ключа и
+    помещается в хранилище сертификатов открытых ключей.
+
+   \param subject_cert контекст создаваемого сертификата, содержащий как открытый ключ,
+   также опции и расширения создаваемого сертификата;
+   \param issuer_skey контекст секретного ключа, с помощью которого подписывается создаваемый сертификат;
+   \param issuer_cert контекст сертификата открытого ключа, соответствующий секретному ключу подписи;
+   данный контекст используется для получения расширенного имени лица,
+   подписывающего сертификат (issuer), а также для проверки разрешений на использование сертификата;
+   для самоподписанных сертификатов должен принимать значение, совпадающее с subject_cert;
+   \param generator генератор случайных чисел, используемый для подписи сертификата.
+
+   \return Функция возвращает \ref ak_error_ok (ноль) в случае успеха, в случае неудачи
+   возвращается код ошибки.                                                                        */
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_certificate_export_to_repository(  ak_certificate subject_cert,
+                           ak_signkey issuer_skey, ak_certificate issuer_cert, ak_random generator )
+{
+  char filename[FILENAME_MAX];
+
+   /* входнфе данные */
+    if( subject_cert == NULL )
+      return ak_error_message( ak_error_null_pointer, __func__,
+                                                     "using null pointer to subject certificate" );
+   /* проверяем, что номер сертификата определен */
+    if( subject_cert->opts.serialnum_length == 0 ) {
+      ak_certificate_generate_serial_number( &subject_cert->vkey, issuer_skey,
+                                                                   subject_cert->opts.serialnum,
+              subject_cert->opts.serialnum_length = sizeof( subject_cert->opts.issuer_serialnum ));
+
+    }
+   /* файл сохраняется в der-кодировке, имя файла образуется из серийного номера сертификата */
+    ak_ceritifcate_generate_repository_name( filename, FILENAME_MAX-1,
+                                subject_cert->opts.serialnum, subject_cert->opts.serialnum_length );
+
+  return ak_certificate_export_to_file( subject_cert, issuer_skey, issuer_cert,
+                                                          generator, filename, 0, asn1_der_format );
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! \param error код ошибки
+    \return Функция возвращает указатель на константную строку                                     */
+/* ----------------------------------------------------------------------------------------------- */
+ char *ak_certificate_get_error_message( int error )
+{
+     switch( error ) {
+       case ak_error_not_equal_data:
+          return "certificate has wrong signature";
+
+       case ak_error_certificate_verify_key:
+          return "CA certificate not found";
+
+       case ak_error_certificate_verify_names:
+          return "inappropriate CA certificate";
+
+       case ak_error_certificate_validity:
+          return "certificate expired";
+
+       case ak_error_oid_engine:
+          return "unsupported digital signature algorithm";
+
+       default:
+          return "unexpected format of certificate";
+     }
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! Функция выбирает путь к репозиторию по-умолчанию (см. функцию ak_certificate_get_repository()).
+    Перед сохранением выполняется проверка сертификата. В случае неуспешной проверки возвращается
+    код, описывающий причину неуспеха. Получить символьное представление ошибки можно
+    с помощью функции ak_certificate_get_error_message().
+
+   \param filename имя файла с сертификатом открытого ключа
+   \return Функция возвращает \ref ak_error_ok (ноль) в случае успеха, в случае неудачи
+   возвращается код ошибки.                                                                        */
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_certificate_add_file_to_repository( const char *filename )
+{
+    int error = ak_error_ok;
+    ak_uint8 buffer[4096], *ptr = NULL;
+    size_t size = 0;
+
+    if( filename == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
+                                                  "using null pointer to certificate's file name");
+
+    if(( ptr = ak_ptr_load_from_file( buffer, &size, filename )) == NULL )
+      return ak_error_message_fmt( ak_error_get_value(), __func__,
+                                                        "incorrect reading of file %s", filename );
+
+    if(( error = ak_certificate_add_ptr_to_repository( ptr, size )) != ak_error_ok )
+      ak_error_message_fmt( error, __func__, "the file %s is not added to repository", filename );
+
+    if( ptr != buffer ) free( ptr );
+
+ return error;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! Функция выбирает путь к репозиторию по-умолчанию (см. функцию ak_certificate_get_repository()).
+    Перед сохранением выполняется проверка сертификата. В случае неуспешной проверки возвращается
+    код, описывающий причину неуспеха. Получить символьное представление ошибки можно
+    с помощью функции ak_certificate_get_error_message().
+
+   \param ptr указатель на область памяти, в которой расположен сертификат в der-кодировке
+   \param size размер области памяти  (в октетах)
+   \return Функция возвращает \ref ak_error_ok (ноль) в случае успеха, в случае неудачи
+   возвращается код ошибки.                                                                        */
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_certificate_add_ptr_to_repository( ak_uint8 *buffer, const size_t size )
+{
+    ak_asn1 root = NULL;
+    int error = ak_error_ok;
+
+    if( buffer == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
+                                                             "using null pointer to input buffer" );
+    if( size == 0 ) return ak_error_message( ak_error_zero_length, __func__,
+                                                              "using zero length of input buffer" );
+
+   /* выполняем преобразование */
+    if(( error = ak_asn1_decode( root = ak_asn1_new(), buffer, size, ak_false )) != ak_error_ok ) {
+      ak_error_message( error, __func__, "incorrect decoding of input data" );
+    }
+     else {
+      /* сохраняем сертификат */
+       if(( error = ak_certificate_add_asn1_to_repository( root )) != ak_error_ok )
+         ak_error_message( error, __func__, "the buffer is not added to repository" );
+     }
+
+    if( root != NULL ) ak_asn1_delete( root );
+ return error;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! Функция выбирает путь к репозиторию по-умолчанию (см. функцию ak_certificate_get_repository()).
+    Перед сохранением выполняется проверка сертификата. В случае неуспешной проверки возвращается
+    код, описывающий причину неуспеха. Получить символьное представление ошибки можно
+    с помощью функции ak_certificate_get_error_message().
+
+   \param root корень asn1 дерева, сожержащего сертификат открытого ключа
+   \return Функция возвращает \ref ak_error_ok (ноль) в случае успеха, в случае неудачи
+   возвращается код ошибки.                                                                        */
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_certificate_add_asn1_to_repository( ak_asn1 root )
+{
+    int error = ak_error_ok;
+    struct certificate cert;
+    char cert_name[FILENAME_MAX];
+
+   /* проверяем, что получили сертификат */
+    if( ak_asn1_is_certificate( root ) != ak_true ) {
+      return ak_error_message( ak_error_get_value(), __func__,
+                                                     "given asn1 tree is not correct certificate" );
+    }
+
+   /* проверяем, что сертификат валиден */
+    ak_certificate_opts_create( &cert.opts );
+    if(( error = ak_certificate_import_from_asn1( &cert, NULL, root )) != ak_error_ok ) {
+      return ak_error_message_fmt( error, __func__, "certificate is'nt valid (reason: %s)",
+                                                        ak_certificate_get_error_message( error ));
+    }
+
+   /* сохраняем сертификат в der-формате */
+    ak_ceritifcate_generate_repository_name( cert_name, FILENAME_MAX-1,
+                                                 cert.opts.serialnum, cert.opts.serialnum_length );
+   /* освобождаем выделенную память */
+    ak_certificate_destroy( &cert );
+
+   if(( error = ak_asn1_export_to_derfile( root, cert_name )) != ak_error_ok ) {
+     ak_error_message_fmt( error, __func__,
+                                        "wrong export certificate to repository (%s)", cert_name );
+   }
+
+  return error;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -1588,6 +1798,61 @@
 
   lab1: if( root != NULL ) ak_asn1_delete( root );
  return error;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! Функция считывает из репозитория сертификат открытого ключа. Сертификат разыскивается по
+    серийному номеру, заданному в виде последовательности октетов
+    (номер определяет запись сертификата в репозитории).
+    После формирования имени файла, для чтения используется функция ak_certificate_impor_from_file().
+
+    Так же, как и функция ak_certificate_impor_from_file(), эта
+    функция является конструктором контекста `subject_cert`,
+    в случае возникновения некритичных ошибок, создает контекст `subject_cert` и инициирует
+    опции сертификата некоторыми значениями. Под некритичными понимаются ошибки
+    интерпретирования данных, содержащихся в asn1 дереве (например, неподдерживаемые алгоритмы
+    или значения). Критичными являются ошибки нарушения формата x509
+    (формата представления данных).
+
+    В случаях, когда ошибок импорта не возникает, создается контекст открытого ключа,
+    поле `subject_cert->opts.created` устанавливается истинным (`ak_true`).
+    Контекст должен позднее уничтожаться пользователем с помощью вызова ak_certificate_destroy().
+
+    Сертификат, содержащий ключ проверки должен быть предварительно создан и передаваться с помощью
+    указателя `issuer_cert` (если номер сертификата проверки подписи или расширенное имя владельца
+    не совпадают с тем, что содержится в issuer_cert, то возбуждается ошибка).
+
+    Если указатель `issuer_cert` равен `NULL`, то функция ищет сертифкат с соответствующим серийным
+    номером в устанавливаемом библиотекой `libakrypt` каталоге; данный каталог указывается при сборке
+    библотеки из исходных текстов в параметре `AK_CA_PATH`; для unix-like систем значением по
+    умолчанию является каталог `\usr\share\ca-certificates\libakrypt`.
+
+    \param subject_cert контекст импортируемого сертификата открытого ключа
+    асимметричного криптографического алгоритма,
+    \param issuer_cert сертификат открытого ключа, с помощью которого можно проверить подпись под сертификатом;
+    может принимать значение `NULL`
+    \param ptr последовательность октетов, определяющая серийный номер
+    \param size размер последовательности (в октетах)
+    \return Функция возвращает \ref ak_error_ok (ноль) в случае валидности созданноего
+    ключа, иначе - возвращается код ошибки.                                                        */
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_certificate_import_from_repository( ak_certificate subject_cert,
+                                ak_certificate issuer_cert, const ak_uint8 *ptr, const size_t size )
+{
+    int error = ak_error_ok;
+    char filename[FILENAME_MAX];
+
+   /* входнфе данные */
+    if( subject_cert == NULL )
+      return ak_error_message( ak_error_null_pointer, __func__,
+                                                     "using null pointer to subject certificate" );
+   /* имя файла образуется из серийного номера сертификата */
+    if(( error = ak_ceritifcate_generate_repository_name( filename,
+                                                     FILENAME_MAX-1, ptr, size )) != ak_error_ok )
+      return ak_error_message( error, __func__, "wrong creation of certificate name");
+
+   /* считываем файл из сформированного имени */
+ return ak_certificate_import_from_file( subject_cert, issuer_cert, filename );
 }
 
 /* ----------------------------------------------------------------------------------------------- */
