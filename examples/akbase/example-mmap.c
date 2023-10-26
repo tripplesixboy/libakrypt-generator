@@ -19,8 +19,13 @@
   printf("open error:  %d\n",
     ak_file_open_to_read( &ifp, argv[1] ));
 
+ #ifdef AK_HAVE_SYSMMAN_H
   addr = ak_file_mmap( &ifp, NULL, ifp.size, PROT_READ, MAP_PRIVATE, 0 );
   printf("mmap error:  %d\n", ak_error_get_value());
+ #else
+   printf("mmap is unsupported\n");
+   return EXIT_FAILURE;
+ #endif
 
   for( i = 0; i < ifp.mmaped_size; i++ ) {
     printf("%02x ", addr[i] );

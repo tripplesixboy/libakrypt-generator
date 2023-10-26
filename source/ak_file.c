@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------------------------- */
-/*  Copyright (c) 2004 - 2020, 2022 by Axel Kenzo, axelkenzo@mail.ru                               */
+/*  Copyright (c) 2004 - 2020, 2022 - 2023 by Axel Kenzo, axelkenzo@mail.ru                        */
 /*                                                                                                 */
 /*  Файл ak_file.с                                                                                 */
 /* ----------------------------------------------------------------------------------------------- */
@@ -478,21 +478,39 @@
       if( strlen( path ) == 1 )
         return ak_error_message( ak_error_undefined_file, __func__, "unsupported name of file");
       if( path[1] == '/' ) {
-        ak_snprintf( resolved_path, maxsize, "%s/%s", prefix, path +2 );
+        ak_snprintf( resolved_path, maxsize, "%s%s%s", prefix,
+          #ifdef WIN32
+            "\\"
+          #else
+            "/"
+          #endif
+          , path +2 );
         goto exlab;
       }
       if( path[1] == '.' ) {
         if( strlen( path ) == 2 )
           return ak_error_message( ak_error_undefined_file, __func__, "unsupported name of file");
         if( path[2] == '/' ) {
-          /* имеем файл вида ../имя файла */
-          char *ptr = strrchr( prefix, '/' );
+          /* имеем файл вида "../имя файла" */
+          char *ptr = strrchr( prefix,
+            #ifdef WIN32
+              '\\'
+            #else
+              '/'
+            #endif
+           );
           if( ptr == NULL )
             return ak_error_message( ak_error_undefined_file, __func__, "unsupported prefix");
           if( ptr == prefix )
             return ak_error_message( ak_error_undefined_file, __func__, "unsupported prefix");
           *ptr = 0;
-          ak_snprintf( resolved_path, maxsize, "%s/%s", prefix, path +3 );
+          ak_snprintf( resolved_path, maxsize, "%s%s%s", prefix,
+            #ifdef WIN32
+              "\\"
+            #else
+              "/"
+            #endif
+           , path +3 );
           goto exlab;
         }
       }
@@ -503,7 +521,14 @@
       goto exlab;
     }
    /* иначе */
-    ak_snprintf( resolved_path, maxsize, "%s/%s", prefix, path );
+    ak_snprintf( resolved_path, maxsize, "%s%s%s",
+       prefix,
+     #ifdef WIN32
+      "\\"
+     #else
+      "/"
+     #endif
+       , path );
 
    exlab:
     resolved_path[maxsize -1] = 0;
