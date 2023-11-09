@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------- #
-# Copyright (c) 2014 - 2022 by Axel Kenzo, axelkenzo@mail.ru
+# Copyright (c) 2014 - 2023 by Axel Kenzo, axelkenzo@mail.ru
 #
 # MakeDoc.cmake
 # -------------------------------------------------------------------------------------------------- #
@@ -42,6 +42,7 @@ endif()
 if( UNIX )
   if( SPHINX )
     configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/doc/Makefile.in ${CMAKE_CURRENT_BINARY_DIR}/sphinx/Makefile @ONLY )
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/doc/conf.py.in ${CMAKE_CURRENT_SOURCE_DIR}/doc/conf.py @ONLY )
 
     set( script ${CMAKE_CURRENT_BINARY_DIR}/make-doc-${FULL_VERSION}.sh )
     file( WRITE ${script} "#/bin/bash\ncd ${CMAKE_CURRENT_BINARY_DIR}/sphinx \n" )
@@ -58,12 +59,6 @@ if( UNIX )
     if( GZIP )
       file( APPEND ${script} "gzip --force ${CMAKE_CURRENT_BINARY_DIR}/doc/aktool.1 \n" )
     endif()
-   # формируем документацию в формате qthelp
-    if( QHELPGENERATOR )
-      file( APPEND ${script} "make qthelp\n" )
-      file( APPEND ${script} "qcollectiongenerator qthelp/libakrypt.qhcp\n" )
-      file( APPEND ${script} "cp ${CMAKE_CURRENT_BINARY_DIR}/sphinx/qthelp/libakrypt.qch ${CMAKE_CURRENT_BINARY_DIR}/doc/libakrypt-doc-${FULL_VERSION}.qch\n" )
-    endif()
    # формируем документацию в формате pdf
     if( LATEXMK )
       file( APPEND ${script} "make latexpdf\n" )
@@ -76,19 +71,22 @@ if( UNIX )
     message("-- Script for documentation is done (now \"make doc\" enabled)")
   endif()
 
-  if( DOXYGEN )
-    # doxygen найден и документация может быть сгенерирована
-    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.akrypt.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.akrypt @ONLY )
-    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/doc/libakrypt-header.tex.in ${CMAKE_CURRENT_BINARY_DIR}/libakrypt-header.tex @ONLY )
-
-    file( APPEND ${script} "doxygen Doxyfile.akrypt\n" )
-    file( APPEND ${script} "cd ${CMAKE_CURRENT_BINARY_DIR}/doc-akrypt/latex\n" )
-    file( APPEND ${script} "make\n" )
-    file( APPEND ${script} "cp ${CMAKE_CURRENT_BINARY_DIR}/doc-akrypt/latex/refman.pdf ${CMAKE_CURRENT_BINARY_DIR}/doc/libakrypt-api-${FULL_VERSION}.pdf\n" )
-    file( APPEND ${script} "cd ${CMAKE_CURRENT_BINARY_DIR}\n" )
-
-    message("-- Support for doxygen documenation added")
-  endif()
+  # генерация документации с помощью Doxygen отключена
+  # поскольку исходные тексты всё ещё содержат ряд невыковыриваемых ошибок в синтаксисе
+  #
+  #if( DOXYGEN )
+  #  # doxygen найден и документация может быть сгенерирована
+  #  configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.akrypt.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.akrypt @ONLY )
+  #  configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/doc/libakrypt-header.tex.in ${CMAKE_CURRENT_BINARY_DIR}/libakrypt-header.tex @ONLY )
+  #
+  #  file( APPEND ${script} "doxygen Doxyfile.akrypt\n" )
+  #  file( APPEND ${script} "cd ${CMAKE_CURRENT_BINARY_DIR}/doc-akrypt/latex\n" )
+  #  file( APPEND ${script} "make\n" )
+  #  file( APPEND ${script} "cp ${CMAKE_CURRENT_BINARY_DIR}/doc-akrypt/latex/refman.pdf ${CMAKE_CURRENT_BINARY_DIR}/doc/libakrypt-api-${FULL_VERSION}.pdf\n" )
+  #  file( APPEND ${script} "cd ${CMAKE_CURRENT_BINARY_DIR}\n" )
+  #
+  #  message("-- Support for doxygen documenation added")
+  #endif()
 
 endif()
 # -------------------------------------------------------------------------------------------------- #

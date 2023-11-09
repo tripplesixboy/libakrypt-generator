@@ -47,9 +47,10 @@
     * генератор-интерфейс, использующий чтение из произвольных файлов, в частности, файловых устройств `/dev/random` и `/dev/urandom`,
     * генератор-интерфейс к системному генератору псевдо-случайных значений, реализованному в ОС `Windows`,
     * нелинейный конгруэнтый генератор с обратной квадратичной связью,
-    * генератор, использующий функции хеширования согласно рекомендациям по стандартизации `Р 1323565.1.006-2017 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-006-2017-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-mekhanizmy-vyrabotki-psevdosluchaynykh-posledovatelnostey.html>`__.
+    * генератор, использующий функцию хеширования «Стрибог-512», в соответствии с алгоритмом, описанным 
+      в рекомендациях по стандартизации `Р 1323565.1.006-2017 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-006-2017-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-mekhanizmy-vyrabotki-psevdosluchaynykh-posledovatelnostey.html>`__.
 
- 9. Процедуры выработки производной ключевой информации согласно `Р 50.1.113-2016 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-50-1-113-2016-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-kriptograficheskie-algoritmy-soputstvuyushchie-primeneniyu-algoritmov-elektronnoy-tsifrovoy-podpisi-i-funktsii-kheshirovaniya.html>`__, раздел 4.4 и `Р 1323565.1.022-2018 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-022-2018-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-funktsii-vyrabotki-proizvodnogo-klyucha-.html>`__, раздел 5.
+ 9. Процедуры выработки производной ключевой информации согласно рекомендациям `Р 50.1.113-2016 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-50-1-113-2016-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-kriptograficheskie-algoritmy-soputstvuyushchie-primeneniyu-algoritmov-elektronnoy-tsifrovoy-podpisi-i-funktsii-kheshirovaniya.html>`__, раздел 4.4 и `Р 1323565.1.022-2018 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-022-2018-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-funktsii-vyrabotki-proizvodnogo-klyucha-.html>`__, раздел 5.
 
  10. Алгоритмы, реализующие операции сложения и умножения в конечных простых полях фиксированной размерности 256 и 512 бит с помощью преобразования Монтгомери.
 

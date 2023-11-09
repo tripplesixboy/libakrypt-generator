@@ -55,7 +55,7 @@ html_logo = '../logo.png'
 #html_theme = 'traditional'
 #html_theme = 'agogo'
 
-version = 'версия библиотеки 0.9.11'
+version = 'версия библиотеки @HEAD_VERSION@.@MAIN_VERSION@.@MINOR_VERSION@'
 
 html_theme = 'sphinx_rtd_theme'
 html_theme_options = {
@@ -118,12 +118,14 @@ latex_elements = {
   \parbox[b]{0.95\textwidth}{
   \vbox{%
   \vspace{0.1\textwidth}
-  {\noindent\Huge\bfseries библиотека libakrypt}\\[1\baselineskip]
-  \textsc{версия x.y.z} \\[5\baselineskip]
+  {\includegraphics[scale=0.25]{@CMAKE_CURRENT_SOURCE_DIR@/logo.png}\\[1\baselineskip]
+   \noindent\Huge\bfseries библиотека libakrypt}\\[1\baselineskip]
+   \textsc{версия @HEAD_VERSION@.@MAIN_VERSION@.@MINOR_VERSION@} \\[5\baselineskip]
 
-  {{\bfseries\textsc{Справочная документация}} \\
+  {{\Large\bfseries{Справочная документация}} \\
    ~\\
-   {\small\textsc{Алексей Юрьевич Нестеренко и сотоварищи~~\copyright~~\today}}
+   {\small\textsc{Алексей Юрьевич Нестеренко}}\\
+   {\small\textsc{Московский институт электроники и математики~~\copyright~~\today}}
   }\\[1\baselineskip]
 
   \vspace{0.5\textwidth}
