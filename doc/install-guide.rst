@@ -184,7 +184,7 @@ Cтабильная версия библиотеки распространяе
 
 Далее, нужно перейти в созданный каталог и запустить `cmake` для конфигурации сборки::
 
-    cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="Release" ../libakrypt-0.x
+    cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="Release" ..\libakrypt-0.x
 
 Флаг `-G` определяет имя механизма, используемого далее для сборки исходных текстов.
 Аргумент `-DCMAKE_BUILD_TYPE` с параметром "Release" указывает компилятору, 

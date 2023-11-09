@@ -3,7 +3,7 @@
 #
 # CMakeLists.txt
 # -------------------------------------------------------------------------------------------------- #
-cmake_minimum_required( VERSION 3.0 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.5 )
 
 # -------------------------------------------------------------------------------------------------- #
 set( HEAD_VERSION 0 )
@@ -32,16 +32,6 @@ string( COMPARE EQUAL ${CMAKE_HOST_SYSTEM_NAME} "FreeBSD" AK_FREEBSD )
 # для linux
 #   set( AK_CONFIG_PATH  "/etc" )
 #   set( AK_CA_PATH "/usr/share/ca-certificates" )
-
-# -------------------------------------------------------------------------------------------------- #
-# Подключаем модули CMake для тонкой настройки параметров сборки
-set( CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH} )
-include( DetectFlags )
-include( DetectHeaders )
-include( DetectIntrinsics )
-include( DetectLibraries )
-# модули CMake
-include( GNUInstallDirs )
 
 # -------------------------------------------------------------------------------------------------- #
 # Вырабатываем заголовочный файл (в каталоге сборки)
@@ -105,6 +95,16 @@ else()
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAK_LITTLE_ENDIAN" )
 endif()
 message("-- Used compile flags ${CMAKE_C_FLAGS}")
+
+# -------------------------------------------------------------------------------------------------- #
+# Подключаем модули CMake для тонкой настройки параметров сборки
+set( CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH} )
+include( DetectFlags )
+include( DetectHeaders )
+include( DetectIntrinsics )
+include( DetectLibraries )
+# модули CMake
+include( GNUInstallDirs )
 
 # -------------------------------------------------------------------------------------------------- #
 # Определяем место хранения файла с настройками библиотеки

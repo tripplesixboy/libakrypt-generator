@@ -35,6 +35,7 @@ if( MSVC )
 else()
   # набор Unix'овых флагов
   try_append_c_flag( "-Wall" CMAKE_C_FLAGS )
+  try_append_c_flag( "-Wparentheses" CMAKE_C_FLAGS )
   try_append_c_flag( "-pedantic-errors" CMAKE_C_FLAGS )
   try_append_c_flag( "-O3" CMAKE_C_FLAGS )
   try_append_c_flag( "-pipe" CMAKE_C_FLAGS )

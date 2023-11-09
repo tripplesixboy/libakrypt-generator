@@ -324,7 +324,7 @@
   size_t size = 0, sum = 0, isum = 0, secbytes = 0;
   int exit_status = EXIT_FAILURE;
   ak_pointer encryptionKey = NULL, authenticationKey = NULL;
-  const size_t pcount = 96000;
+  const size_t pcount = 2000; /* количество пакетов для тестирования */
   ak_uint8 *packet, out[1500], icode[128];
 
   size_t *lens = NULL;
@@ -469,6 +469,7 @@
        }
        if( error != ak_error_ok ) {
          aktool_error(_("computational error (%d)"), error );
+         free(data);
          goto exit;
        }
        if( !ki.quiet ) {
@@ -627,9 +628,10 @@
        if( !ki.quiet ) {
          if( ki.verbose )
            printf(_("%s %4lu bytes, time: %f sec., packet per sec.: %lu\n"),
-                                                               _(packets), lens[j], sec, persec );
+                         _(packets), (unsigned long int)lens[j], sec, (unsigned long int)persec );
           else printf(_("%s %4lu bytes, time: %f sec., packet per sec.: %7lu%s"),
-                                                         _(packets), lens[j], sec, persec, "\r" );
+                   _(packets), (unsigned long int)lens[j], sec, (unsigned long int)persec, "\r" );
+         fflush( stdout );
        }
        sum += persec;
        isum += ( lens[j]*persec );
@@ -639,7 +641,7 @@
     if( !ki.quiet ) {
       printf(_("   - average packets:                                                              \n"
       "\t - %6lu per sec. (mean value)\n\t - %6lu per sec. (integral value)\n"),
-                                                                     sum/12, isum/epacketlen );
+                               (unsigned long int)(sum/12), (unsigned long int)(isum/epacketlen ));
     }
   }
 

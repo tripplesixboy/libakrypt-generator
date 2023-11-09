@@ -6,7 +6,7 @@
  - Возвращена реализация ПДСЧ на основе функций хеширования (hrng)
  - Изменена команда для подписи сертификатов открытого клчюа в утилите aktool 
    (произведена замена --cert на --sign)
- - Добавлен ряд функций для работы с сертификатамиб в том числе:
+ - Добавлен ряд функций для работы с сертификатами, в том числе:
     - int ak_certificate_export_to_repository() 
     - int ak_certificate_add_file_to_repository()
     - int ak_certificate_add_ptr_to_repository()

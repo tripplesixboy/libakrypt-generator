@@ -2,8 +2,8 @@
 compilerList="gcc-9 gcc-10 gcc-11 gcc-12 gcc-13 gcc-14 gcc-15 musl-gcc clang-11 clang-12 clang-13 clang-14 clang-15 clang-16 clang-17 clang-18 tcc"
 
 # формируем каталог для проведения экспериментов
-mkdir -p global.build
-cd global.build
+mkdir -p ../global.build
+cd ../global.build
 
 for name in $compilerList
 do
@@ -14,7 +14,7 @@ do
 		mkdir -p $name.build
 		cd $name.build
 # выполняем настройку
-		cmake -DCMAKE_C_COMPILER=$name -DAK_STATIC_LIB=ON -DAK_EXAMPLES=ON -DAK_TESTS=ON ../..
+		cmake -DCMAKE_C_COMPILER=$name -DAK_STATIC_LIB=ON -DAK_EXAMPLES=ON -DAK_TESTS=ON ../../libakrypt-0.x
 # выполняем сборку
 		make
 # выполняем тестирование
@@ -29,7 +29,10 @@ do
 		fi
 # не выполняем очистку созданных каталогов
 		cd ..
-		echo "--------------------------------------------------------------------------------"	
+		echo "--------------------------------------------------------------------------------"
+# выполняем тест скорости криптографических преобразований
+		echo $name >> speed.log
+		$name.build/aktool test -n cbc-kuznechik --no-packets --min-length 80 --max-length 128 >> speed.log	
 	fi
 done
 

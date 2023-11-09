@@ -1,4 +1,13 @@
 # -------------------------------------------------------------------------------------------------- #
+# вырабатываем и подключаем файл с ресурсами библиотеки
+if( WIN32 )
+  configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/libakrypt.rc.in ${CMAKE_CURRENT_BINARY_DIR}/libakrypt.rc @ONLY )
+  set( AKRYPT_SOURCES ${AKRYPT_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/libakrypt.rc )
+  set( CMAKE_BUILD_TYPE "Release" )
+  message("-- Generation of ${CMAKE_CURRENT_BINARY_DIR}/libakrypt.rc is done")
+endif()
+
+# -------------------------------------------------------------------------------------------------- #
 # поиск gmp
 if( AK_TESTS_GMP )
 
@@ -87,12 +96,4 @@ else()
       set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAK_HAVE_PTHREAD_H" )
     endif()
   endif()
-endif()
-
-# -------------------------------------------------------------------------------------------------- #
-# вырабатываем и подключаем файл с ресурсами библиотеки
-if( WIN32 )
-  configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/libakrypt.rc.in ${CMAKE_CURRENT_SOURCE_DIR}/libakrypt.rc @ONLY )
-  set( AKRYPT_SOURCES ${AKRYPT_SOURCES} libakrypt.rc )
-  set( CMAKE_BUILD_TYPE "Release" )
 endif()
