@@ -91,7 +91,8 @@
    * семейство `Windows` (от `Windows 7` и старше).
 
 
-Также были проведены успешные запуски библиотеки под управлением следующих операционных систем: `ReactOS <https://reactos.org/>`__ и `SailfishOS <https://sailfishos.org/>`__.
+Также были проведены успешные запуски библиотеки под управлением следующих операционных систем: `ReactOS <https://reactos.org/>`__,
+`SailfishOS <https://sailfishos.org/>`__, а также `PetaLinux <https://www.xilinx.com/products/design-tools/embedded-software/petalinux-sdk.html>`__.
 
 Поддерживается сборка библиотеки при помощи следующих компиляторов:
 

@@ -45,7 +45,8 @@
 
 Библиотека может применяться в различных операционных системах: `Linux`, `Windows` и `FreeBSD`.
 Также были успешные тестовые запуски библиотеки под 
-[ReactOS](https://reactos.org) и [Sailfish OS](https://sailfishos.org/).
+[ReactOS](https://reactos.org), [Sailfish OS](https://sailfishos.org/) и
+[PetaLinux](https://www.xilinx.com/products/design-tools/embedded-software/petalinux-sdk.html).
 
 # Libakrypt: сборка
 
