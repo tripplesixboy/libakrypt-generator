@@ -49,8 +49,11 @@ if( UNIX )
    # формируем каталог с собранной воедино документацией
     file( APPEND ${script} "mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/doc\n" )
    # строим красивый вывод в html
+   # (собираем архив без включения каталога html)
     file( APPEND ${script} "make html\n" )
-    file( APPEND ${script} "tar -cjvf ${CMAKE_CURRENT_BINARY_DIR}/doc/libakrypt-doc-${FULL_VERSION}.tar.bz2 html/* \n" )
+    file( APPEND ${script} "cd html\n" )
+    file( APPEND ${script} "tar -cjvf ${CMAKE_CURRENT_BINARY_DIR}/doc/libakrypt-doc-${FULL_VERSION}.tar.bz2 *\n" )
+    file( APPEND ${script} "cd ..\n" )
    # формируем консольный мануал (в сжатом виде)
    # и сохраняем изначальный (несжатый) man в дереве исходных кодов
     file( APPEND ${script} "make man\n" )

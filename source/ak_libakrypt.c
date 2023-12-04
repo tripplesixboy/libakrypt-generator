@@ -339,13 +339,17 @@
 #endif
 
  /* перед стартом все должно быть хорошо */
-   ak_error_set_value( error = ak_error_ok );
+   ak_error_set_value( ak_error_ok );
 
  /* инициализируем систему аудита (вывод сообщений) */
    if(( error = ak_log_set_function( logger )) != ak_error_ok ) {
      ak_error_message( error, __func__ , "audit mechanism not started" );
      return ak_false;
    }
+
+ /* выводим версию библиотеки */
+   if( ak_log_get_level() > ak_log_none )
+     ak_error_message_fmt( ak_error_ok, __func__, "libakrypt version %s", ak_libakrypt_version( ));
 
  /* считываем настройки криптографических алгоритмов */
    if( ak_libakrypt_load_options() != ak_true ) {

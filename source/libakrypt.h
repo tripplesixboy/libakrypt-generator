@@ -61,6 +61,8 @@ extern "C" {
  #define ak_error_curve_order_parameters      (-124)
 /*! \brief Ошибка, возникающая когда простой модуль кривой задан неверно. */
  #define ak_error_curve_prime_modulo          (-125)
+/*! \brief Ошибка, возникающая при сравнении двух эллиптических кривых */
+ #define ak_error_curve_not_equal             (-126)
 
 /*! \brief Ошибка, возникающая при использовании ключа, значение которого не определено. */
  #define ak_error_key_value                   (-130)
