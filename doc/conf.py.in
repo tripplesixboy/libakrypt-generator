@@ -18,7 +18,7 @@ sys.path.insert(0, '../source');
 
 # -- Project information -----------------------------------------------------
 project = 'libakrypt'
-copyright = '2014 - 2023, Алексей Юрьевич Нестеренко, МИЭМ'
+copyright = '2014 - 2024, Алексей Юрьевич Нестеренко, МИЭМ'
 author = 'Алексей Юрьевич Нестеренко'
 
 # -- General configuration ---------------------------------------------------
@@ -42,6 +42,7 @@ language = 'ru'
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
+
 
 # -- Options for HTML output -------------------------------------------------
 html_logo = '../logo.png'
@@ -74,6 +75,12 @@ html_theme_options = {
     'includehidden': True,
     'titles_only': False,
 }
+
+html_show_sourcelink = False
+html_show_sphinx = False
+html_show_copyright = True
+html_search_language = 'ru'
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
