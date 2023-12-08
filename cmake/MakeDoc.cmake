@@ -54,16 +54,18 @@ if( UNIX )
 
     set( script ${CMAKE_CURRENT_BINARY_DIR}/make-doc-${FULL_VERSION}.sh )
     file( WRITE ${script} "#/bin/bash\n" )
+   # формируем каталог с собранной воедино документацией
+    file( APPEND ${script} "mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/doc\n" )
 
+   # генерация API
     if( DOXYGEN )
       configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.akrypt.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.akrypt @ONLY )
       file( APPEND ${script} "doxygen Doxyfile.akrypt\n" )
       message("-- Support for doxygen documenation added")
     endif()
 
+   # управление sphinx
     file( APPEND ${script} "cd ${CMAKE_CURRENT_BINARY_DIR}/sphinx \n" )
-   # формируем каталог с собранной воедино документацией
-    file( APPEND ${script} "mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/doc\n" )
    # строим красивый вывод в html
    # (собираем архив без включения каталога html)
     file( APPEND ${script} "make html\n" )
