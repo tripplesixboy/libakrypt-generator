@@ -533,8 +533,23 @@ extern "C" {
  dll_export void ak_aligned_free( ak_pointer );
 
 /* ----------------------------------------------------------------------------------------------- */
-/*! \brief Функция кодирует три байта информации в формат base64.  */
- dll_export void ak_base64_encodeblock( ak_uint8 *, ak_uint8 *, int );
+/*! \brief Способ конвертации двоичных данных в строку символов в формате base64 */
+ typedef enum {
+  /*! \brief Преобразование в виде строки */
+   plain_base64_format,
+  /*! \brief Преобразование в виде строки с разделением при помощи пробела на группы по четыре символа */
+   grouped_base64_format,
+} base64_format_t;
+
+/*! \brief Функция возвращает длину строки, необходимой для записи двоичных данных в формате base64 */
+ dll_export size_t ak_ptr_to_base64_size( const size_t , const base64_format_t );
+/*! \brief Функция преобразует двоичные данные в строку символов в формате base64.  */
+ dll_export const char *ak_ptr_to_base64( ak_const_pointer , const size_t , const base64_format_t );
+/*! \brief Функция преобразует двоичные данные в строку символов в формате base64.  */
+ dll_export char *ak_ptr_to_base64_alloc( ak_const_pointer , const size_t , const base64_format_t );
+/*! \brief Функция преобразует строку символов в формате base64 в двоичные данные. */
+ dll_export ak_uint8 *ak_base64_to_ptr( const char *, ak_pointer , size_t * );
+
 /*! \brief Обобщенная реализация функции snprintf для различных компиляторов. */
  dll_export int ak_snprintf( char *str, size_t size, const char *format, ... );
 /*! \brief Форматированный вывод (аналогичный printf) через пользовательскую функцию. */

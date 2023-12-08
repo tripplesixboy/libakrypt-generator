@@ -2,6 +2,11 @@
 
 ## Изменения в версии 0.9.12
 
+ - Добавлен ряд забытых когда-то функций для кодирования/декодирования base64:
+    - const char *ak_ptr_to_base64()
+    - char *ak_ptr_to_base64_alloc()
+    - size_t ak_ptr_to_base64_size()
+    - ak_uint8 *ak_base64_to_ptr()   
  - Изменена строка с авторами библиотеки
 
 
