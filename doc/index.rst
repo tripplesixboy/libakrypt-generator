@@ -41,4 +41,4 @@
 -------------------------------------
 
 - `Документация, подготовленная с использованием утилиты Doxygen <api/index.html>`__
-
+- Документация в формате :download:`qch <https://libakrypt.ru/api/akrypt-library.qch>`.
