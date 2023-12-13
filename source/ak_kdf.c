@@ -1,8 +1,8 @@
 /* ----------------------------------------------------------------------------------------------- */
-/*  Copyright (c) 2019 - 2021 by Axel Kenzo, axelkenzo@mail.ru                                     */
+/*  Copyright (c) 2019 - 2023 by Axel Kenzo, axelkenzo@mail.ru                                     */
 /*                                                                                                 */
-/*  Файл ak_hmac.с                                                                                 */
-/*  - содержит реализацию семейства ключевых алгоритмов хеширования HMAC.                          */
+/*  Файл ak_kdf.с                                                                                  */
+/*  - содержит реализацию функций выработки производных ключей                                     */
 /* ----------------------------------------------------------------------------------------------- */
  #include <libakrypt-internal.h>
 
@@ -26,7 +26,10 @@
    K = KDF256( Kin, label, seed ) = HMAC256( Kin, 0x01 || label || 0x00 || seed || 0x01 || 0x00 )
  \endcode
 
-    \param master_key Исходный ключ `Kin`, используемый для генерации производного ключа
+    \param master_key Указатель на корректно созданный ранее контекст секретного ключа `Kin`.
+    В качестве типов криптографических механизмов для данного ключа
+    допускаются блочные шифры и ключи выработки hmac.
+    Использование ключей с другим установленным значением типа механихма приводит к ошибке.
     \param label Используемая в алгоритме метка производного ключа
     \param label_size Длина метки (в октетах)
     \param seed Используемое в алгоритме инициализирующее значение
@@ -120,7 +123,10 @@
     инициализирует его и присваивает выработанное значение, а также устанавливает ресурс ключа.
 
     \param oid Идентификатор создаваемого ключа
-    \param master_key Исходный ключ `Kin`, используемый для генерации производного ключа
+    \param master_key Указатель на корректно созданный ранее контекст секретного ключа `Kin`.
+    В качестве типов криптографических механизмов для данного ключа
+    допускаются блочные шифры и ключи выработки hmac.
+    Использование ключей с другим установленным значением типа механихма приводит к ошибке.
     \param label Используемая в алгоритме метка производного ключа
     \param label_size Длина метки (в октетах)
     \param seed Используемое в алгоритме инициализирующее значение
@@ -174,6 +180,71 @@
  return handle;
 }
 
+/* ----------------------------------------------------------------------------------------------- */
+/*! @return В случае успеха, функция возвращает истину. В случае возникновения ошибки,
+ *  возвращается ложь. Код ошибки может быть получен с помощью вызова функции ak_error_get_value() */
+/* ----------------------------------------------------------------------------------------------- */
+ bool_t ak_libakrypt_test_kdf256( void )
+{
+   /* входной ключ */
+    ak_uint8 static_input_key[32] = {
+     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+    };
+   /* выходной ключ */
+    ak_uint8 static_output_key[32] = {
+     0xa1, 0xaa, 0x5f, 0x7d, 0xe4, 0x02, 0xd7, 0xb3, 0xd3, 0x23, 0xf2, 0x99, 0x1c, 0x8d, 0x45, 0x34,
+     0x01, 0x31, 0x37, 0x01, 0x0a, 0x83, 0x75, 0x4f, 0xd0, 0xaf, 0x6d, 0x7c, 0xd4, 0x92, 0x2e, 0xd9
+    };
+
+    ak_uint8 out[32];
+    int error = ak_error_ok;
+    ak_uint8 static_label[4] = { 0x26, 0xbd, 0xb8, 0x78 };
+    ak_uint8 static_seed[8] = { 0xaf, 0x21, 0x43, 0x41, 0x45, 0x65, 0x63, 0x78 };
+
+   /* структура временного ключа */
+    struct bckey sk;
+
+   /* инициализируем контекст секретного ключа для блочного шифра */
+    if(( error = ak_bckey_create_magma( &sk )) != ak_error_ok ) {
+      ak_error_message( error, __func__, "incorrect creation of block cipher context");
+      return ak_false;
+    }
+    if(( error = ak_bckey_set_key( &sk, static_input_key,
+                                                     sizeof( static_input_key ))) != ak_error_ok ) {
+      ak_error_message( error, __func__, "incorrect assignin' of new secret key value");
+      goto exlab;
+    }
+
+   /* вычисляем производный ключ и сравниваем результат */
+    memset( out, 0, 32 );
+    if(( error = ak_skey_derive_kdf256_to_ptr( &sk,
+                                  static_label,
+                                  sizeof( static_label ),
+                                  static_seed,
+                                  sizeof( static_seed ),
+                                  out, /* сюда помещаем результат вычислений */
+                                  sizeof( out ))) != ak_error_ok ) {
+      ak_error_message( error, __func__, "incorrect generation of a new secret key value");
+      goto exlab;
+    }
+
+   /* сравниваем вычисленный вектор с изначально заданным */
+    if( !ak_ptr_is_equal_with_log( out, static_output_key, sizeof( static_output_key ))) {
+      ak_error_message( error = ak_error_not_equal_data, __func__,
+                                         "the value of kdf_gostr3411_2012_256 function is wrong ");
+    }
+     else {
+        if( ak_log_get_level() >= ak_log_maximum ) ak_error_message( ak_error_ok, __func__ ,
+                       "the test for kdf-gostr3411-2012-256 function from R 50.1.113-2016 is Ok" );
+     }
+
+    exlab:
+      ak_ptr_wipe( out, 32, &sk.key.generator );
+      ak_bckey_destroy( &sk );
+
+ return ( error == ak_error_ok ) ? ak_true : ak_false;
+}
 
 /* ----------------------------------------------------------------------------------------------- */
              /* Реализация функций генерации ключей согласно Р 1323565.1.022-2018 */

@@ -216,9 +216,17 @@
     ak_error_message( ak_error_get_value(), __func__, "incorrect testing of pbkdf2 function" );
     return ak_false;
   }
+ /* тестирование функций выработки производных ключей */
+  if( ak_libakrypt_test_kdf256() != ak_true ) {
+    ak_error_message( ak_error_get_value(),
+                              __func__, "incorrect testing a set of key derivaion functions" );
+    return ak_false;
+  }
+
  /* тестирование различых реализаци cmac на совпадение */
   if( ak_libakrypt_test_cmac() != ak_true ) {
-    ak_error_message( ak_error_get_value(), __func__, "incorrect testing different kinds of cmac" );
+    ak_error_message( ak_error_get_value(),
+                                       __func__, "incorrect testing different kinds of cmac" );
     return ak_false;
   }
 

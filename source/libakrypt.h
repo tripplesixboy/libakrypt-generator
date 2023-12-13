@@ -193,6 +193,8 @@ extern "C" {
  dll_export bool_t ak_libakrypt_test_hmac_streebog( void );
 /*! \brief Тестирование алгоритма PBKDF2, регламентируемого Р 50.1.113-2016. */
  dll_export bool_t ak_libakrypt_test_pbkdf2( void );
+/*! \brief Тестирование алгоритма KDF_GOSTR3411_2012_256, регламентируемого Р 50.1.113-2016 (раздел 4.4) */
+ dll_export bool_t ak_libakrypt_test_kdf256( void );
 /*! \brief Функция тестирует корректность реализации блочных шифрова и режимов их использования. */
  dll_export bool_t ak_libakrypt_test_block_ciphers( void ); 
 /*! \brief Тестирование корректной работы алгоритма блочного шифрования Магма (ГОСТ Р 34.12-2015). */
@@ -976,10 +978,10 @@ extern "C" {
 /* ----------------------------------------------------------------------------------------------- */
 /** \defgroup skey-doc-derive Функции выработки производных секретных ключей
 @{ */
-/*! Функция выработки производного ключа, согласно Р 50.1.113-2016, раздел 4.4. */
+/*! \brief Функция выработки производного ключа, согласно Р 50.1.113-2016, раздел 4.4. */
  dll_export int ak_skey_derive_kdf256_to_ptr( ak_pointer , ak_uint8 *, const size_t ,
                                              ak_uint8 *, const size_t , ak_uint8 *, const size_t );
-/*! Функция выработки производного ключа, согласно Р 50.1.113-2016, раздел 4.4. */
+/*! \brief Функция выработки производного ключа, согласно Р 50.1.113-2016, раздел 4.4. */
  dll_export ak_pointer ak_skey_new_derive_kdf256( ak_oid , ak_pointer ,
                                                ak_uint8* , const size_t, ak_uint8*, const size_t );
 
