@@ -2,8 +2,17 @@
 
 ## Изменения в версии 0.9.12
 
- - Добавлены функции для генерации производных ключей:
-    - ak_libakrypt_test_kdf256() - встроена в общее дерево тестов криптографических преобразований
+ - Преобразован раздел с функциями генерации производных ключей.
+   Изменены или добавлены следующие функции:
+    - int ak_skey_derive_kdf256()
+    - int ak_skey_derive_kdf256_from_skey()
+    - ak_pointer ak_skey_new_derive_kdf256_from_skey()
+    - int ak_tlstree_state_create()
+    - int ak_tlstree_state_destroy()
+    - int ak_skey_derive_tlstree()
+ - Встроены в общее дерево тестов криптографических преобразований:
+    - ak_libakrypt_test_kdf256()
+    - bool_t ak_libakrypt_test_tlstree()
  - Добавлен ряд забытых когда-то функций для кодирования/декодирования base64:
     - const char *ak_ptr_to_base64()
     - char *ak_ptr_to_base64_alloc()

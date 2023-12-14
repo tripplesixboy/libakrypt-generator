@@ -219,7 +219,12 @@
  /* тестирование функций выработки производных ключей */
   if( ak_libakrypt_test_kdf256() != ak_true ) {
     ak_error_message( ak_error_get_value(),
-                              __func__, "incorrect testing a set of key derivaion functions" );
+                                __func__, "incorrect testing a kdf26 key derivaion function" );
+    return ak_false;
+  }
+  if( ak_libakrypt_test_tlstree() != ak_true ) {
+    ak_error_message( ak_error_get_value(),
+                      __func__, "incorrect testing a set of tlstree key derivaion functions" );
     return ak_false;
   }
 

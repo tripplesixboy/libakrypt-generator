@@ -276,7 +276,7 @@
     kh = st->handle;
   }
    else {
-    if(( kh = ak_skey_new_derive_kdf256( st->oid, st->handle,
+    if(( kh = ak_skey_new_derive_kdf256_from_skey( st->oid, st->handle,
                                            (ak_uint8 *)filename, strlen( filename ),
                                             ki.seed != NULL ? (ak_uint8 *)ki.seed : NULL,
                                             ki.seed != NULL ? strlen( ki.seed ) : 0 )) == NULL ) {
@@ -508,7 +508,7 @@
     kh = st->handle;
   }
    else {
-    if(( kh = ak_skey_new_derive_kdf256( st->oid, st->handle,
+    if(( kh = ak_skey_new_derive_kdf256_from_skey( st->oid, st->handle,
                                            (ak_uint8 *)filename, strlen( filename ),
                                             ki.seed != NULL ? (ak_uint8 *)ki.seed : NULL,
                                             ki.seed != NULL ? strlen( ki.seed ) : 0 )) == NULL ) {

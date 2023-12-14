@@ -24,7 +24,9 @@
      рекомендуемый в Р 1323565.026-2019, см. также [RFC 9058](https://tools.ietf.org/html/rfc9058);
   6. Функции хеширования семейства "Стрибог", стандартизированные в ГОСТ Р 34.11-2012, 
      см. также [RFC 6986](https://tools.ietf.org/html/rfc6986);
-  7. Криптографические алгоритмы из рекомендаций Р 50.1.113-2016, включая алгоритм HMAC;
+  7. Криптографические алгоритмы из рекомендаций [Р 50.1.113-2016](https://tc26.ru/standard/rs/%D0%A0%2050.1.113-2016.pdf), 
+     включая алгоритмы HMAC и KDF_GOSTR3411_2012_256, а также TLSTREE из 
+     рекомендаций [Р 1323565.1.030-2019](https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-030-2020-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-ispolzovanie-kriptograficheskikh-algoritmov-v-protokole-bezopasnosti-transportnogo-urovnya-tls-1-3-.html);
   8. Функция выработки ключа из пароля (PBKDF2), рекомендованная в Р 50.1.111-2016;
   9. Несколько генераторов псевдослучайных чисел, включая алгоритм рекомендованный в Р 1323565.1.006-2017;
  10. Арифметика Монтгомери для конечных простых полей;

@@ -39,9 +39,7 @@
 
     * режим `MGM (Multilinear Galois Mode)`, регламентируемый рекомендациями по стандартизации `Р 1323565.1.026-2019 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-026-2019-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-rezhimy-raboty-blochnykh-shifrov-realizuyushchie-autentifitsirovannoe-shifrovanie.html>`__.
 
- 7. Алгоритм развертки ключа из пароля `PBKDF2`, регламентированный рекомендациями по стандартизации `Р 50.1.111-2016 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-50-1-111-2016-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-parolnaya-zashchita-klyuchevoy-informatsii.html>`__.
-
- 8. Программные и биологические генераторы псевдо-случайных чисел:
+ 7. Программные и биологические генераторы псевдо-случайных чисел:
 
     * линейный конгруэнтный генератор (используется для генерации уникальных номеров ключей),
     * генератор-интерфейс, использующий чтение из произвольных файлов, в частности, файловых устройств `/dev/random` и `/dev/urandom`,
@@ -50,16 +48,26 @@
     * генератор, использующий функцию хеширования «Стрибог-512», в соответствии с алгоритмом, описанным 
       в рекомендациях по стандартизации `Р 1323565.1.006-2017 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-006-2017-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-mekhanizmy-vyrabotki-psevdosluchaynykh-posledovatelnostey.html>`__.
 
- 9. Процедуры выработки производной ключевой информации согласно рекомендациям `Р 50.1.113-2016 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-50-1-113-2016-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-kriptograficheskie-algoritmy-soputstvuyushchie-primeneniyu-algoritmov-elektronnoy-tsifrovoy-podpisi-i-funktsii-kheshirovaniya.html>`__, раздел 4.4 и `Р 1323565.1.022-2018 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-022-2018-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-funktsii-vyrabotki-proizvodnogo-klyucha-.html>`__, раздел 5.
+ 8. Алгоритм развертки ключа из пароля `PBKDF2`, регламентированный рекомендациями по стандартизации `Р 50.1.111-2016 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-50-1-111-2016-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-parolnaya-zashchita-klyuchevoy-informatsii.html>`__.
 
- 10. Алгоритмы, реализующие операции сложения и умножения в конечных простых полях фиксированной размерности 256 и 512 бит с помощью преобразования Монтгомери.
+ 9. Процедуры выработки производной ключевой информации:
+
+    * алгоритм `KDF_GOSTR3411_2012_256`, регламентированный в рекомендациях по стандартизации `Р 50.1.113-2016 <https://tc26.ru/standard/rs/%D0%A0%2050.1.113-2016.pdf>`__, раздел 4.4,
+    * полное множество однотипных алгоритмов,
+      регламентированных в рекомендациях по стандартизации `Р 1323565.1.022-2018 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-022-2018-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-funktsii-vyrabotki-proizvodnogo-klyucha-.html>`__, раздел 5.
+
+ 10. Алгоритмы, реализующие элементарные арифметические операции в конечных простых полях фиксированной размерности 256 и 512 бит
+     с помощью преобразования Монтгомери.
+     Алгоритмы, реализующие арифметические операции в
+     полях :math:`\mathbb F_{2^{64}}, \mathbb F_{2^{128}}, \mathbb F_{2^{256}}, \mathbb F_{2^{512}}` характеристики 2.
 
  11. Алгоритмы, реализующие операцию вычисления кратной точки на эллиптических кривых, удовлетворяющих требованиям стандарта `ГОСТ Р 34.10-2012 <https://tc26.ru/standarts/natsionalnye-standarty/gost-r-34-10-2012-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-protsessy-formirovaniya-i-proverki-elektronnoy-tsifrovoy-podpisi.html>`__. Реализована поддержка всех отечественных параметров эллиптических кривых, регламентированных рекомендациями по стандартизации `Р 1323565.1.024–2019 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-132356-1-024-2019-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-parametry-ellipticheskikh-krivykh-dlya-kriptograficheskikh-algoritmov-i-protokolov19.html>`__, а также ряд нестандартизированных кривых.
 
  12. Процедуры выработки и проверки электронной подписи, регламентированные стандартом на электронную подпись `ГОСТ Р 34.10-2012 <https://tc26.ru/standarts/natsionalnye-standarty/gost-r-34-10-2012-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-protsessy-formirovaniya-i-proverki-elektronnoy-tsifrovoy-podpisi.html>`__. Используется формат подписи, определяемый рекомендациями по стандартизации `Р 1323565.1.023-2018 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-023-2018-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-ispolzovanie-algoritmov-gost-r-34-10-2012-gost-r-34-11-2012-v-sertifikate-spiske-annulirovannykh-sertifikatov-crl-i-zaprose-na-sertifikat-pkcs-10-infrastruktury-o.html>`__.
 
  13. Процедуры низкого уровня для кодирования и декодирования данных в формате ASN.1
-     с поддержкой DER и PEM кодировок;
+     с поддержкой DER и PEM кодировок, в частности,
+     реализовано преобразование двоичных данных в base64 и обратно согласно `RFC 4648 <https://www.rfc-editor.org/rfc/rfc4648>`__.
 
  14. Алгоритмы генерации запросов на сертификат открытого ключа, а также алгоритмы генерации
      сертификатов открытых ключей в формате рекомендаций `ITU X.509 <https://www.itu.int/rec/T-REC-X.509/en>`__ с поддержкой дополнительных указаний, содержащихся в рекомендациях по стандартизации `Р 1323565.1.023-2018 <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-023-2018-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-ispolzovanie-algoritmov-gost-r-34-10-2012-gost-r-34-11-2012-v-sertifikate-spiske-annulirovannykh-sertifikatov-crl-i-zaprose-na-sertifikat-pkcs-10-infrastruktury-o.html>`__.

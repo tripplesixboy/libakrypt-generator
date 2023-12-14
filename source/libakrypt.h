@@ -195,7 +195,9 @@ extern "C" {
  dll_export bool_t ak_libakrypt_test_pbkdf2( void );
 /*! \brief Тестирование алгоритма KDF_GOSTR3411_2012_256, регламентируемого Р 50.1.113-2016 (раздел 4.4) */
  dll_export bool_t ak_libakrypt_test_kdf256( void );
-/*! \brief Функция тестирует корректность реализации блочных шифрова и режимов их использования. */
+/*! \brief Тестирование алгоритма TLSTREE, регламентируемого Р 1323565.1.030-2016 (раздел 10.1.2.1) */
+ dll_export bool_t ak_libakrypt_test_tlstree( void );
+/*! \brief Функция тестирует корректность реализации блочных шифров и режимов их использования. */
  dll_export bool_t ak_libakrypt_test_block_ciphers( void ); 
 /*! \brief Тестирование корректной работы алгоритма блочного шифрования Магма (ГОСТ Р 34.12-2015). */
  dll_export bool_t ak_libakrypt_test_magma( void );
@@ -978,12 +980,49 @@ extern "C" {
 /* ----------------------------------------------------------------------------------------------- */
 /** \defgroup skey-doc-derive Функции выработки производных секретных ключей
 @{ */
+
 /*! \brief Функция выработки производного ключа, согласно Р 50.1.113-2016, раздел 4.4. */
- dll_export int ak_skey_derive_kdf256_to_ptr( ak_pointer , ak_uint8 *, const size_t ,
+ dll_export int ak_skey_derive_kdf256( ak_uint8 *, const size_t ,
+                  ak_uint8 *, const size_t , ak_uint8 *, const size_t , ak_uint8 *, const size_t );
+/*! \brief Функция выработки производного ключа, согласно Р 50.1.113-2016, раздел 4.4. */
+ dll_export int ak_skey_derive_kdf256_from_skey( ak_pointer , ak_uint8 *, const size_t ,
                                              ak_uint8 *, const size_t , ak_uint8 *, const size_t );
 /*! \brief Функция выработки производного ключа, согласно Р 50.1.113-2016, раздел 4.4. */
- dll_export ak_pointer ak_skey_new_derive_kdf256( ak_oid , ak_pointer ,
+ dll_export ak_pointer ak_skey_new_derive_kdf256_from_skey( ak_oid , ak_pointer ,
                                                ak_uint8* , const size_t, ak_uint8*, const size_t );
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! \brief Предопределенные константы для алгоритма выработки производных ключей tlstree */
+ typedef enum {
+   tlstree_with_kuznyechik_mgm_l,
+   tlstree_with_magma_mgm_l,
+   tlstree_with_kuznyechik_mgm_s,
+   tlstree_with_magma_mgm_s,
+   tlstree_with_libakrypt_65536
+ } tlstree_t;
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! \brief Контекст алгоритма генерации производной ключевой информации */
+ typedef struct tlstree_state {
+   /*! \brief бесконечный массив для генерации цепочки производных ключей */
+    ak_uint8 key[128];
+   /*! \brief текущее значение номера ключа */
+    ak_uint64 key_number;
+   /*! \brief текущие значения промежуточных индексов */
+    ak_uint64 ind1, ind2, ind3;
+   /*! \brief Множество предопределенных констант алгоритма выработки производных ключей */
+ } *ak_tlstree_state;
+
+/*! \brief Функция инициализирует контекст алгоритма TLSTREE и вырабатывает производный ключ
+ *  для заданного значения индекса. */
+ dll_export int ak_tlstree_state_create( ak_tlstree_state ,
+                                                ak_uint8 *, const size_t , ak_uint64 , tlstree_t );
+/*! \brief Функция уничтожает контекст алгоритма TLSTREE. */
+ dll_export int ak_tlstree_state_destroy( ak_tlstree_state );
+
+/*! \brief Функция выработки производного ключа, согласно Р 1323565.1.030-2019, раздел 10.1.2.1. */
+ dll_export int ak_skey_derive_tlstree( ak_uint8 *, const size_t , ak_uint64 , tlstree_t ,
+                                                                        ak_uint8 *, const size_t );
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Алгоритм выработки производного ключа согласно Р 1323565.1.022-2018, раздел 5. */
@@ -1031,6 +1070,7 @@ extern "C" {
 } kdf_t;
 
 /* ----------------------------------------------------------------------------------------------- */
+/*! \brief Контекст алгоритма генерации производной ключевой информации */
  typedef struct kdf_state {
   /*! \brief Промежуточный ключ, используемый для выработки ключевой информации */
    union {
