@@ -1644,7 +1644,7 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
- int ak_skey_delete_after_load( ak_pointer ctx )
+ int ak_skey_delete( ak_pointer ctx )
 {
    ak_oid oid = NULL;
    int error = ak_error_ok;

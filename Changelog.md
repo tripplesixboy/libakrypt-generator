@@ -10,6 +10,8 @@
     - int ak_tlstree_state_create()
     - int ak_tlstree_state_destroy()
     - int ak_skey_derive_tlstree()
+    - int ak_skey_derive_tlstree_from_skey()
+    - ak_pointer ak_skey_new_derive_tlstree_from_skey()       
  - Встроены в общее дерево тестов криптографических преобразований:
     - ak_libakrypt_test_kdf256()
     - bool_t ak_libakrypt_test_tlstree()
@@ -18,6 +20,7 @@
     - char *ak_ptr_to_base64_alloc()
     - size_t ak_ptr_to_base64_size()
     - ak_uint8 *ak_base64_to_ptr()   
+ - Название функции ak_skey_delete_after_load() укоротилось до ak_skey_delete()
  - Изменена строка с авторами библиотеки в файле с лицензией
 
 

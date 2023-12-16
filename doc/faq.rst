@@ -13,6 +13,7 @@
    simpleprogs.rst
    random.rst
    encrypt.rst
+   aead.rst
    libakrypt-base.rst
 
 Cоглашения по именам примеров

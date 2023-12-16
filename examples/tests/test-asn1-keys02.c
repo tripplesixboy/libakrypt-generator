@@ -66,7 +66,7 @@
      printf("decrypt Ok\n");
    }
     else printf("decrypt wrong\n");
-   ak_skey_delete_after_load( pk );
+   ak_skey_delete( pk );
 
   /*  чтение незашифрованного контейнера*/
    if(( pk = ak_skey_load_from_file("delme.unencrypted.key")) != NULL ) {
@@ -81,7 +81,7 @@
      printf("decrypt Ok\n");
    }
     else printf("decrypt wrong\n");
-   ak_skey_delete_after_load( pk );
+   ak_skey_delete( pk );
    exitstatus = EXIT_SUCCESS;
 
   endl:

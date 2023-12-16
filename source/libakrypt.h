@@ -998,7 +998,8 @@ extern "C" {
    tlstree_with_magma_mgm_l,
    tlstree_with_kuznyechik_mgm_s,
    tlstree_with_magma_mgm_s,
-   tlstree_with_libakrypt_65536
+   tlstree_with_libakrypt_65536,
+   tlstree_with_libakrypt_4096
  } tlstree_t;
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -1011,18 +1012,31 @@ extern "C" {
    /*! \brief текущие значения промежуточных индексов */
     ak_uint64 ind1, ind2, ind3;
    /*! \brief Множество предопределенных констант алгоритма выработки производных ключей */
+    tlstree_t state;
  } *ak_tlstree_state;
 
 /*! \brief Функция инициализирует контекст алгоритма TLSTREE и вырабатывает производный ключ
  *  для заданного значения индекса. */
  dll_export int ak_tlstree_state_create( ak_tlstree_state ,
                                                 ak_uint8 *, const size_t , ak_uint64 , tlstree_t );
+/*! \brief Функция вырабатывает новое значение производного ключа (для следующего номера ключа) */
+ dll_export int ak_tlstree_state_next( ak_tlstree_state );
+/*! \brief Функция возвращает текущее значение производного ключа */
+ dll_export ak_uint8 *ak_tlstree_state_get_key( ak_tlstree_state );
 /*! \brief Функция уничтожает контекст алгоритма TLSTREE. */
  dll_export int ak_tlstree_state_destroy( ak_tlstree_state );
-
-/*! \brief Функция выработки производного ключа, согласно Р 1323565.1.030-2019, раздел 10.1.2.1. */
+/*! \brief Функция TLSTREE для выработки производного ключа согласно
+ *  рекомендациям Р 1323565.1.030-2019, раздел 10.1.2.1. */
  dll_export int ak_skey_derive_tlstree( ak_uint8 *, const size_t , ak_uint64 , tlstree_t ,
                                                                         ak_uint8 *, const size_t );
+/*! \brief Функция TLSTREE для выработки производного ключа согласно
+ *  рекомендациям Р 1323565.1.030-2019, раздел 10.1.2.1. */
+ dll_export int ak_skey_derive_tlstree_from_skey( ak_pointer , ak_uint64 , tlstree_t ,
+                                                                        ak_uint8 *, const size_t );
+/*! \brief Функция TLSTREE для выработки производного ключа согласно
+ *  рекомендациям Р 1323565.1.030-2019, раздел 10.1.2.1. */
+ dll_export ak_pointer ak_skey_new_derive_tlstree_from_skey( ak_oid , ak_pointer ,
+                                                                           ak_uint64 , tlstree_t );
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Алгоритм выработки производного ключа согласно Р 1323565.1.022-2018, раздел 5. */
@@ -2344,7 +2358,7 @@ extern "C" {
     значение секретного ключа и его параметры из указанного файла. */
  dll_export ak_pointer ak_skey_load_from_file( const char * );
 /*! \brief Функция удаляет считаный ранее контекст секретного ключа */
- dll_export int ak_skey_delete_after_load( ak_pointer );
+ dll_export int ak_skey_delete( ak_pointer );
 /** @}*/
 
 /* ----------------------------------------------------------------------------------------------- */
