@@ -34,11 +34,6 @@ string( COMPARE EQUAL ${CMAKE_HOST_SYSTEM_NAME} "FreeBSD" AK_FREEBSD )
 #   set( AK_CA_PATH "/usr/share/ca-certificates" )
 
 # -------------------------------------------------------------------------------------------------- #
-# Вырабатываем заголовочный файл (в каталоге сборки)
-configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/source/libakrypt-base.h.in ${CMAKE_CURRENT_BINARY_DIR}/libakrypt-base.h @ONLY )
-message("-- Generation of libakrypt-base.h is done")
-
-# -------------------------------------------------------------------------------------------------- #
 # Определяем базовое множество исходных текстов библиотеки
 set( MAIN_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/libakrypt-base.h source/libakrypt.h )
 
@@ -105,6 +100,11 @@ include( DetectIntrinsics )
 include( DetectLibraries )
 # модули CMake
 include( GNUInstallDirs )
+
+# -------------------------------------------------------------------------------------------------- #
+# Вырабатываем заголовочный файл (в каталоге сборки)
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/source/libakrypt-base.h.in ${CMAKE_CURRENT_BINARY_DIR}/libakrypt-base.h @ONLY )
+message("-- Generation of libakrypt-base.h is done")
 
 # -------------------------------------------------------------------------------------------------- #
 # Определяем место хранения файла с настройками библиотеки
