@@ -24,12 +24,13 @@
 
 .. toctree::
    :caption: Пользователям
-   :maxdepth: 2
+   :maxdepth: 3
 
    annotation.rst
    install-guide.rst
    faq.rst
    aktool.rst
+   API функций библиотеки <https://libakrypt.ru/api/topics.html>
 
 .. toctree::
    :maxdepth: 2
@@ -37,8 +38,8 @@
 
    bibliography.rst
 
-Подробное описание функций библиотеки
--------------------------------------
+Дополнительные файлы для скачивания
+-----------------------------------
 
-- `Документация, подготовленная с использованием утилиты Doxygen <api/index.html>`__
-- Документация в формате :download:`qch <https://libakrypt.ru/api/akrypt-library.qch>`.
+- Документация в формате :download:`pdf <https://libakrypt.ru/api/akrypt-library.pdf>`.
+- API функций библиотеки в формате :download:`qch <https://libakrypt.ru/api/akrypt-library.qch>`.

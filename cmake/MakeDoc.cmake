@@ -84,6 +84,7 @@ if( UNIX )
     if( LATEXMK )
       file( APPEND ${script} "make latexpdf\n" )
       file( APPEND ${script} "cp ${CMAKE_CURRENT_BINARY_DIR}/sphinx/latex/libakrypt.pdf ${CMAKE_CURRENT_BINARY_DIR}/doc/libakrypt-doc-${FULL_VERSION}.pdf\n" )
+      file( APPEND ${script} "cp ${CMAKE_CURRENT_BINARY_DIR}/sphinx/latex/libakrypt.pdf ${CMAKE_CURRENT_BINARY_DIR}/sphinx/html/api/akrypt-library.pdf\n" )
     endif()
     file( APPEND ${script} "cd ${CMAKE_CURRENT_BINARY_DIR}\n" )
    # добавляем цель сборки

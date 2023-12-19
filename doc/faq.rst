@@ -13,6 +13,7 @@
    simpleprogs.rst
    random.rst
    encrypt.rst
+   kdf.rst
    aead.rst
    libakrypt-base.rst
 
