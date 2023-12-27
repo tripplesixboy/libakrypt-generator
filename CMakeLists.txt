@@ -44,6 +44,7 @@ set( AKBASE_SOURCES
    source/ak_list.c
    source/ak_file.c
    source/ak_base64.c
+   source/ak_buffer.c
   )
 
 # -------------------------------------------------------------------------------------------------- #
