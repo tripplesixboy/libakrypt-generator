@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: aktool\n"
 "Report-Msgid-Bugs-To: Axel Kenzo <axelkenzo@mail.ru\n"
-"POT-Creation-Date: 2023-05-18 12:11+0300\n"
+"POT-Creation-Date: 2023-12-27 12:13+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -343,127 +343,135 @@ msgstr ""
 msgid "aktool compiled by %s, version: %s (%s at %s)\n"
 msgstr "утилита скомпилирована %s версии %s (%s в %s)\n"
 
-#: aktool_asn1.c:31
+#: aktool_asn1.c:36
 msgid "convert"
 msgstr ""
 
-#: aktool_asn1.c:32
+#: aktool_asn1.c:37
 msgid "split"
 msgstr ""
 
-#: aktool_asn1.c:33
+#: aktool_asn1.c:38
 msgid "join"
 msgstr ""
 
-#: aktool_asn1.c:34
+#: aktool_asn1.c:39
 msgid "to"
 msgstr ""
 
-#: aktool_asn1.c:35 aktool_asn1.c:63
+#: aktool_asn1.c:40 aktool_asn1.c:69
 msgid "pem"
 msgstr ""
 
-#: aktool_asn1.c:36 aktool_icode.c:32
+#: aktool_asn1.c:41 aktool_icode.c:32
 msgid "output"
 msgstr ""
 
-#: aktool_asn1.c:45
+#: aktool_asn1.c:42
+msgid "delete-source"
+msgstr ""
+
+#: aktool_asn1.c:51
 msgid "o:h"
 msgstr ""
 
-#: aktool_asn1.c:60
+#: aktool_asn1.c:66
 msgid "der"
 msgstr ""
 
-#: aktool_asn1.c:60
+#: aktool_asn1.c:66
 msgid "DER"
 msgstr ""
 
-#: aktool_asn1.c:63
+#: aktool_asn1.c:69
 msgid "PEM"
 msgstr ""
 
-#: aktool_asn1.c:66
+#: aktool_asn1.c:72
 #, c-format
 msgid "%s is not valid format of output data"
 msgstr "%s не является форматом для выходных данных"
 
-#: aktool_asn1.c:72
+#: aktool_asn1.c:78
 msgid "certificate"
 msgstr ""
 
-#: aktool_asn1.c:76
+#: aktool_asn1.c:82
 msgid "request"
 msgstr ""
 
-#: aktool_asn1.c:80
+#: aktool_asn1.c:86
 msgid "symkey"
 msgstr ""
 
-#: aktool_asn1.c:84
+#: aktool_asn1.c:90
 msgid "secretkey"
 msgstr ""
 
-#: aktool_asn1.c:88
+#: aktool_asn1.c:94
 msgid "encrypted"
 msgstr ""
 
-#: aktool_asn1.c:92
+#: aktool_asn1.c:98
 msgid "plain"
 msgstr ""
 
-#: aktool_asn1.c:135
-#, c-format
+#: aktool_asn1.c:144
+#, fuzzy, c-format
 msgid ""
-"aktool found %d error(s), rerun aktool with \"--audit stderr\" option or see "
-"syslog messages"
+"aktool found %d error(s), rerun aktool with \"--audit 2 --audit-file "
+"stderr\" option or see syslog messages"
 msgstr ""
 "найдено %d ошибок, смотри журнал syslog или перезапусти aktool с опцией \"--"
 "audit stderr\" для вывода сообщений в консоль"
 
-#: aktool_asn1.c:153 aktool_asn1.c:219
+#: aktool_asn1.c:162 aktool_asn1.c:241
 #, c-format
 msgid "file %s is wrong"
 msgstr "файл %s поврежден"
 
-#: aktool_asn1.c:157
+#: aktool_asn1.c:166
 #, c-format
 msgid "incorrect filename %s"
 msgstr "неверное имя файла %s"
 
-#: aktool_asn1.c:161
+#: aktool_asn1.c:170
 msgid ""
 "file with asn1 content is not specified as the last argument of the program"
 msgstr ""
 "файл с asn1 содержимым не указан в качестве последнего аргумента программы"
 
-#: aktool_asn1.c:187
+#: aktool_asn1.c:196
 msgid ".der"
 msgstr ""
 
-#: aktool_asn1.c:188
+#: aktool_asn1.c:197
 msgid ".pem"
 msgstr ""
 
-#: aktool_asn1.c:195 aktool_asn1.c:201
+#: aktool_asn1.c:204 aktool_asn1.c:210
 #, c-format
 msgid "convertation of %s is wrong"
 msgstr "преобразование %s выполнено с ошибкой"
 
-#: aktool_asn1.c:199
+#: aktool_asn1.c:214
 #, c-format
 msgid "convertation of %s to %s is Ok\n"
 msgstr "преобразование %s выполнено успешно\n"
 
-#: aktool_asn1.c:233
-#, c-format
+#: aktool_asn1.c:255
+#, fuzzy, c-format
 msgid ""
 "aktool asn1parse [options] [files] - decode and print ASN.1 data\n"
 "usage:\n"
 "  aktool a file - print ASN.1 data stored in DER or PEM format\n"
 "\n"
 "available options:\n"
-"     --convert           print and convert file to specified format\n"
+"     --convert           convert file to specified format\n"
+"                         for additional printing of asn1 content use --"
+"verbose option\n"
+"     --delete-source     delete the source file if the convertation is "
+"successful\n"
 " -o, --output <file>     set the name of output file\n"
 "     --pem <content>     use the specified informational string of pem "
 "content\n"
@@ -478,8 +486,10 @@ msgstr ""
 "пример использования:\n"
 "  aktool a файл - печать asn1 данных, хранящихся в формате der или pem\n"
 "\n"
-"available options:\n"
+"доступные опции:\n"
 "     --convert           преобразовать файл в указанный формат\n"
+"                         для вывода преобразованных данных нужно использовать опцию --verbose"
+"     --delete-source     удалить исходный файл после успешного преобразования\n"
 " -o, --output <file>     указать имя выходного файла\n"
 "     --pem <content>     использовать заданную информационную строку для "
 "содержимого в формате pem\n"
@@ -1189,12 +1199,12 @@ msgstr "ошибка выработки ключа шифрования (код 
 msgid "incorrect assigning encryption key value (code: %d)"
 msgstr "ошибка присвоения значения ключу шифрования (код ошибки: %d)"
 
-#: aktool_test.c:351 aktool_test.c:732
+#: aktool_test.c:351 aktool_test.c:734
 #, fuzzy, c-format
 msgid "incorrect creation of authentication key (code: %d)"
 msgstr "ошибка выработки ключа имитозащиты (код ошибки: %d)"
 
-#: aktool_test.c:356 aktool_test.c:736
+#: aktool_test.c:356 aktool_test.c:738
 #, c-format
 msgid "incorrect assigning authentication key value (code: %d)"
 msgstr "ошибка присвоения значения ключу имитозащиты (код ошибки: %d)"
@@ -1213,15 +1223,15 @@ msgstr "режим простой замены"
 msgid "%s %3d Mb%s"
 msgstr ""
 
-#: aktool_test.c:379 aktool_test.c:484 aktool_test.c:517 aktool_test.c:632
+#: aktool_test.c:379 aktool_test.c:485 aktool_test.c:518 aktool_test.c:633
 msgid "\r"
 msgstr ""
 
-#: aktool_test.c:417 aktool_test.c:566
+#: aktool_test.c:417 aktool_test.c:567
 msgid "acpkm_section_magma_block_count"
 msgstr ""
 
-#: aktool_test.c:418 aktool_test.c:567
+#: aktool_test.c:418 aktool_test.c:568
 msgid "acpkm_section_kuznechik_block_count"
 msgstr ""
 
@@ -1230,42 +1240,42 @@ msgstr ""
 msgid "%3d: block cipher %s, %s\n"
 msgstr "%3d: блочный шифр %s, %s\n"
 
-#: aktool_test.c:471 aktool_test.c:690 aktool_test.c:756
+#: aktool_test.c:471 aktool_test.c:692 aktool_test.c:758
 #, c-format
 msgid "computational error (%d)"
 msgstr "вычислительная ошибка (код ошибки: %d)"
 
-#: aktool_test.c:476
+#: aktool_test.c:477
 #, fuzzy, c-format
 msgid "%s %3d Mb, time: %8f sec., per 1Mb: %f sec., average: %f MBs\n"
 msgstr " %3uMБ: %s время = %fs, на 1MB = %fs, скорость = %f MБ/сек.\n"
 
-#: aktool_test.c:483
+#: aktool_test.c:484
 #, c-format
 msgid "%s %3d Mb, time: %8f sec.%s"
 msgstr "%s %3d MБ, время: %8f sec.%s"
 
-#: aktool_test.c:492
+#: aktool_test.c:493
 #, c-format
 msgid "   - average speed: %10f MBs.                              \n"
 msgstr "   - средняя скорость: %10f MБ/сек.                            \n"
 
-#: aktool_test.c:517
+#: aktool_test.c:518
 #, fuzzy, c-format
 msgid "%s %s"
 msgstr "%sошибка%s: %s\n"
 
-#: aktool_test.c:629
+#: aktool_test.c:630
 #, c-format
 msgid "%s %4lu bytes, time: %f sec., packet per sec.: %lu\n"
 msgstr "%s %4lu байт, время: %f сек., пакетов в секунду: %lu\n"
 
-#: aktool_test.c:631
+#: aktool_test.c:632
 #, c-format
 msgid "%s %4lu bytes, time: %f sec., packet per sec.: %7lu%s"
 msgstr "%s %4lu байт, время: %f сек., пакетов в секунду: %7lu%s"
 
-#: aktool_test.c:640
+#: aktool_test.c:642
 #, c-format
 msgid ""
 "   - average "
@@ -1278,7 +1288,7 @@ msgstr ""
 "\t - %6lu в сек. (средняя оценка)\n"
 "\t - %6lu в сек. (интегральная оценка)\n"
 
-#: aktool_test.c:664
+#: aktool_test.c:666
 #, c-format
 msgid ""
 "hash function's mode \"%s\" is not supported yet for testing, sorry ... \n"
@@ -1286,47 +1296,47 @@ msgstr ""
 "режим функции хеширования \"%s\" в текущей версии программы не "
 "поддерживается\n"
 
-#: aktool_test.c:670
+#: aktool_test.c:672
 #, fuzzy, c-format
 msgid "incorrect creation of hash function context (code: %d)"
 msgstr "ошибка создания контекста функции хеширования (код ошибки: %d)"
 
-#: aktool_test.c:674 aktool_test.c:740
+#: aktool_test.c:676 aktool_test.c:742
 #, c-format
 msgid "%3d. [%s:"
 msgstr ""
 
-#: aktool_test.c:675 aktool_test.c:741
+#: aktool_test.c:677 aktool_test.c:743
 #, c-format
 msgid " %uMB "
 msgstr " %uMБ "
 
-#: aktool_test.c:676 aktool_test.c:742 aktool_test.c:793
+#: aktool_test.c:678 aktool_test.c:744 aktool_test.c:795
 #, c-format
 msgid "\n"
 msgstr ""
 
-#: aktool_test.c:694 aktool_test.c:760
+#: aktool_test.c:696 aktool_test.c:762
 #, c-format
 msgid " %3uMB: %s time = %fs, per 1MB = %fs, speed = %f MBs\n"
 msgstr " %3uMБ: %s время = %fs, на 1MB = %fs, скорость = %f MБ/сек.\n"
 
-#: aktool_test.c:699 aktool_test.c:765 aktool_test.c:813
+#: aktool_test.c:701 aktool_test.c:767 aktool_test.c:815
 #, c-format
 msgid "."
 msgstr ""
 
-#: aktool_test.c:704 aktool_test.c:770
+#: aktool_test.c:706 aktool_test.c:772
 #, c-format
 msgid " %uMB"
 msgstr " %uMБ"
 
-#: aktool_test.c:705 aktool_test.c:771
+#: aktool_test.c:707 aktool_test.c:773
 #, c-format
 msgid "], average speed: %10f MBs\n"
 msgstr "], средняя скорость: %10f MБ/сек.\n"
 
-#: aktool_test.c:725
+#: aktool_test.c:727
 #, fuzzy, c-format
 msgid ""
 "hmac function's mode \"%s\" is not supported yet for testing, sorry ... \n"
@@ -1334,29 +1344,37 @@ msgstr ""
 "режим функции хеширования \"%s\" в текущей версии программы не "
 "поддерживается\n"
 
-#: aktool_test.c:792
+#: aktool_test.c:794
 #, c-format
 msgid "curve: %s (%s) "
 msgstr "эллиптическая кривая: %s (%s) "
 
-#: aktool_test.c:808
+#: aktool_test.c:810
 #, c-format
 msgid "[count: %3lu, time = %fs, speed: %f sec., count: %f]\n"
 msgstr ""
 "[количество: %3lu, время = %fs, одна подпись: %f сек., скорость: %f подп./"
 "сек.]\n"
 
-#: aktool_test.c:817
+#: aktool_test.c:819
 #, c-format
 msgid " average speed: %10f sgn/sec.\n"
 msgstr " средняя скорость: %10f подп./сек.\n"
 
-#: aktool_test.c:832
+#: aktool_test.c:834
 #, fuzzy, c-format
 msgid "using unsupported mode %s"
 msgstr "используется неподдерживаемое имя или идентификатор \"%s\""
 
-#: aktool_test.c:838
+#: aktool_test.c:840
 #, fuzzy
 msgid "incorrect creation of secret key context"
 msgstr "ошибка создания контекста секретного ключа"
+
+#, c-format
+#~ msgid ""
+#~ "aktool found %d error(s), rerun aktool with \"--audit stderr\" option or "
+#~ "see syslog messages"
+#~ msgstr ""
+#~ "найдено %d ошибок, смотри журнал syslog или перезапусти aktool с опцией "
+#~ "\"--audit stderr\" для вывода сообщений в консоль"

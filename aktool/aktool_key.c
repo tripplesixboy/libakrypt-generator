@@ -1619,7 +1619,7 @@
 
    /* проверяем, что этот сертификат может проверять подписи */
     if( !ca_cert->opts.ext_ca.is_present ) {
-      aktool_error(_("the certificate %s is not the CA certificate"), filename );
+      aktool_error(_("the certificate %s is not the CA certificate, ca extension is not found"), filename );
       ak_certificate_destroy( ca_cert );
       return NULL;
     }

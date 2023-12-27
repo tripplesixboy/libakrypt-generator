@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------------------------- */
-/*  Copyright (c) 2018 - 2021 by Axel Kenzo, axelkenzo@mail.ru                                     */
+/*  Copyright (c) 2018 - 2021, 2023 by Axel Kenzo, axelkenzo@mail.ru                               */
 /*                                                                                                 */
 /*  Прикладной модуль, реализующий вывод информации о содержании asn.1 структур                    */
 /*                                                                                                 */
@@ -9,6 +9,11 @@
  #include <stdlib.h>
  #include <string.h>
  #include <aktool.h>
+
+/* ----------------------------------------------------------------------------------------------- */
+#ifdef AK_HAVE_UNISTD_H
+ #include <unistd.h>
+#endif
 
 /* ----------------------------------------------------------------------------------------------- */
  int aktool_asn1_help( void );
@@ -34,6 +39,7 @@
      { "to",               1, NULL, 250 },
      { "pem",              1, NULL, 249 },
      { "output",           1, NULL, 'o' },
+     { "delete-source",    0, NULL, 233 },
 
     /* потом общие */
       aktool_common_functions_definition,
@@ -99,6 +105,9 @@
          case 'o' :  outname = optarg;
                      break;
 
+         case 233: /* --delete-source */
+                     ki.delete_source = ak_true;
+                     break;
 
        /* обрабатываем ошибочные параметры */
          default:
@@ -194,13 +203,26 @@
         if( ak_libakrypt_convert_asn1( argv[idx], name, format, content ) != ak_error_ok ) {
           aktool_error(_("convertation of %s is wrong"), argv[idx] );
           ecount++;
-        } else {
-            if( ak_libakrypt_print_asn1( name ) == ak_error_ok )
-              fprintf( stdout, _("convertation of %s to %s is Ok\n"), argv[idx], name );
-             else {
+        } else { /* проверка того, что данные конвертировались удачно */
+             ak_asn1 asn = ak_asn1_new();
+
+             if( ak_asn1_import_from_file( asn, argv[idx], NULL ) != ak_error_ok ) {
                aktool_error(_("convertation of %s is wrong"), argv[idx] );
                ecount++;
              }
+              else {
+               fprintf( stdout, _("convertation of %s to %s is Ok\n"), argv[idx], name );
+              /* если указано, выводим преобразованный файл */
+               if( ki.verbose ) ak_asn1_print( asn );
+              /* если указано, удаляем исходный файл */
+               if( ki.delete_source )
+                #ifdef AK_HAVE_UNISTD_H
+                  unlink( argv[idx] );
+                #else
+                  remove( argv[idx] );
+                #endif
+              }
+             ak_asn1_delete( asn );
           }
      }
   }
@@ -234,7 +256,9 @@
      "usage:\n"
      "  aktool a file - print ASN.1 data stored in DER or PEM format\n\n"
      "available options:\n"
-     "     --convert           print and convert file to specified format\n"
+     "     --convert           convert file to specified format\n"
+     "                         for additional printing of asn1 content use --verbose option\n"
+     "     --delete-source     delete the source file if the convertation is successful\n"
      " -o, --output <file>     set the name of output file\n"
      "     --pem <content>     use the specified informational string of pem content\n"
      "                         [ enabled values: certificate, request, symkey, secretkey, encrypted, plain ]\n"
