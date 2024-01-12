@@ -54,7 +54,7 @@
     return ak_false;
   }
 
-  if( ak_log_get_level() >= ak_log_standard )
+  if( ak_log_get_level() > ak_log_standard )
     ak_error_message_fmt( ak_error_ok, __func__, "size of pointer is %d", sizeof( ak_pointer ));
 
  /* определяем тип платформы: little-endian или big-endian */
@@ -66,7 +66,7 @@
       "incorrect endian: library runs on big endian, but compiled for little endian platform");
      return ak_false;
    } else
-      if( ak_log_get_level() >= ak_log_standard ) {
+      if( ak_log_get_level() > ak_log_standard ) {
         ak_error_message( ak_error_ok, __func__ , "library runs on little endian platform" );
       }
   #else
@@ -75,33 +75,33 @@
       "incorrect endian: library runs on little endian, but compiled for big endian platform");
      return ak_false;
    } else
-      if( ak_log_get_level() >= ak_log_standard ) {
+      if( ak_log_get_level() > ak_log_standard ) {
         ak_error_message( ak_error_ok, __func__ , "library runs on big endian platform" );
       }
   #endif
 
   #ifdef AK_HAVE_BUILTIN_XOR_SI128
-   if( ak_log_get_level() >= ak_log_standard ) {
+   if( ak_log_get_level() > ak_log_standard ) {
      ak_error_message( ak_error_ok, __func__ , "library applies __m128i base type" );
    }
   #endif
   #ifdef AK_HAVE_BUILTIN_CLMULEPI64
-   if( ak_log_get_level() >= ak_log_standard ) {
+   if( ak_log_get_level() > ak_log_standard ) {
      ak_error_message( ak_error_ok, __func__ , "library applies clmulepi64 instruction" );
    }
   #endif
   #ifdef AK_HAVE_BUILTIN_MULQ_GCC
-   if( ak_log_get_level() >= ak_log_standard ) {
+   if( ak_log_get_level() > ak_log_standard ) {
      ak_error_message( ak_error_ok, __func__ , "library applies assembler code for mulq command" );
    }
   #endif
   #ifdef AK_HAVE_PTHREAD_H
-   if( ak_log_get_level() >= ak_log_standard ) {
+   if( ak_log_get_level() > ak_log_standard ) {
      ak_error_message( ak_error_ok, __func__ , "library runs with pthreads support" );
    }
   #endif
   #ifdef AK_HAVE_GMP_H
-   if( ak_log_get_level() >= ak_log_standard ) {
+   if( ak_log_get_level() > ak_log_standard ) {
      ak_error_message( ak_error_ok, __func__ , "library runs with gmp support" );
    }
   #endif
@@ -361,7 +361,7 @@
    }
 
  /* выводим версию библиотеки */
-   if( ak_log_get_level() > ak_log_none )
+   if( ak_log_get_level() > ak_log_standard )
      ak_error_message_fmt( ak_error_ok, __func__, "libakrypt version %s", ak_libakrypt_version( ));
 
  /* считываем настройки криптографических алгоритмов */
@@ -377,7 +377,7 @@
    ak_error_set_color_output( ak_false );
 #endif
  /* выводим значения установленных параметров библиотеки */
-   if( ak_log_get_level() >= ak_log_standard ) ak_libakrypt_log_options();
+   if( ak_log_get_level() > ak_log_standard ) ak_libakrypt_log_options();
 
  /* проверяем длины фиксированных типов данных */
    if( ak_libakrypt_test_types() != ak_true ) {
@@ -422,7 +422,7 @@
     поскольку функция динамического контроля экспортируется,
     то она может быть запущена пользователем самостоятельно. */
 
- if( ak_log_get_level() != ak_log_none )
+ if( ak_log_get_level() > ak_log_none )
    ak_error_message( ak_error_ok, __func__ , "creation of libakrypt is Ok" );
 
  return ak_true;

@@ -395,7 +395,7 @@
  if( ak_file_open_to_read( &fd, name ) == ak_error_ok ) {
    ak_file_close( &fd );
    if(( error = ak_ini_parse( name, ak_libakrypt_load_option_from_file, NULL )) == ak_error_ok ) {
-     if( ak_log_get_level() > ak_log_none ) ak_error_message_fmt( ak_error_ok, __func__,
+     if( ak_log_get_level() > ak_log_standard ) ak_error_message_fmt( ak_error_ok, __func__,
                                             "all options have been read from the %s file", name );
      return ak_true;
    } else {
@@ -415,7 +415,7 @@
  if( ak_file_open_to_read( &fd, name ) == ak_error_ok ) {
    ak_file_close( &fd );
    if(( error = ak_ini_parse( name, ak_libakrypt_load_option_from_file, NULL )) == ak_error_ok ) {
-     if( ak_log_get_level() > ak_log_none ) ak_error_message_fmt( ak_error_ok, __func__,
+     if( ak_log_get_level() > ak_log_standard ) ak_error_message_fmt( ak_error_ok, __func__,
                                              "all options have been read from the %s file", name );
      return ak_true;
    } else {
