@@ -60,15 +60,18 @@
  static const char *asn1_winrtl_i[] =       { "1.2.643.2.52.1.1.4", NULL };
 #endif
 /* генератор, использующий функцию хеширования согласно Р 1323565.1.006-2017 */
- static const char *asn1_hrng_n[] =     { "hrng", NULL };
- static const char *asn1_hrng_i[] =     { "1.2.643.2.52.1.1.5", NULL };
- static const char *asn1_nlfsr_n[] =     { "nlfsr", NULL };
- static const char *asn1_nlfsr_i[] =     { "1.2.643.2.52.1.1.6", NULL };
+ static const char *asn1_hrng_n[] =        { "hrng", NULL };
+ static const char *asn1_hrng_i[] =        { "1.2.643.2.52.1.1.5", NULL };
+ static const char *asn1_nlfsr_n[] =       { "nlfsr", NULL };
+ static const char *asn1_nlfsr_i[] =       { "1.2.643.2.52.1.1.6", NULL };
 
  static const char *asn1_streebog256_n[] = { "streebog256", "md_gost12_256", NULL };
  static const char *asn1_streebog256_i[] = { "1.2.643.7.1.1.2.2", NULL };
  static const char *asn1_streebog512_n[] = { "streebog512", "md_gost12_512", NULL };
  static const char *asn1_streebog512_i[] = { "1.2.643.7.1.1.2.3", NULL };
+ static const char *asn1_crc64_n[] =       { "crc64", NULL };
+ static const char *asn1_crc64_i[] =       { "1.2.643.2.52.1.2.2", NULL };
+
  static const char *asn1_hmac_streebog256_n[] = { "hmac-streebog256", "HMAC-md_gost12_256", NULL };
  static const char *asn1_hmac_streebog256_i[] = { "1.2.643.7.1.1.4.1", NULL };
  static const char *asn1_hmac_streebog512_n[] = { "hmac-streebog512", "HMAC-md_gost12_512", NULL };
@@ -551,6 +554,11 @@ static struct oid libakrypt_oids[] =
 
  { hash_function, algorithm, asn1_streebog512_i, asn1_streebog512_n, NULL,
   {{ sizeof( struct hash ), ( ak_function_create_object *) ak_hash_create_streebog512,
+                              ( ak_function_destroy_object *) ak_hash_destroy, NULL, NULL, NULL },
+                              ak_object_undefined, (ak_function_run_object *) ak_hash_ptr, NULL }},
+
+ { hash_function, algorithm, asn1_crc64_i, asn1_crc64_n, NULL,
+  {{ sizeof( struct hash ), ( ak_function_create_object *) ak_hash_create_crc64,
                               ( ak_function_destroy_object *) ak_hash_destroy, NULL, NULL, NULL },
                               ak_object_undefined, (ak_function_run_object *) ak_hash_ptr, NULL }},
 

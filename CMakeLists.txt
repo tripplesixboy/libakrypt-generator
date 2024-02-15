@@ -61,6 +61,7 @@ set( AKRYPT_SOURCES
    source/ak_parameters.c
    source/ak_mac.c
    source/ak_hash.c
+   source/ak_crc.c
    source/ak_skey.c
    source/ak_hmac.c
    source/ak_bckey.c
@@ -200,6 +201,7 @@ set( EXAMPLES_LIST
      g03n01 g03n02 g03n03 g03n04
      g04n01 g04n02
      g05n01 g05n02 g05n03
+     g06n01
    )
 
 if( AK_EXAMPLES )

@@ -520,6 +520,10 @@
   if( rnd->random == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
                                                   "using uninitialized random generator context" );
  /* пропущен фрагмент с очищением кармы */
+  #ifdef AK_HAVE_SYSMMAN_H
+    /* здесь надо немного поработать ))) */
+  #endif
+
   #ifdef AK_HAVE_UNISTD_H
    unlink( file );
   #else

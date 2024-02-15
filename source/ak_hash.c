@@ -1434,6 +1434,9 @@
     return 0;
   }
 
+ /* костыль! */
+  if( strncmp( hctx->oid->name[0], "crc64", 5 ) == 0 ) return 8;
+
  return hctx->data.sctx.hsize;
 }
 
@@ -1448,6 +1451,9 @@
     ak_error_message( ak_error_null_pointer, __func__, "using null pointer to hash context" );
     return 0;
   }
+
+ /* костыль! */
+  if( strncmp( hctx->oid->name[0], "crc64", 5 ) == 0 ) return 1;
 
  return hctx->mctx.bsize;
 }
