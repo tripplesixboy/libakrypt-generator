@@ -45,13 +45,12 @@ exclude_patterns = []
 
 
 # -- Options for HTML output -------------------------------------------------
-html_logo = '../logo.png'
+#html_logo = '../logo.png'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
 #html_theme = 'sphinxdoc'
-
 #html_theme = 'nature'
 #html_theme = 'traditional'
 #html_theme = 'agogo'
@@ -60,14 +59,12 @@ version = 'версия библиотеки @HEAD_VERSION@.@MAIN_VERSION@.@MINO
 
 html_theme = 'sphinx_rtd_theme'
 html_theme_options = {
-##    'analytics_id': 'G-XXXXXXXXXX',  #  Provided by Google in your dashboard
-##    'analytics_anonymize_ip': False,
     'logo_only': False,
     'display_version': True,
     'prev_next_buttons_location': 'bottom',
     'style_external_links': True,
     'vcs_pageview_mode': '',
-    'style_nav_header_background': '#6ab0de',
+##    'style_nav_header_background': '#6ab0de',
     # Toc options
     'collapse_navigation': True,
     'sticky_navigation': True,
@@ -85,14 +82,14 @@ html_search_language = 'ru'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-#html_static_path = ['_static']
+html_static_path = ['@CMAKE_CURRENT_SOURCE_DIR@/examples/faq']
 
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('aktool', 'aktool', 'Правила пользования', [author], 1)
+    ('90-aktool', 'aktool', 'Правила пользования', [author], 1)
 ]
 
 # If true, show URL addresses after external links.
