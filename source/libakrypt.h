@@ -910,7 +910,7 @@ extern "C" {
 /*! \brief Инициализация контекста функции бесключевого хеширования ГОСТ Р 34.11-2012 (Стрибог512). */
  dll_export int ak_hash_create_streebog512( ak_hash );
 /*! \brief Инициализация контекста некриптографической функции хеширования crc64. */
- int ak_hash_create_crc64( ak_hash );
+ dll_export int ak_hash_create_crc64( ak_hash );
 /*! \brief Инициализация контекста функции бесключевого хеширования по заданному OID алгоритма. */
  dll_export int ak_hash_create_oid( ak_hash, ak_oid );
 /*! \brief Уничтожение контекста функции хеширования. */
