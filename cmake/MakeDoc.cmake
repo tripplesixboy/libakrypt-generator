@@ -93,6 +93,29 @@ if( UNIX )
     message("-- Script for documentation is done (now \"make doc\" enabled)")
   endif()
 
+  # ------------------------------------------------------------------------------
+  # короткий путь генерации только для выработки sphinx-документов в формате html
+  # ------------------------------------------------------------------------------
+  if( SPHINX )
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/doc/Makefile.in ${CMAKE_CURRENT_BINARY_DIR}/sphinx/Makefile @ONLY )
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/doc/conf.py.in ${CMAKE_CURRENT_SOURCE_DIR}/doc/conf.py @ONLY )
+
+    set( script ${CMAKE_CURRENT_BINARY_DIR}/make-sphinx-${FULL_VERSION}.sh )
+    file( WRITE ${script} "#/bin/bash\n" )
+   # формируем каталог с собранной воедино документацией
+    file( APPEND ${script} "mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/sphinx \n" )
+    file( APPEND ${script} "cd ${CMAKE_CURRENT_BINARY_DIR}/sphinx \n" )
+   # строим красивый вывод в html
+   # (собираем архив без включения каталога html)
+    file( APPEND ${script} "make html\n" )
+    file( APPEND ${script} "make man\n" )
+    file( APPEND ${script} "cd ${CMAKE_CURRENT_BINARY_DIR}\n" )
+   # добавляем цель сборки
+    execute_process( COMMAND chmod +x ${script} )
+    add_custom_target( sphinx ${script} )
+    message("-- Script for sphinx documentation is done (now \"make sphinx\" enabled)")
+  endif()
+
 endif()
 # -------------------------------------------------------------------------------------------------- #
 #                                                                                     MakeDoc.cmake  #

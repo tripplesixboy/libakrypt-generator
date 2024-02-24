@@ -3,7 +3,6 @@
 
 
 Государственные стандарты Российской Федерации
-----------------------------------------------
 
 .. [ГОСТР34.10-2012] ГОСТ Р 34.10-2012. Информационная технология.
    Криптографическая защита информации. `Процессы формирования и проверки
@@ -30,9 +29,13 @@
    Позднее принят в качестве межгосударственного стандарта `ГОСТ 34.13-2018
    <https://files.stroyinf.ru/Data/705/70511.pdf>`__ .
 
+Международные стандарты
 
-Рекомендации по стандартизации
-------------------------------
+.. [ISOIEC.9899-1999] ISO/IEC 9899-1999. `Information technology. Programming languages. C.
+   <https://www.open-std.org/JTC1/SC22/WG14/www/docs/n1256.pdf>`__, -- 2007.
+
+
+Рекомендации по стандартизации Росстандарта России
 
 .. [P1323565.1.006-2017] `Механизмы выработки псевдослучайных
    последовательностей <https://meganorm.ru/Data2/1/4293740/4293740893.pdf>`__
@@ -89,8 +92,9 @@
    (с учетом `поправки <https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/popravka-k-r-50-1-113-2016-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-kriptograficheskie-algoritmy-soputstvuyushchie-primeneniyu-algoritmov-elektronnoy-tsifrovoy-podpisi-i-funktsii-kheshirovaniya.html>`__).
 
 
+
+
 Публикации в журналах
----------------------
 
 .. [BLOM82] Blom R. Nonpublic key distribution // Advances in Cryptology. Proceedings of EUROCRYPT’82.
    Plenum. New York. – 1983. – pp. 231–236.
