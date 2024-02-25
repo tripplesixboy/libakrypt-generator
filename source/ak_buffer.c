@@ -52,10 +52,12 @@
       buffer->is_allocated = ak_false;
     }
      else {
-       if(( buffer->ptr = malloc( size )) == NULL )
+      /* при выделении добавляем лишний ноль в конце */
+       if(( buffer->ptr = malloc( size +1 )) == NULL )
          return ak_error_message( ak_error_out_of_memory, __func__, "memory allocation error" );
 
       /* копируем данные */
+       buffer->ptr[size] = 0;
        memcpy( buffer->ptr, ptr, size );
        buffer->size = size;
        buffer->is_allocated = ak_true;
