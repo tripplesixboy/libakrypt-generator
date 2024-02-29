@@ -2047,7 +2047,7 @@ extern "C" {
  /*! \brief точка кривой, являющаяся открытым ключом электронной подписи */
   struct wpoint qpoint;
  /*! \brief флаги состояния ключа */
-  ak_uint64 flags;
+  key_flags_t flags;
 } *ak_verifykey;
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -2067,6 +2067,12 @@ extern "C" {
  dll_export int ak_verifykey_set_number( ak_verifykey );
 /*! \brief Уничтожение контекста открытого ключа. */
  dll_export int ak_verifykey_destroy( ak_verifykey );
+
+/*! \brief Функция сохраняет открытый ключ в файле в простом текстовом формате */
+ dll_export int ak_verifykey_export_to_file( ak_verifykey , const char * );
+/*! \brief открытого ключа асимметричного криптографического алгоритма значением,
+    предварительно сохраненном в простом текстовом файле */
+ dll_export int ak_verifykey_create_from_file( ak_verifykey , const char * );
 /** @}*/
 
 /* ----------------------------------------------------------------------------------------------- */

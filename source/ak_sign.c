@@ -1099,7 +1099,7 @@
 
  /* необходимые проверки */
   if( vk == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
-                                                      "using null pointer to secret key context" );
+                                                      "using null pointer to verify key context" );
   if( vk->oid == NULL ) return ak_error_message( ak_error_wrong_oid, __func__,
                                                            "using null pointer to algorithm oid" );
   if( vk->wc == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
@@ -1139,6 +1139,135 @@
    else ak_hash_finalize( &hctx, buffer, vk->wc->size*sizeof( ak_uint64 ),
                                              vk->number, vk->number_length = sizeof( vk->number ));
   labex: ak_hash_destroy( &hctx );
+ return error;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! Функция помещает в файл строку, состоящую из двух слов - первое содержит OID кривой,
+    второе - точку на этой кривой, записанную в формате base64.
+
+    @param vk контекст открытого ключа
+    @param filename имя файла, в который записывается открытый ключ
+    @return В случае успеха возвращается \ref ak_error_ok. В противном случае
+    возвращается код ошибки.                                                                       */
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_verifykey_export_to_file( ak_verifykey vk, const char *filename )
+{
+    size_t len = 0;
+    struct file fp;
+    ak_oid oid = NULL;
+    int error = ak_error_ok;
+    ak_uint8 buffer[ sizeof( ak_uint64 )*ak_mpznmax_size ];
+
+   /* необходимые проверки */
+    if( vk == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
+                                                       "using null pointer to verify key context" );
+    if( filename == NULL ) return ak_error_message( ak_error_wrong_oid, __func__,
+                                                                "using null pointer to file name" );
+    if(( oid = ak_oid_find_by_data( vk->wc )) == NULL )
+      return ak_error_message( ak_error_wrong_oid, __func__,
+                                                "unsuccessfull search of the given elliptic curve");
+   /* формируем буффер */
+    if(( len = sizeof( ak_uint64 )*vk->wc->size ) > sizeof( buffer ))
+      return ak_error_message( ak_error_wrong_length, __func__, "too large size of verify key" );
+
+    ak_wpoint_reduce( &vk->qpoint, vk->wc );
+    ak_mpzn_to_little_endian( vk->qpoint.x, vk->wc->size, buffer, len, ak_false );
+    ak_mpzn_to_little_endian( vk->qpoint.y, vk->wc->size, buffer +len, len, ak_false );
+
+   /* записываем все в файл */
+    if(( error =  ak_file_create_to_write( &fp, filename )) != ak_error_ok )
+      return ak_error_message_fmt( error, __func__, "incorrect creation of %s file", filename );
+
+    if( ak_file_printf( &fp, "%s %s", oid->id[0],
+                                  ak_ptr_to_base64( buffer, len << 1, plain_base64_format )) == 0 )
+      ak_error_message( error = ak_error_write_data,
+                                                __func__, "wrong writing an elliptic curve point" );
+    ak_file_close( &fp );
+  return error;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! Функция считывает из файла идентификатор эллиптической кривой и точку,
+    принадлежащую этой кривой.
+    После считывания и присвоения значений для открытого ключа вырабатывается его уникальный номер.
+
+    @param vk контекст открытого ключа
+    @param filename имя файла, из которого считывается открытый ключ
+    @return В случае успеха возвращается \ref ak_error_ok. В противном случае
+    возвращается код ошибки.                                                                       */
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_verifykey_create_from_file( ak_verifykey vk, const char *filename )
+{
+    FILE *fp = NULL;
+    ak_oid oid = NULL;
+    ak_wcurve wc = NULL;
+    int error = ak_error_ok;
+    ak_uint8 qp[ak_mpznmax_size];
+    size_t length = sizeof( qp )*sizeof( ak_uint64 );
+    char strbuffer[512], *b64point = NULL, *ptr = NULL;
+
+    if( vk == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
+                                                       "using null pointer to verify key context" );
+    if( filename == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
+                                                                "using null pointer to file name" );
+
+   /* считываем данные */
+    if(( fp = fopen( filename, "r" )) == NULL )
+      return ak_error_message_fmt( ak_error_access_file, __func__,
+                                                          "wrong access to the file %s", filename );
+    if( fgets( strbuffer, sizeof( strbuffer ), fp ) == NULL ) {
+      error = ak_error_message( ak_error_read_data, __func__,
+                                                      "incorrect reading the value of verify key" );
+    }
+    fclose( fp );
+    if( error != ak_error_ok ) return error;
+
+   /* начинаем разбор полетов */
+    if(( b64point = strrchr( strbuffer, ' ' )) == NULL )
+      return ak_error_message( ak_error_undefined_value, __func__,
+                                                              "incorrect value of the verify key" );
+   /* что-то, кроме нуля должно быть */
+    if( strlen( b64point ) > 1 ) *b64point++ = 0;
+      else return ak_error_message( ak_error_undefined_value, __func__,
+                                                              "incorrect value of the verify key" );
+    if(( ptr = strchr( strbuffer, ' ' )) != NULL ) *ptr = 0;
+
+   /* теперь начинаем преобразования  - в начале кривая */
+    if(( oid = ak_oid_find_by_id( strbuffer )) == NULL )
+      return ak_error_message( ak_error_wrong_oid, __func__,
+                                                       "incorrect value of the object identifier" );
+    if( oid->mode != wcurve_params )
+      return ak_error_message( ak_error_oid_mode, __func__,
+                                                        "incorrect mode of the object identifier" );
+   /* теперь точка */
+    if(( ak_base64_to_ptr( b64point, qp, &length )) == NULL )
+      return ak_error_message( ak_error_oid_mode, __func__, "incorrect decoding of base64 data" );
+
+    wc = oid->data;
+    if(( length >>= 1 ) != sizeof( ak_uint64 )*wc->size )
+      return ak_error_message( ak_error_wrong_length, __func__,
+                                            "incorrect length of decoded point of elliptic curve" );
+
+   /* создаем контекст и присваиваем ему необходимые значения */
+    if(( error = ak_verifykey_create( vk, oid->data )) != ak_error_ok )
+      return ak_error_message( error, __func__, "incorrect creation of verify key context" );
+
+    ak_mpzn_set_little_endian( vk->qpoint.x, vk->wc->size, qp, length, ak_false );
+    ak_mpzn_set_little_endian( vk->qpoint.y, vk->wc->size, qp +length, length, ak_false );
+    ak_mpzn_set_ui( vk->qpoint.z, vk->wc->size, 1 );
+    //free( qp );
+
+    if( ak_wpoint_is_ok( &vk->qpoint, vk->wc ) != ak_true )
+      error = ak_error_message( ak_error_curve_point, __func__,
+                                                     "decoded point is not on the elliptic curve" );
+      else {
+       /* вычисляем номер ключа */
+        ak_verifykey_set_number( vk );
+       /* отмечаем, что ключ установлен */
+        vk->flags = key_flag_set_key;
+      }
+
  return error;
 }
 
