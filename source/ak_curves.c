@@ -202,13 +202,13 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
- void ak_wcurve_to_log( ak_wcurve ec, int error )
+ void ak_wcurve_print_to_log( ak_wcurve ec, int error )
 {
   ak_mpznmax one = ak_mpznmax_one, tmp;
   ak_oid oid = ak_oid_find_by_data( ec );
 
   if( oid != NULL ) {
-    ak_error_message_fmt( error, "", "curve: %s (oid: %s, number id: %u)",
+    ak_error_message_fmt( error, "", "curve:  %s (oid: %s, number id: %u)",
                                                                  oid->name[0], oid->id[0], ec->id );
     ak_mpzn_mul_montgomery( tmp, ec->a, one, ec->p, ec->n, ec->size );
     ak_error_message_fmt( error, "", " a = %s", ak_mpzn_to_hexstr( tmp, ec->size ));
@@ -310,7 +310,7 @@
                                                  break;
           default : p = "unexpected parameter";
         }
-        ak_wcurve_to_log( wc, reason );
+        ak_wcurve_print_to_log( wc, reason );
         ak_error_message_fmt( reason, __func__ , "curve %s (OID: %s) has wrong %s",
                                                            oid->name[0], oid->id[0], p );
         result = ak_false;
