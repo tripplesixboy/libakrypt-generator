@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------------------------- */
-/*  Copyright (c) 2014 - 2020 by Axel Kenzo, axelkenzo@mail.ru                                     */
+/*  Copyright (c) 2014 - 2020, 2024 by Axel Kenzo, axelkenzo@mail.ru                               */
 /*                                                                                                 */
 /*  Файл ak_parameters.с                                                                           */
 /*  - содержит значения фиксированных параметров криптографических алгоритмов                      */
@@ -34,6 +34,7 @@
   0xdbf951d5883b2b2fLL, /* n */
   0x66ff43a234713e85LL, /* nq */
   "8000000000000000000000000000000000000000000000000000000000000431",
+  undefined_curve
  };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -64,6 +65,7 @@
   0x46f3234475d5add9LL, /* n */
   0x035bdd1aeafdb0a9LL, /* nq */
   "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd97",
+  id_tc26_gost_3410_2012_256_paramSetA_curve
 };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -94,6 +96,7 @@
   0x46f3234475d5add9LL, /* n */
   0x9ee6ea0b57c7da65LL, /* nq */
   "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd97",
+  id_tc26_gost_3410_2012_256_paramSetB_curve
  };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -124,6 +127,7 @@
   0xbd667ab8a3347857LL, /* n */
   0xca89614990611a91LL, /* nq */
   "8000000000000000000000000000000000000000000000000000000000000c99",
+  id_tc26_gost_3410_2012_256_paramSetC_curve
  };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -154,6 +158,7 @@
   0xdf6e6c2c727c176dLL, /* n */
   0xa1c6af0a552f7577LL, /* nq */
   "9b9f605f5a858107ab1ec85e6b41c8aacf846e86789051d37998f7b9022d759b",
+  id_tc26_gost_3410_2012_256_paramSetD_curve
  };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -193,6 +198,7 @@
   0x71A1662E6FA1D92DLL, /* n */
   0x40BB2313A95302ADLL, /* nq */
   "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd215b",
+  id_axel_gost_3410_2012_256_paramSet_N0_curve
  };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -223,6 +229,7 @@
   0xd6412ff7c29b8645LL, /* n */
   0x50bc7d084a21aae1LL, /* nq */
   "4531acd1fe0023c7550d267b6b2fee80922b14b2ffb90f04d4eb7c09b5d2d15df1d852741af4704a0458047e80e4546d35b8336fac224dd81664bbf528be6373",
+  undefined_curve
  };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -253,6 +260,7 @@
   0x58a1f7e6ce0f4c09LL, /* n */
   0x02ccc1665d51f223LL, /* nq */
   "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc7",
+  id_tc26_gost_3410_2012_512_paramSetA_curve
  };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -283,6 +291,7 @@
   0x4e6a171024e6a171LL, /* n */
   0xc07d62492cbac26bLL, /* nq */
   "8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006f",
+  id_tc26_gost_3410_2012_512_paramSetB_curve
  };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -313,6 +322,7 @@
   0x58a1f7e6ce0f4c09LL, /* n */
   0x0ed9d8e0b6624e1bLL, /* nq */
   "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc7",
+  id_tc26_gost_3410_2012_512_paramSetC_curve
  };
 
 /* ----------------------------------------------------------------------------------------------- */

@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------------------------- */
-/*  Copyright (c) 2014 - 2023 by Axel Kenzo, axelkenzo@mail.ru                                     */
+/*  Copyright (c) 2014 - 2024 by Axel Kenzo, axelkenzo@mail.ru                                     */
 /*                                                                                                 */
 /* ----------------------------------------------------------------------------------------------- */
 /*  Copyright (c) 2018 by Mikhail Lavrinovich, mikhail.lavrinovich@netcracker.com                  */
@@ -1463,6 +1463,21 @@ extern "C" {
  dll_export void ak_wpoint_pow( ak_wpoint , ak_wpoint , ak_uint64 *, size_t , ak_wcurve );
 
 /* ----------------------------------------------------------------------------------------------- */
+/*! \brief Перечисление числовых идентификаторов поддерживаемых эллиптических кривых */
+ typedef enum {
+   undefined_curve = 0x00,
+   id_tc26_gost_3410_2012_256_paramSetA_curve = 0x01,
+   id_tc26_gost_3410_2012_256_paramSetB_curve = 0x02,
+   id_tc26_gost_3410_2012_256_paramSetC_curve = 0x03,
+   id_tc26_gost_3410_2012_256_paramSetD_curve = 0x04,
+   id_tc26_gost_3410_2012_512_paramSetA_curve = 0x05,
+   id_tc26_gost_3410_2012_512_paramSetB_curve = 0x06,
+   id_tc26_gost_3410_2012_512_paramSetC_curve = 0x07,
+
+   id_axel_gost_3410_2012_256_paramSet_N0_curve = 0x17,
+ } wcurve_id_t;
+
+/* ----------------------------------------------------------------------------------------------- */
 /*! \brief Класс, реализующий эллиптическую кривую, заданную в короткой форме Вейерштрасса
 
     Класс определяет эллиптическую кривую, заданную сравнением
@@ -1505,6 +1520,8 @@ extern "C" {
  /*! \brief Строка, содержащая символьную запись модуля \f$ p \f$.
      \details Используется для проверки корректного хранения параметров кривой в памяти. */
   const char *pchar;
+ /*! \brief Идентификатор эллиптической кривой, используемый в криптографических протоколах. */
+  wcurve_id_t id;
 };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -1542,6 +1559,12 @@ extern "C" {
  extern const struct wcurve id_tc26_gost_3410_2012_512_paramSetA;
  extern const struct wcurve id_tc26_gost_3410_2012_512_paramSetB;
  extern const struct wcurve id_tc26_gost_3410_2012_512_paramSetC;
+
+/*! \brief Функция возвращает числовой идентификатор кривой по указателю на ее параметры */
+ dll_export wcurve_id_t ak_wcurve_get_identifier( ak_wcurve );
+/*! \brief Функция возвращает указатель на параметры кривой по ее числовому идентификатору */
+ dll_export const struct wcurve *ak_wcurve_get_parameters( wcurve_id_t );
+
 /** @}*/
 
 /* ----------------------------------------------------------------------------------------------- */
