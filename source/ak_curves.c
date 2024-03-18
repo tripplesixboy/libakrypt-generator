@@ -204,31 +204,22 @@
 /* ----------------------------------------------------------------------------------------------- */
  void ak_wcurve_to_log( ak_wcurve ec, int error )
 {
-  char *str = NULL;
   ak_mpznmax one = ak_mpznmax_one, tmp;
   ak_oid oid = ak_oid_find_by_data( ec );
 
   if( oid != NULL ) {
-    ak_error_message_fmt( error, __func__, "elliptic curve: %s (oid: %s)",
-                                                                       oid->name[0], oid->id[0] );
+    ak_error_message_fmt( error, "", "curve: %s (oid: %s, number id: %u)",
+                                                                 oid->name[0], oid->id[0], ec->id );
     ak_mpzn_mul_montgomery( tmp, ec->a, one, ec->p, ec->n, ec->size );
-    ak_error_message_fmt( error, __func__, " a = %s",
-                                     str = ak_mpzn_to_hexstr_alloc( tmp, ec->size )); free( str );
+    ak_error_message_fmt( error, "", " a = %s", ak_mpzn_to_hexstr( tmp, ec->size ));
     ak_mpzn_mul_montgomery( tmp, ec->b, one, ec->p, ec->n, ec->size );
-    ak_error_message_fmt( error, __func__, " b = %s",
-                                     str = ak_mpzn_to_hexstr_alloc( tmp, ec->size )); free( str );
-    ak_error_message_fmt( error, __func__, " b = %s",
-                                   str = ak_mpzn_to_hexstr_alloc( ec->b, ec->size )); free( str );
-    ak_error_message_fmt( error, __func__, " p = %s",
-                                   str = ak_mpzn_to_hexstr_alloc( ec->p, ec->size )); free( str );
-    ak_error_message_fmt( error, __func__, " q = %s",
-                                   str = ak_mpzn_to_hexstr_alloc( ec->q, ec->size )); free( str );
-    ak_error_message_fmt( error, __func__, "px = %s",
-                             str = ak_mpzn_to_hexstr_alloc( ec->point.x, ec->size )); free( str );
-    ak_error_message_fmt( error, __func__, "py = %s",
-                             str = ak_mpzn_to_hexstr_alloc( ec->point.y, ec->size )); free( str );
-    ak_error_message_fmt( error, __func__, "pz = %s",
-                             str = ak_mpzn_to_hexstr_alloc( ec->point.z, ec->size )); free( str );
+    ak_error_message_fmt( error, "", " b = %s", ak_mpzn_to_hexstr( tmp, ec->size ));
+
+    ak_error_message_fmt( error, "", " p = %s", ak_mpzn_to_hexstr( ec->p, ec->size ));
+    ak_error_message_fmt( error, "", " q = %s", ak_mpzn_to_hexstr( ec->q, ec->size ));
+    ak_error_message_fmt( error, "", "px = %s", ak_mpzn_to_hexstr( ec->point.x, ec->size ));
+    ak_error_message_fmt( error, "", "py = %s", ak_mpzn_to_hexstr( ec->point.y, ec->size ));
+    ak_error_message_fmt( error, "", "pz = %s", ak_mpzn_to_hexstr( ec->point.z, ec->size ));
   }
    else ak_error_message( error, __func__, "unexpected parameters set of elliptic curve" );
 }
