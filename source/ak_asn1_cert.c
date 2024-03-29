@@ -1460,7 +1460,6 @@
    if( serial_number_size == 0 ) return ak_error_message( ak_error_zero_length, __func__ ,
                                              "using zero length of input (serial_number) buffer " );
 
- return
    ak_snprintf( full_name, full_name_size, "%s%s%s.cer", ak_certificate_get_repository(),
          #ifdef AK_HAVE_WINDOWS_H
            "\\"
@@ -1468,6 +1467,8 @@
            "/"
          #endif
          , ak_ptr_to_hexstr( serial_number, serial_number_size, ak_false ));
+
+  return ak_error_ok;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -1850,6 +1851,9 @@
     if(( error = ak_ceritifcate_generate_repository_name( filename,
                                                      FILENAME_MAX-1, ptr, size )) != ak_error_ok )
       return ak_error_message( error, __func__, "wrong creation of certificate name");
+
+    if(( error = ak_file_or_directory( filename )) == ak_error_access_file )
+      return ak_error_message_fmt( error, __func__, "file %s not exists", filename );
 
    /* считываем файл из сформированного имени */
  return ak_certificate_import_from_file( subject_cert, issuer_cert, filename );

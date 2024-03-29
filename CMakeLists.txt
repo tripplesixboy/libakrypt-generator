@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------- #
-# Copyright (c) 2014 - 2023 by Axel Kenzo, axelkenzo@mail.ru
+# Copyright (c) 2014 - 2024 by Axel Kenzo, axelkenzo@mail.ru
 #
 # CMakeLists.txt
 # -------------------------------------------------------------------------------------------------- #
@@ -8,7 +8,7 @@ cmake_minimum_required( VERSION 3.5 )
 # -------------------------------------------------------------------------------------------------- #
 set( HEAD_VERSION 0 )
 set( MAIN_VERSION 9 )
-set( MINOR_VERSION 12 )
+set( MINOR_VERSION 13 )
 set( MAJOR_VERSION ${HEAD_VERSION}.${MAIN_VERSION} )
 set( FULL_VERSION ${MAJOR_VERSION}.${MINOR_VERSION} )
 # строка с текущей датой, используется при сборке документации
