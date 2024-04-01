@@ -976,7 +976,8 @@ INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/source/libakrypt.h \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_tools.c \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_list.c \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_base64.c \
-                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_file.c
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_file.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_buffer.c
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

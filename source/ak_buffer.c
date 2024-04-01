@@ -18,8 +18,8 @@
 /* ----------------------------------------------------------------------------------------------- */
  int ak_buffer_set_ptr( ak_buffer buffer, ak_uint8 *ptr, const size_t size )
 {
-    if( buffer == NULL )
-      return ak_error_message( ak_error_null_pointer, __func__, "using null-pointer to buffer" );
+   /* сначала удаляем старое */
+    if( ak_buffer_destroy( buffer ) != ak_error_ok ) return ak_error_null_pointer;
 
    /* присваиваем указатели */
     if(( buffer->ptr = ptr ) == NULL ) buffer->size = 0;
@@ -32,7 +32,7 @@
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! Функция выделяет область в оперативной памяти и копирует туда переданные пользователем данные.
- *  При удалении буфера происзодит удаление созданных данных.
+ *  Если данные были ранее размещены в буфере, то они удаляются.
  *
  *  @param buffer указатель на структуру буфера
  *  @param ptr указатель на данные
@@ -40,10 +40,10 @@
  *  @return В случае успеха функция возвращает ноль.
  *  В случае возникновения ошибки возвращается ее код.                                             */
 /* ----------------------------------------------------------------------------------------------- */
- int ak_buffer_alloc_ptr( ak_buffer buffer, ak_uint8 *ptr, const size_t size )
+ int ak_buffer_alloc_ptr( ak_buffer buffer, const ak_uint8 *ptr, const size_t size )
 {
-    if( buffer == NULL )
-      return ak_error_message( ak_error_null_pointer, __func__, "using null-pointer to buffer" );
+   /* сначала удаляем старое */
+    if( ak_buffer_destroy( buffer ) != ak_error_ok ) return ak_error_null_pointer;
 
    /* присваиваем указатели */
     if (( ptr  == NULL ) || ( size == 0 )) {

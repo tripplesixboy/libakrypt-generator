@@ -334,11 +334,11 @@ extern "C" {
 } *ak_buffer;
 
 /*! \brief Функция присваивает буферу указатель на данные, к которым он имеет доступ, но не владеет */
- int ak_buffer_set_ptr( ak_buffer , ak_uint8 * , const size_t );
+ dll_export int ak_buffer_set_ptr( ak_buffer , ak_uint8 * , const size_t );
 /*! \brief Функция помещает в буфер данные */
- int ak_buffer_alloc_ptr( ak_buffer , ak_uint8 * , const size_t );
+ dll_export int ak_buffer_alloc_ptr( ak_buffer , const ak_uint8 * , const size_t );
 /*! \brief Функция освобождает данные */
- int ak_buffer_destroy( ak_buffer );
+ dll_export int ak_buffer_destroy( ak_buffer );
 /** @} */
 
 /* ----------------------------------------------------------------------------------------------- */
