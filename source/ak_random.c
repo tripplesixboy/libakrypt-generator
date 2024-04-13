@@ -554,7 +554,7 @@
  * вида.
  * @param rnd NLFSR генератор.
  */
- static void initialize_nonlinear_part(ak_random rnd)
+ static void ak_initialize_nonlinear_part(ak_random rnd)
 {
     unsigned non_linear = 1;
     for (size_t i = 0; i < ((nlfsr_register*)(rnd->data.ctx))->n - 3; i++)
@@ -603,7 +603,7 @@
  * @param number Число для рассчёта веса.
  * @return size_t Как бы вес.
  */
- static inline size_t hamming_weight( ak_uint32 number )
+ static inline size_t ak_hamming_weight( ak_uint32 number )
 {
     number = number - ((number >> 1) & 0x55555555);
     number = (number & 0x33333333) + ((number >> 2) & 0x33333333);
@@ -616,7 +616,7 @@
     state = ctx->state >> 1; \
     linear = ctx->linear_part & state; \
     non_linear = linear^( ctx->nonlinear_part & ( state ) & ( state >> 1 )); \
-    hweight = hamming_weight( non_linear ); \
+    hweight = ak_hamming_weight( non_linear ); \
     new_bit = lsb ^ hweight; \
     moved = new_bit << n1; \
     ctx->state = state ^ moved; \
@@ -720,7 +720,7 @@
   ((nlfsr_register*)(generator->data.ctx))->state <<= 64-size;
   ((nlfsr_register*)(generator->data.ctx))->state >>= 64-size;
   ((nlfsr_register*)(generator->data.ctx))->linear_part = linear_part;
-  initialize_nonlinear_part(generator);
+  ak_initialize_nonlinear_part(generator);
 
   return error;
 }

@@ -23,7 +23,7 @@ VS_VERSION_INFO VERSIONINFO
             VALUE "FileDescription", "Crypto API for libakrypt Project"
             VALUE "FileVersion", "@MINOR_VERSION@"
             VALUE "InternalName", "akrypt library for Windows"
-            VALUE "LegalCopyright", "Copyright (c) 2014-2023 by Axel Kenzo"
+            VALUE "LegalCopyright", "Copyright (c) 2014-2024 by Axel Kenzo"
             VALUE "OriginalFilename", "akrypt.dll"
             VALUE "ProductName", "akrypt"
             VALUE "ProductVersion", "@MAJOR_VERSION@"

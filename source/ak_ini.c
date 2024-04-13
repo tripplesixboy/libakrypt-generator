@@ -47,7 +47,7 @@
 /* ----------------------------------------------------------------------------------------------- */
 /*! Strip whitespace chars off end of given string, in place. Return s. */
 /* ----------------------------------------------------------------------------------------------- */
- static char* rstrip(char* s)
+ static char* ak_ini_rstrip(char* s)
 {
     char* p = s + strlen(s);
     while (p > s && isspace((unsigned char)(*--p)))
@@ -58,7 +58,7 @@
 /* ----------------------------------------------------------------------------------------------- */
 /*! Return pointer to first non-whitespace char in given string. */
 /* ----------------------------------------------------------------------------------------------- */
- static char* lskip(const char* s)
+ static char* ak_ini_lskip(const char* s)
 {
     while (*s && isspace((unsigned char)(*s)))
         s++;
@@ -70,7 +70,7 @@
    or pointer to null at end of string if neither found. Inline comment must
    be prefixed by a whitespace character to register as a comment. */
 /* ----------------------------------------------------------------------------------------------- */
- static char* find_chars_or_comment(const char* s, const char* chars)
+ static char* ak_ini_find_chars_or_comment(const char* s, const char* chars)
 {
 #if ini_allow_inline_comments
     int was_space = 0;
@@ -90,7 +90,7 @@
 /* ----------------------------------------------------------------------------------------------- */
 /*! Version of strncpy that ensures dest (size bytes) is null-terminated. */
 /* ----------------------------------------------------------------------------------------------- */
- static char* strncpy0( char* dest, const char* src, size_t size )
+ static char* ak_ini_strncpy0( char* dest, const char* src, size_t size )
 {
   size_t len = 0;
 
@@ -131,17 +131,17 @@
         lineno++;
 
         start = line;
-        start = lskip(rstrip(start));
+        start = ak_ini_lskip(ak_ini_rstrip(start));
 
         if (strchr(ini_start_comment_prefixes, *start)) {
             /* Start-of-line comment */
         }
         else if (*start == '[') {
             /* A "[section]" line */
-            end = find_chars_or_comment(start + 1, "]");
+            end = ak_ini_find_chars_or_comment(start + 1, "]");
             if (*end == ']') {
                 *end = '\0';
-                strncpy0(section, start + 1, sizeof(section));
+                ak_ini_strncpy0(section, start + 1, sizeof(section));
                 *prev_name = '\0';
             }
             else if (!error) {
@@ -151,21 +151,21 @@
         }
         else if (*start) {
             /* Not a comment, must be a name[=:]value pair */
-            end = find_chars_or_comment(start, "=:");
+            end = ak_ini_find_chars_or_comment(start, "=:");
             if (*end == '=' || *end == ':') {
                 *end = '\0';
-                name = rstrip(start);
+                name = ak_ini_rstrip(start);
                 value = end + 1;
 #if ini_allow_inline_comments
-                end = find_chars_or_comment(value, NULL);
+                end = ak_ini_find_chars_or_comment(value, NULL);
                 if (*end)
                     *end = '\0';
 #endif
-                value = lskip(value);
-                rstrip(value);
+                value = ak_ini_lskip(value);
+                ak_ini_rstrip(value);
 
                 /* Valid name[=:]value pair found, call handler */
-                strncpy0( prev_name, name, sizeof( prev_name ));
+                ak_ini_strncpy0( prev_name, name, sizeof( prev_name ));
                 if( !handler(user, section, name, value) && !error)
                     error = lineno;
             }
@@ -173,7 +173,7 @@
                 /* No '=' or ':' found on name[=:]value line */
 #if ini_allow_no_value
                 *end = '\0';
-                name = rstrip(start);
+                name = ak_ini_rstrip(start);
                 if (!handler(user, section, name, NULL) && !error)
                     error = lineno;
 #else
@@ -251,7 +251,7 @@
 /*! An ini_reader function to read the next line from a string buffer. This
    is the fgets() equivalent used by ini_parse_string(). */
 /* ----------------------------------------------------------------------------------------------- */
- static char* ini_reader_string( char* str, int num, void* stream )
+ static char* ak_ini_reader_string( char* str, int num, void* stream )
 {
     ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
     const char* ctx_ptr = ctx->ptr;
@@ -294,7 +294,7 @@
 
   ctx.ptr = string;
   ctx.num_left = strlen(string);
- return ak_ini_parse_stream( (ak_function_ini_reader)ini_reader_string, &ctx, handler, user );
+ return ak_ini_parse_stream( (ak_function_ini_reader)ak_ini_reader_string, &ctx, handler, user );
 }
 
 /* ----------------------------------------------------------------------------------------------- */

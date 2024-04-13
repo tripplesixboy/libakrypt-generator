@@ -459,8 +459,8 @@ int ak_asn1_get_length_from_der( ak_uint8** pp_data, size_t *p_len )
 /*! Функция создает составной узел дерева следующего вида.
 
    \code
-     ┌SEQUENCE┐
-              └ (null)
+     -SEQUENCE-
+               - (null)
    \endcode
    \return Функция возвращает указатель на структуру узла. Данная структура должна
    быть позднее удалена с помощью явного вызова функции ak_tlv_delete() или путем
@@ -1381,6 +1381,7 @@ int ak_asn1_get_length_from_der( ak_uint8** pp_data, size_t *p_len )
 
    Тип помещаемых данных определяется параметром `type`. Допустимыми
    типами являются, как минимум,
+   \code
     -  1.2.840.113549.1.9.1   emailAddress
     -  2.5.4.3                CommonName
     -  2.5.4.4                Surname
@@ -1396,6 +1397,7 @@ int ak_asn1_get_length_from_der( ak_uint8** pp_data, size_t *p_len )
     - OGRNIP
     - SNILS
     - INN
+   \endcode
 
    \param tlv указатель на структуру узла ASN1 дерева.
    \param type тип помещаемоцй строки с данными

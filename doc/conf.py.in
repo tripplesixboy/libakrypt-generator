@@ -45,7 +45,7 @@ exclude_patterns = []
 
 
 # -- Options for HTML output -------------------------------------------------
-#html_logo = '../logo.png'
+html_logo = '../logo.png'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -127,7 +127,7 @@ latex_elements = {
   {{\Large\bfseries{Справочная документация}} \\
    ~\\
    {\small\textsc{Алексей Юрьевич Нестеренко}}\\
-   {\small\textsc{Московский институт электроники и математики~~\copyright~~\today}}
+   {\small\href{https://miem.hse.ru}{Московский институт электроники и математики им. А.Н. Тихонова}~~\copyright~~\textsc{\today}}
   }\\[1\baselineskip]
 
   \vspace{0.5\textwidth}
