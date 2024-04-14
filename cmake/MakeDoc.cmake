@@ -130,12 +130,8 @@ if( UNIX )
   if( DOXYGEN )
     configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/doc/libakrypt-header.tex.in ${CMAKE_CURRENT_BINARY_DIR}/libakrypt-header.tex @ONLY )
 
+   # формируем исходные тексты api библиотеки
     file( APPEND ${script} "make doxygen \n" )
-    file( APPEND ${script} "cd sphinx/html \n" )
-    file( APPEND ${script} "mkdir -p _api\n" )
-    file( APPEND ${script} "cp ${CMAKE_CURRENT_BINARY_DIR}/doxygen/html/* _api/ \n" )
-    file( APPEND ${script} "tar -cjvf ${CMAKE_CURRENT_BINARY_DIR}/doc/libakrypt-doc-${FULL_VERSION}.tar.bz2 *\n" )
-    file( APPEND ${script} "cd ../.. \n" )
 
    # компилируем tex-файл в обход стандартного Makefile
     file( APPEND ${script} "cd doxygen/latex \n" )
@@ -145,8 +141,16 @@ if( UNIX )
     file( APPEND ${script} "pdflatex -interaction=nonstopmode refman.tex\n")
     file( APPEND ${script} "cd ../.. \n" )
 
+   # копируем pdf
     file( APPEND ${script} "cp ${CMAKE_CURRENT_BINARY_DIR}/doxygen/latex/refman.pdf ${CMAKE_CURRENT_BINARY_DIR}/sphinx/html/_pdf/akrypt-library-api.pdf\n" )
-    file( APPEND ${script} "cp ${CMAKE_CURRENT_BINARY_DIR}}/doxygen/latex/refman.pdf ${CMAKE_CURRENT_BINARY_DIR}/doc/libakrypt-api-${FULL_VERSION}.pdf\n" )
+    file( APPEND ${script} "cp ${CMAKE_CURRENT_BINARY_DIR}/doxygen/latex/refman.pdf ${CMAKE_CURRENT_BINARY_DIR}/doc/libakrypt-api-${FULL_VERSION}.pdf\n" )
+
+   # создаем полноценный архив для отправки на сайт
+    file( APPEND ${script} "cd sphinx/html \n" )
+    file( APPEND ${script} "mkdir -p _api\n" )
+    file( APPEND ${script} "cp ${CMAKE_CURRENT_BINARY_DIR}/doxygen/html/* _api/ \n" )
+    file( APPEND ${script} "tar -cjvf ${CMAKE_CURRENT_BINARY_DIR}/doc/libakrypt-doc-${FULL_VERSION}.tar.bz2 *\n" )
+    file( APPEND ${script} "cd ../.. \n" )
   endif()
 
   # добавляем цель сборки
