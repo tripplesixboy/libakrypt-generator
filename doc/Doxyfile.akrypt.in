@@ -955,6 +955,9 @@ INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/source/ \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_parameters.c \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_mac.c \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_hash.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_crc.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_skey.c \
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_hmac.c \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_bckey.c \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_cmac.c \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_magma.c \
@@ -977,8 +980,7 @@ INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/source/ \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_list.c \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_base64.c \
                          @CMAKE_CURRENT_SOURCE_DIR@/source/ak_file.c \
-                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_buffer.c \
-                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_crc.c
+                         @CMAKE_CURRENT_SOURCE_DIR@/source/ak_buffer.c
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

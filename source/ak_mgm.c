@@ -93,6 +93,19 @@
                         ctx->sum.q[0] ^= h.q[0]; \
                         ctx->zcount.w[1]++;
 
+/* реализация преобразования для консольной отладки
+ #define astep128(DATA) printf("zc: %s =>", ak_ptr_to_hexstr(&ctx->zcount, 16, ak_true ));\
+                        authenticationKey->encrypt( &authenticationKey->key, &ctx->zcount, &h ); \
+                        printf(" h: %s\n", ak_ptr_to_hexstr(&h, 16, ak_true ));\
+                        printf("dt: %s =>", ak_ptr_to_hexstr( (DATA), 16, ak_true ));\
+                        ak_gf128_mul( &h, &h, (DATA) ); \
+                        printf("hm: %s\n", ak_ptr_to_hexstr(&h, 16, ak_true ));\
+                        ctx->sum.q[0] ^= h.q[0]; \
+                        ctx->sum.q[1] ^= h.q[1]; \
+                        printf("sm: %s\n\n", ak_ptr_to_hexstr(&ctx->sum, 16, ak_true ));\
+                        ctx->zcount.q[1]++;
+*/
+
  #define astep128(DATA) authenticationKey->encrypt( &authenticationKey->key, &ctx->zcount, &h ); \
                         ak_gf128_mul( &h, &h, (DATA) ); \
                         ctx->sum.q[0] ^= h.q[0]; \
@@ -318,6 +331,15 @@
  #define estep64  encryptionKey->encrypt( &encryptionKey->key, &ctx->ycount, &e ); \
                   outp[0] = inp[0] ^ e.q[0]; \
                   ctx->ycount.w[0]++;
+
+/* реализация преобразования для консольной отладки
+ #define estep128 printf("yc: %s =>", ak_ptr_to_hexstr( &ctx->ycount, 16, ak_true )); \
+                  encryptionKey->encrypt( &encryptionKey->key, &ctx->ycount, &e ); \
+                  printf(" e: %s\n", ak_ptr_to_hexstr( &e, 16, ak_true )); \
+                  outp[0] = inp[0] ^ e.q[0]; \
+                  outp[1] = inp[1] ^ e.q[1]; \
+                  ctx->ycount.q[0]++;
+*/
 
  #define estep128 encryptionKey->encrypt( &encryptionKey->key, &ctx->ycount, &e ); \
                   outp[0] = inp[0] ^ e.q[0]; \
