@@ -1191,6 +1191,7 @@
           ak_hash_context_streebog_x( B, K, streebog_c[idx] );
           ak_hash_context_streebog_lps( K, B );   /* новый ключ */
        }
+
        /* изменяем значение переменной h */
        for ( idx = 0; idx < 8; idx++ ) ctx->h[idx] ^= T[idx] ^ K[idx] ^ m[idx];
 }

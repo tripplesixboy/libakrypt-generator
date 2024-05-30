@@ -265,6 +265,7 @@ set ( ARITHMETIC_TESTS_LIST
       cmac02
       hmac
       kdf-state
+      hash01
     )
 
 if( AK_TESTS_GMP )
