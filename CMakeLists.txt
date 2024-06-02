@@ -442,6 +442,10 @@ if( CMAKE_HOST_UNIX )
  # инсталлируем корневой сертификат библиотеки
   install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cert/ca-libakrypt.crt DESTINATION ${AK_CA_PATH} )
 
+# изменение настроек rsyslog для уточнения аудита:
+# необходимо добавить следующую строку в /etc/rsyslog.conf
+# :programname, startswith, "aktool" /var/log/aktool.log
+
 # деинсталляция
 # sudo xargs rm < install_manifest.txt
 

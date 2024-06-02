@@ -161,9 +161,8 @@
     }
  /* выводим сообщение об установленных каталогах доступа к криптографическим ключам */
    ak_error_message_fmt( ak_error_ok, __func__,
-                          "certificate's repository path: %s", ak_certificate_get_repository( ));
+                                      "certificate's repo: %s", ak_certificate_get_repository( ));
 }
-
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! @param filename Массив, куда помещается имя файла. Память под массив
