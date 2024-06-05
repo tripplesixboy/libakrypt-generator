@@ -356,10 +356,8 @@ extern "C" {
  };
 
 /* ----------------------------------------------------------------------------------------------- */
-/*! \brief Создание нового узла двусвязного списка, содержащего символьную строку. */
- dll_export ak_list_node ak_list_node_new_string( const char * );
-/*! \brief Удаление узла двусвязного списка */
- dll_export ak_pointer ak_list_node_delete( ak_list_node );
+/*! \brief Функция, выполняющая операции по удалению объекта из памяти */
+ typedef ak_pointer ( ak_function_delete_object )( ak_pointer );
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Двусвязный список. */
@@ -368,13 +366,25 @@ extern "C" {
     ak_list_node current;
    /*! \brief количество содержащихся узлов в списке (одного уровня) */
     size_t count;
+   /*! \brief функция удаления узла списка */
+    ak_function_delete_object *free_data;
  } *ak_list;
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! \brief Создание нового узла двусвязного списка, содержащего указатель произвольные данные. */
+ ak_list_node ak_list_node_new( ak_pointer );
+/*! \brief Создание нового узла двусвязного списка, содержащего символьную строку. */
+ dll_export ak_list_node ak_list_node_new_string( const char * );
+/*! \brief Удаление узла двусвязного списка. */
+ dll_export ak_pointer ak_list_node_delete( ak_list, ak_list_node );
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Создание двусвязного списка. */
  dll_export int ak_list_create( ak_list );
 /*! \brief Создание двусвязного списка. */
  dll_export ak_list ak_list_new( void );
+/*! \brief Установка пользовательской функции удаления данных, хранящихся в списке */
+ dll_export int ak_list_set_delete_function( ak_list , ak_function_delete_object );
 /*! \brief Перемещение к следующему узлу двусвязного списка. */
  dll_export bool_t ak_list_next( ak_list );
 /*! \brief Перемещение к предыдущему узлу двусвязного списка. */

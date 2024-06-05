@@ -192,6 +192,7 @@ set( BASE_EXAMPLES_LIST
      file
      mmap
      realpath
+     htable
    )
 
 # определяем перечень примеров из FAQ

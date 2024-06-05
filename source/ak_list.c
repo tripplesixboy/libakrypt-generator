@@ -36,15 +36,40 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
+ ak_list_node ak_list_node_new( ak_pointer data )
+{
+    ak_list_node node = malloc( sizeof( struct list_node ));
+
+    if( !node ) {
+      ak_error_message( ak_error_out_of_memory, __func__, "incorrect memory allocation" );
+      return NULL;
+    }
+
+    node->data = data;
+    node->prev = node->next = NULL;
+
+  return node;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
 /*! @return Функция всегда возвращает NULL.                                                        */
 /* ----------------------------------------------------------------------------------------------- */
- ak_pointer ak_list_node_delete( ak_list_node node )
+ ak_pointer ak_list_node_delete( ak_list list, ak_list_node node )
 {
+  if( !list ) {
+    ak_error_message( ak_error_null_pointer, __func__, "using null pointer to list" );
+    return NULL;
+  }
   if( !node ) {
     ak_error_message( ak_error_null_pointer, __func__, "deleting null pointer" );
     return NULL;
   }
-  if( node->data != NULL ) free( node->data );
+  if( node->data != NULL ) {
+   /* данные, которые хранятся в списке, могут удаляться отдельной функцией,
+      указаетль на которую содержится в классе list  */
+    if( list->free_data != NULL ) list->free_data( node->data );
+      else free( node->data );
+  }
   free( node );
 
  return NULL;
@@ -57,7 +82,18 @@
     return ak_error_message( ak_error_null_pointer, __func__, "using null pointer to list context" );
   list->current = NULL;
   list->count = 0;
+  list->free_data = NULL;
 
+ return ak_error_ok;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_list_set_delete_function( ak_list list, ak_function_delete_object func )
+{
+  if( !list )
+    return ak_error_message( ak_error_null_pointer, __func__, "using null pointer to list context" );
+
+  list->free_data = func;
  return ak_error_ok;
 }
 
@@ -137,7 +173,7 @@
   if( list->current == NULL ) return ak_false;
  /* если в списке только один элемент */
   if(( list->current->next == NULL ) && ( list->current->prev == NULL )) {
-    list->current = ak_list_node_delete( list->current );
+    list->current = ak_list_node_delete( list, list->current );
     list->count = 0;
     return ak_false;
   }
@@ -146,7 +182,7 @@
   n = list->current->prev;
   m = list->current->next;
   if( m != NULL ) { /* делаем активным (замещаем удаляемый) следующий элемент */
-    ak_list_node_delete( list->current );
+    ak_list_node_delete( list, list->current );
     list->current = m;
     if( n == NULL ) list->current->prev = NULL;
       else { list->current->prev = n; n->next = m; }
@@ -154,7 +190,7 @@
     return ak_true;
   } else /* делаем активным предыдущий элемент */
        {
-         ak_list_node_delete( list->current );
+         ak_list_node_delete( list, list->current );
          list->current = n; list->current->next = NULL;
          list->count--;
          return ak_true;
