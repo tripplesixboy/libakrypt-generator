@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------------------------- */
-/*  Copyright (c) 2014 - 2023 by Axel Kenzo, axelkenzo@mail.ru                                     */
+/*  Copyright (c) 2014 - 2024 by Axel Kenzo, axelkenzo@mail.ru                                     */
 /*                                                                                                 */
 /*  Файл libakrypt-base.h (определение платформозависимых функций)                                 */
 /* ----------------------------------------------------------------------------------------------- */
@@ -372,7 +372,7 @@ extern "C" {
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Создание нового узла двусвязного списка, содержащего указатель произвольные данные. */
- ak_list_node ak_list_node_new( ak_pointer );
+ dll_export ak_list_node ak_list_node_new( ak_pointer );
 /*! \brief Создание нового узла двусвязного списка, содержащего символьную строку. */
  dll_export ak_list_node ak_list_node_new_string( const char * );
 /*! \brief Удаление узла двусвязного списка. */
@@ -403,6 +403,86 @@ extern "C" {
  dll_export ak_pointer ak_list_delete( ak_list );
 /*! \brief Добавление нового узла к двусвязному списку. */
  dll_export int ak_list_add_node( ak_list , ak_list_node );
+/** @} */
+
+/* ----------------------------------------------------------------------------------------------- */
+/** \defgroup htable Функции для работы с хэш-таблицами
+  @{ */
+/*! \brief Контекст одного элемента хэш-таблицы - пары (ключ:данные) */
+ typedef struct keypair
+{
+ /*! \brief Указатель на общую область памяти для ключа и данных.
+     \details Последовательно помещаются сначала ключ, а потом хранимые данные */
+  ak_uint8 *data;
+ /*! \brief Длина ключа поиска */
+  size_t key_length;
+ /*! \brief Длина хранимых данных */
+  size_t value_length;
+} *ak_keypair;
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! \brief Функция, вычисляющая хэш-код от заданной области памяти */
+ typedef size_t ( ak_function_get_hash_value )( ak_const_pointer , const size_t );
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! \brief Контекст хэш-таблицы */
+ typedef struct htable {
+  /*! \brief Указатель на массив списков */
+   struct list *list;
+  /*! \brief Размер массива списков */
+   size_t count;
+  /*! \brief Функция для вычисляения хеш-кода для заданного значения ключа */
+   ak_function_get_hash_value *hash;
+ } *ak_htable;
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! \brief Функция создает ключевую пару - (ключ:данные) */
+ dll_export int ak_keypair_create( ak_keypair ,
+                               ak_const_pointer , const size_t , ak_const_pointer , const size_t );
+/*! \brief Функция выделяет память и создает в ней ключевую пару - (ключ:данные) */
+ dll_export ak_keypair ak_keypair_new( ak_const_pointer ,
+                                                  const size_t , ak_const_pointer , const size_t );
+/*! \brief Функция удаляет ключевую пару */
+ dll_export int ak_keypair_destroy( ak_keypair );
+/*! \brief Функция удаляет ключевую пару и освоюождает память */
+ dll_export ak_pointer ak_keypair_delete( ak_pointer );
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! \brief Функция создает хэш-таблицу с заданным числом узлов (списков) */
+ dll_export int ak_htable_create( ak_htable , size_t );
+/*! \brief Функция выделяет память и создает в ней хэш-таблицу с заданным числом узлов (списков) */
+ dll_export ak_htable ak_htable_new( size_t );
+/*! \brief Установка пользовательской функции удаления данных, хранящихся в списке */
+ dll_export int ak_htable_set_hash_function( ak_htable , ak_function_get_hash_value );
+/*! \brief Функция добавляет в таблицу ключевую пару (ключ:данные) */
+ dll_export int ak_htable_add_key_value( ak_htable ,
+                               ak_const_pointer , const size_t , ak_const_pointer , const size_t );
+/*! \brief Функция добавляет в таблицу ключевую пару (ключ:null-строка) */
+ dll_export int ak_htable_add_key_str( ak_htable ,
+                                                 ak_const_pointer , const size_t , const tchar * );
+/*! \brief Функция добавляет в таблицу ключевую пару (null-строка:данные) */
+ dll_export int ak_htable_add_str_value( ak_htable ,
+                                                 const tchar * , ak_const_pointer , const size_t );
+/*! \brief Функция добавляет в таблицу ключевую пару (null-строка:null-строка) */
+ dll_export int ak_htable_add_str_str( ak_htable , const tchar * , const tchar * );
+/*! \brief Функция возвращает указатель на ключевую пару по заданному ключу */
+ dll_export ak_keypair ak_htable_get_keypair( ak_htable , ak_pointer , size_t );
+/*! \brief Функция возвращает указатель на ключевую пару по ключу, заданному null-строкой */
+ dll_export ak_keypair ak_htable_get_keypair_str( ak_htable , tchar * );
+/*! \brief Функция возвращает указатель на данные по заданному ключу */
+ dll_export ak_pointer ak_htable_get( ak_htable , ak_pointer , size_t , size_t * );
+/*! \brief Функция возвращает указатель на данные по ключу, заданному null-строкой */
+ dll_export ak_pointer ak_htable_get_str( ak_htable , tchar *, size_t * );
+/*! \brief Функция возвращает количество элементов, помещенных в хэш-таблицу */
+ dll_export size_t ak_htable_count( ak_htable );
+/*! \brief Функция экспортирует хэш-таблицу в файл */
+ dll_export int ak_htable_export_to_file( ak_htable , const tchar * );
+/*! \brief Функция создает хэш-таблицу и инициализирует ее значения из заданного файла  */
+ dll_export int ak_htable_import_from_file( ak_htable , const tchar * );
+/*! \brief Функция удаляет хэш-таблицу */
+ dll_export int ak_htable_destroy( ak_htable );
+/*! \brief Функция удаляет хэш-таблицу и освобождает выделенную память */
+ dll_export ak_pointer ak_htable_delete( ak_pointer );
 /** @} */
 
 /* ----------------------------------------------------------------------------------------------- */
