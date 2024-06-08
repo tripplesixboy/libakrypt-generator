@@ -450,6 +450,8 @@ extern "C" {
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Функция создает хэш-таблицу с заданным числом узлов (списков) */
  dll_export int ak_htable_create( ak_htable , size_t );
+/*! \brief Функция создает хэш-таблицу и инициализирует ее значения из заданного файла  */
+ dll_export int ak_htable_create_from_file( ak_htable , const tchar * );
 /*! \brief Функция выделяет память и создает в ней хэш-таблицу с заданным числом узлов (списков) */
  dll_export ak_htable ak_htable_new( size_t );
 /*! \brief Установка пользовательской функции удаления данных, хранящихся в списке */
@@ -466,19 +468,17 @@ extern "C" {
 /*! \brief Функция добавляет в таблицу ключевую пару (null-строка:null-строка) */
  dll_export int ak_htable_add_str_str( ak_htable , const tchar * , const tchar * );
 /*! \brief Функция возвращает указатель на ключевую пару по заданному ключу */
- dll_export ak_keypair ak_htable_get_keypair( ak_htable , ak_pointer , size_t );
+ dll_export ak_keypair ak_htable_get_keypair( ak_htable , ak_const_pointer , const size_t );
 /*! \brief Функция возвращает указатель на ключевую пару по ключу, заданному null-строкой */
- dll_export ak_keypair ak_htable_get_keypair_str( ak_htable , tchar * );
+ dll_export ak_keypair ak_htable_get_keypair_str( ak_htable , const tchar * );
 /*! \brief Функция возвращает указатель на данные по заданному ключу */
- dll_export ak_pointer ak_htable_get( ak_htable , ak_pointer , size_t , size_t * );
+ dll_export ak_pointer ak_htable_get( ak_htable , ak_const_pointer , const size_t , size_t * );
 /*! \brief Функция возвращает указатель на данные по ключу, заданному null-строкой */
- dll_export ak_pointer ak_htable_get_str( ak_htable , tchar *, size_t * );
+ dll_export ak_pointer ak_htable_get_str( ak_htable , const tchar *, size_t * );
 /*! \brief Функция возвращает количество элементов, помещенных в хэш-таблицу */
  dll_export size_t ak_htable_count( ak_htable );
 /*! \brief Функция экспортирует хэш-таблицу в файл */
  dll_export int ak_htable_export_to_file( ak_htable , const tchar * );
-/*! \brief Функция создает хэш-таблицу и инициализирует ее значения из заданного файла  */
- dll_export int ak_htable_import_from_file( ak_htable , const tchar * );
 /*! \brief Функция удаляет хэш-таблицу */
  dll_export int ak_htable_destroy( ak_htable );
 /*! \brief Функция удаляет хэш-таблицу и освобождает выделенную память */
@@ -614,6 +614,15 @@ extern "C" {
 #endif
 
 /* ----------------------------------------------------------------------------------------------- */
+ inline ak_uint64 ak_uint64_ton( ak_uint64 x ) {
+  #ifdef AK_BIG_ENDIAN
+    return x;
+  #else
+    return bswap_64(x);
+  #endif
+}
+
+/* ----------------------------------------------------------------------------------------------- */
 #ifndef __VERSION__
  #define __VERSION__ LIBAKRYPT_COMPILER_VERSION
 #endif
@@ -647,8 +656,6 @@ extern "C" {
  dll_export ak_pointer ak_aligned_malloc( size_t );
 /*! \brief Освобождение выравненной памяти. */
  dll_export void ak_aligned_free( ak_pointer );
-
-
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Способ конвертации двоичных данных в строку символов в формате base64 */

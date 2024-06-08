@@ -240,7 +240,7 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
- ak_keypair ak_htable_get_keypair( ak_htable tbl, ak_pointer key, size_t key_size )
+ ak_keypair ak_htable_get_keypair( ak_htable tbl, ak_const_pointer key, const size_t key_size )
 {
     ak_list lst = NULL;
     ak_keypair kp = NULL;
@@ -271,13 +271,14 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
- ak_keypair ak_htable_get_keypair_str( ak_htable tbl, tchar *key )
+ ak_keypair ak_htable_get_keypair_str( ak_htable tbl, const tchar *key )
 {
   return ak_htable_get_keypair( tbl, key, strlen(key) +1 );
 }
 
 /* ----------------------------------------------------------------------------------------------- */
- ak_pointer ak_htable_get( ak_htable tbl, ak_pointer key, size_t key_size, size_t *value_size )
+ ak_pointer ak_htable_get( ak_htable tbl,
+                                  ak_const_pointer key, const size_t key_size, size_t *value_size )
 {
   ak_keypair kp = ak_htable_get_keypair( tbl, key, key_size );
   if( kp != NULL ) {
@@ -290,7 +291,7 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
- ak_pointer ak_htable_get_str( ak_htable tbl, tchar *key, size_t *value_size )
+ ak_pointer ak_htable_get_str( ak_htable tbl, const tchar *key, size_t *value_size )
 {
   ak_keypair kp = ak_htable_get_keypair_str( tbl, key );
   if( kp != NULL ) {
@@ -324,18 +325,14 @@
 
    /* 1. метка файла (2 байта) */
     if( ak_file_write( &fp, "ht", 2 ) != 2 ) {
-      ak_error_message( ak_error_get_value(), __func__, "unable to write header of file");
+      error = ak_error_message( ak_error_get_value(), __func__, "unable to write header of file");
       goto exlab;
     }
 
    /* 2. количество списков */
-   #ifdef LITTLE_ENDIAN
-    count = bswap_64( tbl->count );
-   #else
-    count = tbl->count;
-   #endif
+    count = ak_uint64_ton( tbl->count );
     if( ak_file_write( &fp, &count, sizeof( ak_uint64 )) != sizeof( ak_uint64 )) {
-      ak_error_message( ak_error_get_value(), __func__, "unable to write count of lists");
+      error = ak_error_message( ak_error_get_value(), __func__, "unable to write count of lists");
       goto exlab;
     }
 
@@ -344,13 +341,9 @@
        list = &tbl->list[i];
 
       /* 3.1 сначала количество элементов с списке */
-      #ifdef LITTLE_ENDIAN
-       count = bswap_64( list->count );
-      #else
-       count = list->count;
-      #endif
+       count = ak_uint64_ton( list->count );
        if( ak_file_write( &fp, &count, sizeof( ak_uint64 )) != sizeof( ak_uint64 )) {
-         ak_error_message_fmt( ak_error_get_value(), __func__,
+         error = ak_error_message_fmt( ak_error_get_value(), __func__,
                    "unable to write count of elements for list number %lu", (unsigned long int) i);
          goto exlab;
        }
@@ -363,34 +356,152 @@
           if(( kp = ( ak_keypair )list->current->data ) == NULL ) continue;
 
          /* длина ключа */
-         #ifdef LITTLE_ENDIAN
-          count = bswap_64( kp->key_length );
-         #else
-          count = kp->key_length;
-         #endif
+          count = ak_uint64_ton( kp->key_length );
           if( ak_file_write( &fp, &count, sizeof( ak_uint64 )) != sizeof( ak_uint64 )) {
-            ak_error_message( ak_error_get_value(), __func__, "unable to write key length" );
+            error = ak_error_message( ak_error_get_value(), __func__,
+                                                                    "unable to write key length" );
             goto exlab;
           }
 
          /* длина данных */
-         #ifdef LITTLE_ENDIAN
-          count = bswap_64( kp->value_length );
-         #else
-          count = kp->value_length;
-         #endif
+          count = ak_uint64_ton( kp->value_length );
           if( ak_file_write( &fp, &count, sizeof( ak_uint64 )) != sizeof( ak_uint64 )) {
-            ak_error_message( ak_error_get_value(), __func__, "unable to write value length" );
+             error = ak_error_message( ak_error_get_value(), __func__,
+                                                                  "unable to write value length" );
             goto exlab;
           }
 
          /* собственно данные */
           if( ak_file_write( &fp, kp->data, kp->key_length + kp->value_length )
                                                        != ( kp->key_length + kp->value_length )) {
-            ak_error_message( ak_error_get_value(), __func__, "unable to write user data" );
+            error = ak_error_message( ak_error_get_value(), __func__, "unable to write user data" );
             goto exlab;
           }
        } while( ak_list_next( list ));
+    }
+
+  exlab:
+    ak_file_close( &fp );
+ return error;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_htable_create_from_file( ak_htable tbl, const tchar *name )
+{
+    size_t i, j;
+    struct file fp;
+    ak_uint64 count = 0;
+    ak_uint8 buffer[1024];
+    int error = ak_error_ok;
+
+   /* необходимые проверки */
+    if( tbl == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
+                                                      "using null pointer to hash table context" );
+   /* открываем файл */
+    if(( error = ak_file_open_to_read( &fp, name )) != ak_error_ok )
+      return ak_error_message( error, __func__, "incorrect file creation" );
+
+   /* 1. метка файла (2 байта) */
+    if( ak_file_read( &fp, buffer, 2 ) != 2 ) {
+      error = ak_error_message( ak_error_read_data, __func__, "unable to read header of file");
+      goto exlab;
+    }
+    if( memcmp( buffer, "ht", 2 ) != 0 ) {
+      error = ak_error_message( ak_error_not_equal_data, __func__, "wrong header of given file" );
+      goto exlab;
+    }
+
+   /* 2. количество списков (8 байт) */
+    if( ak_file_read( &fp, buffer, 8 ) != 8 ) {
+      error = ak_error_message( ak_error_read_data, __func__, "unable to read count of lists");
+      goto exlab;
+    }
+    if(( count = ak_uint64_ton( *((ak_uint64*)buffer))) > 65536 ) {
+      error = ak_error_message( ak_error_wrong_length, __func__, "very large hash table");
+      goto exlab;
+    }
+
+   /* 3. функция является конструктором */
+    if(( error = ak_htable_create( tbl, count )) != ak_error_ok ) {
+      ak_error_message_fmt( error, __func__, "unable to create hash table with %llu lists", count );
+      goto exlab;
+    }
+
+   /* последовательно считываем списки */
+   /* 4. элементы списка в заданном формате */
+    for( i = 0; i < tbl->count; i++ ) {
+
+      /* 4.1 количество элементов в списке */
+       if( ak_file_read( &fp, buffer, 8 ) != 8 ) {
+         error = ak_error_message_fmt( ak_error_read_data, __func__,
+                                      "unable to read count of elements for list number %llu", i );
+         ak_htable_destroy(tbl);
+         goto exlab;
+       }
+       if(( count = ak_uint64_ton( *((ak_uint64*)buffer))) > 65536 ) {
+         error = ak_error_message( ak_error_wrong_length, __func__,
+                                                                  "very large count of elements ");
+         ak_htable_destroy(tbl);
+         goto exlab;
+       }
+
+      /* 4.2 последовательно считываем элементы текущего списка */
+       for( j = 0; j < count; j++ ) {
+         ak_uint8 *key = NULL;
+         size_t key_size = 0, value_size = 0;
+
+        /* длина ключа */
+         if( ak_file_read( &fp, buffer, 8 ) != 8 ) {
+           error = ak_error_message( ak_error_read_data, __func__,
+                                                                 "unable to read the key length" );
+           ak_htable_destroy(tbl);
+           goto exlab;
+         }
+         if(( key_size = ak_uint64_ton( *((ak_uint64*)buffer))) > 65536 ) {
+           error = ak_error_message( ak_error_wrong_length, __func__, "very large key length");
+           ak_htable_destroy(tbl);
+           goto exlab;
+         }
+
+        /* длина данных */
+         if( ak_file_read( &fp, buffer, 8 ) != 8 ) {
+           error = ak_error_message( ak_error_read_data, __func__,
+                                                               "unable to read the value length" );
+           ak_htable_destroy(tbl);
+           goto exlab;
+         }
+         if(( value_size = ak_uint64_ton( *((ak_uint64*)buffer))) > 65536 ) {
+           error = ak_error_message( ak_error_wrong_length, __func__, "very large value length");
+           ak_htable_destroy(tbl);
+           goto exlab;
+         }
+
+        /* готовим память */
+         if(( key = malloc( key_size + value_size )) == NULL ) {
+           error = ak_error_message( ak_error_out_of_memory, __func__, "out of memory");
+           ak_htable_destroy(tbl);
+           goto exlab;
+         }
+
+        /* считываем память */
+         if( ak_file_read( &fp, key, key_size + value_size ) != key_size + value_size ) {
+           error = ak_error_message( ak_error_read_data, __func__,
+                                                               "unable to read the keypair data" );
+           free(key);
+           ak_htable_destroy(tbl);
+           goto exlab;
+         }
+
+        /* добавляем считанное в список */
+         if(( error = ak_htable_add_key_value( tbl,
+                                    key, key_size, key +key_size, value_size )) != ak_error_ok ) {
+           ak_error_message( error, __func__, "unable to add the keypair data" );
+           free(key);
+           ak_htable_destroy(tbl);
+           goto exlab;
+         }
+         free(key);
+       }
     }
 
   exlab:
