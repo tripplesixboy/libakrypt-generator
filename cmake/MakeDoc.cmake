@@ -144,6 +144,10 @@ if( UNIX )
    # копируем pdf
     file( APPEND ${script} "cp ${CMAKE_CURRENT_BINARY_DIR}/doxygen/latex/refman.pdf ${CMAKE_CURRENT_BINARY_DIR}/sphinx/html/_pdf/akrypt-library-api.pdf\n" )
     file( APPEND ${script} "cp ${CMAKE_CURRENT_BINARY_DIR}/doxygen/latex/refman.pdf ${CMAKE_CURRENT_BINARY_DIR}/doc/libakrypt-api-${FULL_VERSION}.pdf\n" )
+   # копируем pdf
+    if( QHELPGENERATOR )
+      file( APPEND ${script} "mv ${CMAKE_CURRENT_BINARY_DIR}/doxygen/html/akrypt-library.qch ${CMAKE_CURRENT_BINARY_DIR}/doc/libakrypt-api-${FULL_VERSION}.qch\n" )
+    endif()
 
    # создаем полноценный архив для отправки на сайт
     file( APPEND ${script} "cd sphinx/html \n" )

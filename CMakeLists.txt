@@ -326,49 +326,33 @@ endforeach()
 
 # -------------------------------------------------------------------------------------------------- #
 # дополнительный (опциональный) функционал утилиты aktool
+macro( try_aktool_lib _lib _header )
+   string( TOUPPER AK_HAVE_${_header}_H AKTOOL_LIB_HEADER )
+   if( AK_STATIC_LIB )
+     find_library( LIB${_lib}_LIB lib${_lib}.a )
+   else()
+     find_library( LIB${_lib}_LIB lib${_lib}.so )
+   endif()
+   if( LIB${_lib}_LIB )
+     message("-- lib${_lib} found (${LIB${_lib}_LIB})" )
+      find_file( AK_HAVE_${_header}_H ${_header}.h )
+      if( AK_HAVE_${_header}_H )
+        message("-- ${_header}.h found")
+        set( LIBAKRYPT_LIBS ${LIBAKRYPT_LIBS} ${LIB${_lib}_LIB} )
+        set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D${AKTOOL_LIB_HEADER}" )
+        message("   added compile flag -D${AKTOOL_LIB_HEADER}")
+      endif()
+   endif()
+endmacro( try_aktool_lib )
+
 # libbz2
-if( AK_STATIC_LIB )
-  find_library( LIBBZ2_LIB libbz2.a )
-else()
-  find_library( LIBBZ2_LIB libbz2.so )
-endif()
-if( LIBBZ2_LIB )
-  message("-- libbz2 found (${LIBBZ2_LIB})" )
-  find_file( AK_HAVE_LIBBZ2_H bzlib.h )
-  if( AK_HAVE_LIBBZ2_H )
-    message("-- bzlib.h found")
-    set( LIBAKRYPT_LIBS ${LIBAKRYPT_LIBS} ${LIBBZ2_LIB} )
-    set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAK_HAVE_BZLIB_H" )
-  endif()
-endif()
-
+try_aktool_lib( bz2 bzlib )
+# libelf
+try_aktool_lib( elf gelf )
 # libintl
-if( AK_STATIC_LIB )
-  find_library( LIBINTL_LIB libintl.a )
-else()
-  find_library( LIBINTL_LIB libintl.so )
-endif()
-if( LIBINTL_LIB )
-  message("-- libintl found (${LIBINTL_LIB})")
-  find_path( AK_HAVE_LIBINTL_H NAMES libintl.h )
-  if( AK_HAVE_LIBINTL_H )
-    include_directories( ${AK_HAVE_LIBINTL_H} )
-    message("-- libintl.h found" )
-  endif()
-  set( LIBAKRYPT_LIBS ${LIBAKRYPT_LIBS} ${LIBINTL_LIB} )
-endif()
-
-
+try_aktool_lib( intl libintl )
 # libiconv
-if( AK_STATIC_LIB )
-  find_library( LIBICONV_LIB libiconv.a )
-else()
-  find_library( LIBICONV_LIB libiconv.so )
-endif()
-if( LIBICONV_LIB )
-  message("-- libiconv found (${LIBICONV_LIB})")
-  set( LIBAKRYPT_LIBS ${LIBAKRYPT_LIBS} ${LIBICONV_LIB} )
-endif()
+try_aktool_lib( iconv iconv )
 
 if( LIBAKRYPT_LIBS )
   message("-- Additional libraries for aktool is ${LIBAKRYPT_LIBS}")
@@ -470,12 +454,14 @@ set( CPACK_SOURCE_IGNORE_FILES
 # в зависимостях можно указать в явном виде стандартную библиотеку языка Си,
 # но она и так входит в перечень
 set( CPACK_DEBIAN_PACKAGE_DEPENDS "libbz2-1.0" )
+set( CPACK_DEBIAN_PACKAGE_DEPENDS "libelf-dev" )
 set( CPACK_PACKAGE_VERSION_MAJOR ${HEAD_VERSION} )
 set( CPACK_PACKAGE_VERSION_MINOR ${MAIN_VERSION} )
 set( CPACK_PACKAGE_VERSION_PATCH ${MINOR_VERSION} )
 
-set( CPACK_DEBIAN_PACKAGE_MAINTAINER "Axel Kenzo") #required
-set( CPACK_PACKAGE_VENDOR "Axel Kenzo и Компания изящной словесности")
+set( CPACK_DEBIAN_PACKAGE_MAINTAINER "Axel Kenzo <axelkenzo@mail.ru>") #required
+set( CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://libakrypt.ru")
+set( CPACK_PACKAGE_VENDOR "Axel Kenzo и Московский институт электроники и математики")
 set( CPACK_PACKAGE_FILE_NAME ${CMAKE_PROJECT_NAME}-${FULL_VERSION}-${CMAKE_SYSTEM_PROCESSOR} )
 set( CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${FULL_VERSION}" )
 set( CPACK_STRIP_FILES TRUE )
