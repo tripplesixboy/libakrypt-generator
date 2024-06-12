@@ -217,7 +217,7 @@
     return ak_error_message( error, __func__, "incorrect cleaning a mac context");
 
   if(( error = ak_file_open_to_read( &file, filename )) != ak_error_ok )
-    return ak_error_message_fmt( error, __func__, "incorrect access to file %s", filename );
+      return ak_error_message_fmt( error, __func__, "incorrect access to file %s", filename );
 
  /* для файла нулевой длины результатом будет хеш от нулевого вектора */
   if( !file.size ) {
