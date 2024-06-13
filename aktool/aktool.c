@@ -189,8 +189,10 @@
  #endif
   va_end( args );
 
- if(( result >= 0 ) && ( !ki.quiet )) /* выводим сообщение только, если нет режима тишины */
-   printf(_("%serror%s: %s\n"), ak_error_get_start_string(), ak_error_get_end_string(), string );
+ if( !ki.quiet ) {
+   if( result >= 0 ) /* выводим сообщение только, если нет режима тишины */
+     printf(_("%serror%s: %s\n"), ak_error_get_start_string(), ak_error_get_end_string(), string );
+ }
 }
 
 /* ----------------------------------------------------------------------------------------------- */
