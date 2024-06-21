@@ -40,6 +40,8 @@
 #endif
 
 /* ----------------------------------------------------------------------------------------------- */
+ typedef int ( ak_function_icode_ptr ) ( ak_pointer , const ak_pointer ,
+                                                       const size_t , ak_pointer , const size_t );
  typedef int ( ak_function_icode_file ) ( ak_pointer , const char * , ak_pointer , const size_t );
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -65,6 +67,10 @@
    ak_oid mode;
   /* контекст алгоритма хеширования/мастер ключа */
    ak_pointer handle;
+#ifdef AK_HAVE_GELF_H
+  /* указатель на функцию криптографического сжатия информации */
+   ak_function_icode_ptr *icode_ptr;
+#endif
   /* указатель на функцию криптографического сжатия информации */
    ak_function_icode_file *icode_file;
   /* идентификатор алгоритма генерации случайных значений */
@@ -131,11 +137,15 @@
       size_t hashed_files;
      /* количество необработанных файлов */
       size_t skiped_files;
-     /* количество испольняемых файлов */
+ #ifdef AK_HAVE_GELF_H
+     /* количество исполняемых файлов */
       size_t executables;
+     /* количество отброшенных исполняемых файлов */
+      size_t skipped_executables;
+ #endif
    } statistical_data;
-  /* случайная строка открытых данных (длина вектора фиксирована и равна 16) */
-   char *seed;
+  /* при установленном флаге программа не проверяет сегменты, загружаемые в память */
+   bool_t ignore_segments;
   /* список каталогов для проверки */
    struct list include_path;
   /* список файлов для проверки */
