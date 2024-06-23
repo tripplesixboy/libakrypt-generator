@@ -64,6 +64,7 @@
      { "format",              1, NULL,  163 },
 #ifdef AK_HAVE_GELF_H
      { "with-segments",       0, NULL,  164 },
+     { "only-segments",       0, NULL,  165 },
 #endif
 
     /* аналоги из aktool_key */
@@ -102,6 +103,7 @@
   ki.key_derive = ak_true;
   ki.field = format_binary;
   ki.ignore_segments = ak_true;
+  ki.only_segments = ak_false;
 
  /* разбираем опции командной строки */
   do {
@@ -237,6 +239,11 @@
         case 164: /* --with-segments */
                    ki.ignore_segments = ak_false;
                    break;
+
+        case 165: /* --only-segments */
+                   ki.only_segments = ak_true;
+                   ki.ignore_segments = ak_false;
+                   break;
 #endif
 
         default:  /* обрабатываем ошибочные параметры */
@@ -306,6 +313,9 @@
 
 /* ----------------------------------------------------------------------------------------------- */
 /*                          функции для сохранения/чтения контрольных сумм                         */
+/* ----------------------------------------------------------------------------------------------- */
+/*! \brief Функция сохраняет хеш-таблицу с вычисленными контрольными суммами или имтовставками в
+    заданный файл в формате, который указан пользователем                                          */
 /* ----------------------------------------------------------------------------------------------- */
  int aktool_icode_export_checksum( aktool_ki_t *ki )
 {
@@ -514,24 +524,28 @@
     if( ak_htable_get_str( &ki->exclude_file, value, NULL ) != NULL ) return ak_error_ok;
    /* статистика */
     ki->statistical_data.total_files++;
-   /* вычисляем производный ключ */
-    if(( dkey = aktool_icode_get_derived_key( value, ki )) == NULL ) {
-      ki->statistical_data.skiped_files++;
-      return ak_error_null_pointer;
-    }
-   /* вычисляем контрольную сумму от заданного файла и помещаем ее в таблицу */
-    error = ki->icode_file( dkey, value, icode, ki->size );
-    if( dkey != ki->handle ) ak_skey_delete( dkey );
-   /* проверка результата и его сохнение в хеш-таблице */
-    if( error == ak_error_ok ) {
-      ki->statistical_data.hashed_files++;
-      if( !ki->quiet ) aktool_icode_hash_out( stdout, value, ki, icode, ki->size );
-      ak_htable_add_str_value( &ki->icodes, value, icode, ki->size );
-    }
-     else {
-       ki->statistical_data.skiped_files++;
-       goto labexit;
-     }
+
+   /* проверяем, что надо контролировать целостность всего файла */
+    if( !ki->only_segments ) {
+     /* вычисляем производный ключ */
+      if(( dkey = aktool_icode_get_derived_key( value, ki )) == NULL ) {
+        ki->statistical_data.skiped_files++;
+        return ak_error_null_pointer;
+      }
+     /* вычисляем контрольную сумму от заданного файла и помещаем ее в таблицу */
+      error = ki->icode_file( dkey, value, icode, ki->size );
+      if( dkey != ki->handle ) ak_skey_delete( dkey );
+     /* проверка результата и его сохнение в хеш-таблице */
+      if( error == ak_error_ok ) {
+        ki->statistical_data.hashed_files++;
+        if( !ki->quiet ) aktool_icode_hash_out( stdout, value, ki, icode, ki->size );
+        ak_htable_add_str_value( &ki->icodes, value, icode, ki->size );
+      }
+       else {
+         ki->statistical_data.skiped_files++;
+         goto labexit;
+      }
+    } /* if(only_segments) */
 
    /* теперь приступаем к разбору исполняемых файлов */
   #ifdef AK_HAVE_GELF_H
@@ -892,6 +906,9 @@
   printf(_("                         this option also sets the type of keyed authentication mechanism\n"));
   printf(_("     --no-derive         do not use the keyed authentication mechanism's derived key for each controlled entity\n"));
   printf(_("                         this may cause an error due to the exhaustion of a key resource\n"));
+#ifdef AK_HAVE_GELF_H
+  printf(_("     --only-segments     calculate authentication or integrity codes only for downloadable segments\n"));
+#endif
   printf(_(" -o, --output            set the output file for generated authentication or integrity codes\n"));
   printf(_(" -p, --pattern           set the pattern which is used to find files\n"));
   printf(_(" -r, --recursive         recursive search of files\n"));
