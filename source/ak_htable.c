@@ -399,7 +399,7 @@
                                                       "using null pointer to hash table context" );
    /* открываем файл */
     if(( error = ak_file_open_to_read( &fp, name )) != ak_error_ok )
-      return ak_error_message( error, __func__, "incorrect file creation" );
+      return ak_error_message( error, __func__, "unable to open a file" );
 
    /* 1. метка файла (2 байта) */
     if( ak_file_read( &fp, buffer, 2 ) != 2 ) {
@@ -407,7 +407,7 @@
       goto exlab;
     }
     if( memcmp( buffer, "ht", 2 ) != 0 ) {
-      error = ak_error_message( ak_error_not_equal_data, __func__, "wrong header of given file" );
+      error = ak_error_message( ak_error_not_equal_data, __func__, "wrong predefined header" );
       goto exlab;
     }
 
