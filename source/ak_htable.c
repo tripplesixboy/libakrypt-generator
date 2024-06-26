@@ -90,7 +90,7 @@
     size_t i, index = 5381;
 
    /* как-то так */
-    for( i = 0; i < key_size; i++ ) index = ((index << 5 ) + index ) + ((ak_uint8 *)key)[i];
+    for( i = 0; i < key_size; i++ ) index += ((index << 5 ) + ((ak_uint8 *)key)[i] );
 
   return index;
 }
@@ -207,14 +207,32 @@
      ak_const_pointer key, const size_t key_size, ak_const_pointer value, const size_t value_size )
 {
     size_t index = 0;
+    ak_list list = NULL;
+    ak_keypair kp = NULL;
 
    /* необходимые проверки */
     if( tbl == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
                                                       "using null pointer to hash table context" );
-   /* вычисляем индекс ключа в массиве списков */
-    index = ( tbl->hash( key, key_size ) % tbl->count );
+    if( tbl->count == 0) return ak_error_message( ak_error_zero_length, __func__,
+                                                 "using uncreated hash table with zero elements" );
 
-   /* создаем элемент списка и добавляем его в соответствующий список */
+   /* вычисляем индекс ключа в массиве списков */
+    index = tbl->hash( key, key_size ) % tbl->count;
+
+   /* проверяем уникальность ключа */
+    list = &tbl->list[index];
+    if( list->count != 0 ) {
+      ak_list_first( list );
+      do{
+         if(( kp = (ak_keypair)list->current->data ) == NULL )
+           return ak_error_htable_null_element;
+         if(( kp->key_length == key_size ) && ( memcmp( kp->data, key, kp->key_length ) == 0 ))
+           return ak_error_htable_key_exist;
+      }
+       while( ak_list_next( list ));
+    }
+
+   /* только после проверки, создаем элемент списка и добавляем его в соответствующий список */
     return ak_list_add_node( &tbl->list[index],
                             ak_list_node_new( ak_keypair_new( key, key_size, value, value_size )));
 }

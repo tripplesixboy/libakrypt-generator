@@ -19,13 +19,13 @@
  int main( void )
 {
    /* создаем контекст хэш-таблицы */
-    ak_htable tbl = ak_htable_new( 32 );
+    ak_htable tbl = ak_htable_new( 9 );
 
    /* в процессе создания контекста устанавливается функция хэширования,
       однако, при желании, можно её заменить на свою функцию */
     ak_htable_set_hash_function( tbl, my_hash_function );
 
-   /* добавляем данные в таблицу */
+   /* добавляем данные в таблицу: ключ, значение */
     ak_htable_add_str_str( tbl, "h", "1" );
     ak_htable_add_str_str( tbl, "he", "2" );
     ak_htable_add_str_str( tbl, "hel", "3" );
@@ -38,7 +38,9 @@
     ak_htable_add_str_str( tbl, "a", "11" );
     ak_htable_add_str_str( tbl, "b", "12" );
     ak_htable_add_str_str( tbl, "c", "13" );
-    ak_htable_add_str_str( tbl, "d", "Буква D" );
+   /* добавляем два разных элемента с одним и тем же ключом */
+    printf(" код возврата: %d\n", ak_htable_add_str_str( tbl, "d", "Буква D" ));
+    printf(" код возврата: %d\n", ak_htable_add_str_str( tbl, "d", "Буква D с тем же ключом" ));
     ak_htable_add_str_str( tbl, "Александр Сергеевич Пушкин", "Евгений Онегин" );
     ak_htable_add_str_str( tbl, "Михаил Юрьевич Лермонтов", "Мцыри" );
     ak_htable_add_str_str( tbl, "Александр Иванович Куприн", "Суламифь" );
@@ -68,7 +70,7 @@
     }
     printf(" таблица содержит %lu элементов\n", cnt );
 
-  /* и только сейчас, главная уель применения хэш-таблиц */
+  /* и только сейчас, главная цель применения хэш-таблиц */
   /* быстрый поиск элементов с заданными ключами */
     printf("книга: %s\n", (char *)ak_htable_get_str( tbl, "Антоша Чехонте", NULL ));
     printf("книга: %s\n", (char *)ak_htable_get_str( tbl, "Антон Павлович Чехов", NULL ));
