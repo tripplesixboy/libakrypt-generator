@@ -306,6 +306,8 @@ set( AKTOOL_SOURCES
      aktool/aktool_show.c
      aktool/aktool_test.c
      aktool/aktool_icode.c
+     aktool/aktool_icode_evaluate.c
+     aktool/aktool_icode_export_import.c
      aktool/aktool_encrypt.c
    )
 set( AKTOOL_FILES
@@ -359,7 +361,7 @@ if( LIBAKRYPT_LIBS )
 endif()
 
 add_executable( aktool ${AKTOOL_SOURCES} )
-target_include_directories( aktool PUBLIC "aktool" )
+target_include_directories( aktool PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/aktool" )
 
 if( AK_STATIC_LIB )
   target_link_libraries( aktool akrypt-static akbase-static ${LIBAKRYPT_LIBS} )

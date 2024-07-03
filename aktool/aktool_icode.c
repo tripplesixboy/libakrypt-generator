@@ -3,12 +3,12 @@
 /*                                                                                                 */
 /*  Прикладной модуль, реализующий процедуры проверки целостности данных                           */
 /*                                                                                                 */
-/*  aktool_ikey.c                                                                                  */
+/*  aktool_icode.c                                                                                 */
 /* ----------------------------------------------------------------------------------------------- */
  #include <stdio.h>
  #include <stdlib.h>
  #include <string.h>
- #include <aktool.h>
+ #include "aktool.h"
 #ifdef AK_HAVE_ERRNO_H
  #include <errno.h>
 #endif
@@ -20,27 +20,8 @@
 #endif
 
 /* ----------------------------------------------------------------------------------------------- */
-  int aktool_icode_help( void );
-  int aktool_icode_read_config( char *, aktool_ki_t * );
-  int aktool_icode_ini_control( aktool_ki_t * , const char * , const char * , const char * );
-  int aktool_icode_ini_handler( void * , const char * , const char * , const char * );
+ int aktool_icode_help( void );
  void aktool_icode_log_options( aktool_ki_t * );
-  int aktool_icode_hash( aktool_ki_t * );
-  int aktool_icode_create_handle( aktool_ki_t * );
-  int aktool_icode_destroy_handle( aktool_ki_t * );
-  ak_pointer aktool_icode_get_derived_key( const char * , aktool_ki_t * , ak_file );
-  void aktool_icode_hash_out( FILE * , const char * , aktool_ki_t * , ak_uint8 * , const size_t );
-  int aktool_icode_export_checksum( aktool_ki_t * );
-  int aktool_icode_import_checksum( aktool_ki_t * );
-
-/* ----------------------------------------------------------------------------------------------- */
-/*! формат сохранения файла с вычисленными значениями */
- typedef enum
-{
-   format_binary = 0x00,
-   format_linux = 0x01,
-   format_bsd = 0x02
-} aktool_icode_format_t;
 
 /* ----------------------------------------------------------------------------------------------- */
  int aktool_icode( int argc, tchar *argv[] )
@@ -51,18 +32,18 @@
   const struct option long_options[] = {
    /* сначала уникальные */
      { "algorithm",           1, NULL,  'a' },
-     { "config",              1, NULL,  221 },
+     { "config",              1, NULL,  'c' },
      { "exclude",             1, NULL,  'e' },
      { "pattern",             1, NULL,  'p' },
      { "recursive",           0, NULL,  'r' },
-     { "check",               1, NULL,  'c' },
+     { "verify",              1, NULL,  'v' },
      { "reverse-order",       0, NULL,  254 },
      { "tag",                 0, NULL,  250 },
      { "hash-table-nodes",    1, NULL,  222 },
      { "output",              1, NULL,  'o' },
      { "no-derive",           0, NULL,  160 },
      { "dont-show-stat",      0, NULL,  161 },
-     { "ignore-errors",       0, NULL,  162 },
+     { "dont-show-icode",      0, NULL, 162 },
      { "format",              1, NULL,  163 },
 #ifdef AK_HAVE_GELF_H
      { "with-segments",       0, NULL,  164 },
@@ -106,10 +87,11 @@
   ki.field = format_binary;
   ki.ignore_segments = ak_true;
   ki.only_segments = ak_false;
+  ki.dont_show_icode = ak_false;
 
  /* разбираем опции командной строки */
   do {
-       next_option = getopt_long( argc, argv, "he:rp:o:a:c:", long_options, NULL );
+       next_option = getopt_long( argc, argv, "he:rp:o:a:c:v:", long_options, NULL );
        switch( next_option )
       {
         aktool_common_functions_run( aktool_icode_help );
@@ -131,7 +113,7 @@
                    }
                    break;
 
-        case 221 : /* устанавливаем имя конфигурационного файла */
+        case 'c': /* --config устанавливаем имя конфигурационного файла */
                   #ifdef _WIN32
                    GetFullPathName( optarg, FILENAME_MAX, ki.capubkey_file, NULL );
                   #else
@@ -162,7 +144,7 @@
                    break;
 
         case 'e' : /* --exclude устанавливаем имя исключаемого файла или каталога */
-                   aktool_icode_ini_control( &ki, "", "exclude", optarg );
+                   aktool_icode_add_control_object( &ki, "exclude", optarg );
                    break;
 
         case 'p' : /* --pattern устанавливаем дополнительную маску для поиска файлов */
@@ -220,7 +202,7 @@
                   #endif
                    break;
 
-        case 'c' : /* выполняем проверку контрольных сумм */
+        case 'v' : /* --verify выполняем проверку контрольных сумм */
                    work = do_check;
                  #ifdef _WIN32
                    GetFullPathName( optarg, FILENAME_MAX, ki.os_file, NULL );
@@ -243,8 +225,8 @@
                    ki.dont_show_stat = ak_true;
                    break;
 
-        case 162: /* --ignore-errors */
-                   ki.ignore_errors = ak_true;
+        case 162: /* --dont-show-icode */
+                   ki.dont_show_icode = ak_true;
                    break;
 
         case 163: /* --format устанавливаем формат хранения вычисленных/проверочных значений */
@@ -274,16 +256,16 @@
     все они интерпретируются как файлы или каталоги для контроля целостности */
   ++optind; /* пропускаем команду - i или icode */
  /* начинаем цикл добавления файлов и каталогов, указанных пользователем */
-  while( optind < argc ) aktool_icode_ini_control( &ki, "", "", argv[optind++] );
+  while( optind < argc ) aktool_icode_add_control_object( &ki, "", argv[optind++] );
 
  /* начинаем работу с криптографическими примитивами */
   if( !aktool_create_libakrypt( )) goto exitlab;
 
- /* считываем оставшиеся конфигурационные настройки из заданного файла */
-  if( strlen( ki.capubkey_file ) > 0 ) {
-    if(( exit_status = aktool_icode_read_config( ki.capubkey_file, &ki )) != ak_error_ok )
-      goto exitlab;
-  }
+ // /* считываем оставшиеся конфигурационные настройки из заданного файла */
+ //  if( strlen( ki.capubkey_file ) > 0 ) {
+ //    if(( exit_status = aktool_icode_read_config( ki.capubkey_file, &ki )) != ak_error_ok )
+ //      goto exitlab;
+ //  }
 
  /* разбираемся с именем файла для сохранения результатов */
   if( strlen( ki.pubkey_file ) == 0 ) {
@@ -301,17 +283,19 @@
   switch( work ) {
     case do_hash:
      /* создаем таблицу для хранения контрольных сумм */
-      if( ak_htable_create( &ki.icodes, ki.icode_lists_count ) != ak_error_ok ) goto exitlab;
+       if( ak_htable_create( &ki.icodes, ki.icode_lists_count ) != ak_error_ok ) goto exitlab;
      /* выполняем вычисления */
-      if(( exit_status = aktool_icode_hash( &ki )) != EXIT_SUCCESS ) goto exitlab;
-     /* сохраняем результат */
-      exit_status = aktool_icode_export_checksum( &ki );
+       if(( exit_status = aktool_icode_evaluate( &ki )) != EXIT_SUCCESS ) goto exitlab;
+      /* сохраняем результат */
+       exit_status = aktool_icode_export_checksum( &ki );
       break;
 
     case do_check:
      /* считываем таблицу с сохраненными значениями контрольных сумм */
       if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
-     /* выполняем вычисления */
+
+     /* выполняем проверки */
+
       break;
 
     default:
@@ -332,481 +316,7 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
-/*                          функции для сохранения/чтения контрольных сумм                         */
-/* ----------------------------------------------------------------------------------------------- */
-/*! \brief Функция сохраняет хэш-таблицу с вычисленными контрольными суммами или имтовставками в
-    заданный файл в формате, который указан пользователем                                          */
-/* ----------------------------------------------------------------------------------------------- */
- int aktool_icode_export_checksum( aktool_ki_t *ki )
-{
-    size_t i = 0;
-    FILE *fp = NULL;
-    int exit_status = EXIT_FAILURE;
-
-   /* определяемся с выводом в формате bsd */
-    if( ki->tag ) ki->field = format_bsd;
-    if( ki->field == format_bsd ) ki->tag = ak_true;
-
-    switch( ki->field ) {
-
-      case format_binary:
-        if( ak_htable_export_to_file( &ki->icodes, ki->pubkey_file ) != ak_error_ok )
-          aktool_error(_("incorrectly writing results to a file %s"), ki->pubkey_file );
-         else {
-           exit_status = EXIT_SUCCESS;
-         }
-        break;
-
-      default: /* выводим в текстовом формате */
-        if(( fp = fopen( ki->pubkey_file, "w" )) == NULL ) {
-          aktool_error(_("incorrect output checksum to file %s"), ki->pubkey_file );
-          break;
-        }
-
-        for( i = 0; i < ki->icodes.count; i++ ) {
-           ak_list list = &ki->icodes.list[i];
-           if( list->count == 0 ) continue;
-           ak_list_first( list );
-           do{
-                ak_keypair kp = (ak_keypair)list->current->data;
-                aktool_icode_hash_out( fp, (const char *)kp->data,
-                                                   ki, kp->data+kp->key_length, kp->value_length );
-           } while( ak_list_next( list ));
-        }
-
-        fclose(fp);
-        exit_status = EXIT_SUCCESS;
-        break;
-    }
-
-    if( exit_status == EXIT_SUCCESS ) {
-      if(( !ki->quiet ) && ( !ki->dont_show_stat ))
-             printf(_("all results saved in %s%s%s file\n"),
-                          ak_error_get_start_string(), ki->pubkey_file, ak_error_get_end_string());
-    }
-
- return exit_status;
-}
-
-/* ----------------------------------------------------------------------------------------------- */
- static int aktool_icode_import_checksum_line( const char *string, ak_pointer ptr )
-{
-    aktool_ki_t *ki = (aktool_ki_t *)ptr;
-
-    printf("[%s]\n", string );
-
- return ak_error_ok;
-}
-
-/* ----------------------------------------------------------------------------------------------- */
-/*! \brief Функция обрабатывает заданный пользователем файл и считывает из него
-   сохраненную ранее хэш-таблицу с вычисленными контрольными суммами или имтовставками             */
-/* ----------------------------------------------------------------------------------------------- */
- int aktool_icode_import_checksum( aktool_ki_t *ki )
-{
-    int error = ak_error_ok;
-
-   /* в начале, проверяем что формат пользователем не задан или используется
-      значение по-умолчанию */
-    if( ki->field == format_binary ) {
-
-     /* начинаем с того, что пытаемся открыть файл как двоичную хэш-таблицу*/
-      if(( error = ak_htable_create_from_file( &ki->icodes, ki->os_file )) == ak_error_ok )
-        return ak_error_ok;
-
-      switch( error ) {
-       /* ошибки доступа к файлу */
-        case ak_error_open_file:
-        case ak_error_access_file:
-        case ak_error_null_pointer:
-          aktool_error(_("the file %s cannot be accessed"), ki->os_file );
-          return error;
-
-       /* ошибки разбора и интерпретации данных */
-        case ak_error_read_data:
-        case ak_error_not_equal_data:
-        case ak_error_wrong_length:
-        case ak_error_out_of_memory:
-          ak_error_set_value( ak_error_ok );
-          break;
-      }
-    }
-
-   /* теперь пытаемся считать символьные строки */
-    error = ak_file_read_by_lines( ki->os_file, aktool_icode_import_checksum_line, ki );
-
-   printf("какая-то хрень, код: %d\n", error );
-
-  return error;
-}
-
-/* ----------------------------------------------------------------------------------------------- */
-/*                          функции для вычисления контрольных сумм                                */
-/* ----------------------------------------------------------------------------------------------- */
- void aktool_icode_hash_out( FILE *fp, const char *value,
-                                            aktool_ki_t *ki, ak_uint8 *buffer, const size_t size )
-{
-    if( ki->tag ) { /* вывод bsd */
-     fprintf( fp, "%s (%s) = %s\n", ki->method->name[0], value,
-                                              ak_ptr_to_hexstr( buffer, size, ki->reverse_order ));
-    }
-     else { /* вывод линуксовый */
-      fprintf( fp, "%s %s\n", ak_ptr_to_hexstr( buffer, size, ki->reverse_order ), value );
-     }
-}
-
-/* ----------------------------------------------------------------------------------------------- */
- ak_pointer aktool_icode_get_derived_key( const char *value, aktool_ki_t *ki, ak_file fp )
-{
-    struct file infp;
-    ak_pointer dkey = NULL;
-    size_t total_size = 0, blocks = 0;
-
-   /* проверяем надо ли делать производный ключ */
-    if(( ki->method->engine == hash_function ) || ( ki->key_derive == ak_false ))
-      return ki->handle;
-     else {
-        ak_oid koid = ((ak_skey)ki->handle)->oid;
-       /* имеем секретный ключ, надо сделать производный того же типа */
-        if(( dkey = ak_skey_new_derive_kdf256_from_skey(
-                       koid,                           /* идентификатор создаваемого ключа */
-                       ki->handle,                                        /* исходный ключ */
-                       (ak_uint8*) value, /* метка, в качестве которой выступает имя файла */
-                       strlen( value ),                                     /* длина метки */
-                       NULL, 0 )) == NULL ) {
-          aktool_error(_("incorrect creation of derivative key (file %s)"), value );
-          return NULL;
-        }
-        if( koid->engine != block_cipher ) return dkey;
-    }
-
-   /* если снаружи ни чего не открыто, то делаем это самостоятельно */
-    if( fp != NULL ) total_size = fp->size;
-      else {
-             if( ak_file_open_to_read( &infp, value ) == ak_error_ok ) {
-               total_size = infp.size;
-               ak_file_close( &infp );
-             }
-              else return dkey;
-      }
-
-   /* в заключение, подправляем ресурс ключа алгоритма блочного шифрования
-      иначе придется вырабатывать следующий производный ключ и т.д. */
-    if(( blocks = ( total_size / ki->size )) > ((ak_skey)dkey)->resource.value.counter ) {
-      ((ak_skey)dkey)->resource.value.counter = blocks;
-      if( ak_log_get_level() > ak_log_standard ) {
-         ak_error_message_fmt( ak_error_ok, __func__,
-                _("the resource of the derived key was increased up to %ju blocks (file %s)"),
-                                       (uintmax_t)((ak_skey)dkey)->resource.value.counter, value );
-      }
-    }
-
-  return dkey;
-}
-
-/* ----------------------------------------------------------------------------------------------- */
-#ifdef AK_HAVE_GELF_H
- static int aktool_icode_hash_gelf( const char *value, aktool_ki_t *ki )
-{
-    Elf *e;
-    size_t i, n;
-    GElf_Phdr phdr;
-    struct file fp;
-    ak_uint8 icode[256];
-    ak_uint8 *ptr = NULL;
-    ak_pointer dkey = NULL;
-    int error = ak_error_ok;
-    char segment_value[FILENAME_MAX];
-
-    if( ak_file_open_to_read( &fp, value ) != ak_error_ok ) return error;
-
-    if(( e = elf_begin( fp.fd, ELF_C_READ, NULL )) == NULL ) {
-      ak_file_close( &fp );
-      return ak_error_message_fmt( ak_error_access_file, __func__,
-                                             _("elf_begin() function failed: %s"), elf_errmsg(-1));
-    }
-
-   /* в случае выполнения данного условия файл является исполняемым */
-    if( elf_kind(e) != ELF_K_ELF ) goto labexit;
-   /* статистика */
-    ki->statistical_data.executables++;
-
-   /* определяем общее количество сегментов (программных заголовков) */
-    if( elf_getphdrnum(e, &n) != 0 ) {
-      error = ak_error_message_fmt( ak_error_access_file, __func__,
-                                        _("elf_getphdrnum() function failed: %s"), elf_errmsg(-1));
-      goto labexit;
-    }
-   /* последовательно обрабатываем каждый сегмент */
-    for( i = 0; i < n; i++ ) {
-      if( gelf_getphdr( e, i, &phdr ) != &phdr ) {
-        error = ak_error_message_fmt( ak_error_access_file, __func__,
-                                          _("gelf_getphdr() function failed: %s"), elf_errmsg(-1));
-        goto labexit;
-      }
-     /* ищем только загружаемые сегменты */
-      if( phdr.p_type != PT_LOAD ) continue;
-     /* ищем только неисполняемые сегменты */
-      if( phdr.p_flags & PF_W ) continue;
-
-     /* обрабатываем найденный фрагмент */
-      if(( ptr = ak_file_mmap( &fp, NULL, phdr.p_filesz,
-                                              PROT_READ, MAP_PRIVATE, phdr.p_offset )) == NULL ) {
-        error = ak_error_message_fmt( ak_error_mmap_file, __func__, "mmap error" );
-        ki->statistical_data.skipped_executables++;
-        goto labexit;
-      }
-     /* формируем фиртуальное имя файла - ключ доступа в виртуальной таблице */
-      ak_snprintf( segment_value, sizeof( segment_value ) -1, "%s/%08jx", value, phdr.p_offset );
-     /* при необходимости, формируем производный ключ */
-      if(( dkey = aktool_icode_get_derived_key( segment_value, ki, &fp )) == NULL ) {
-        ki->statistical_data.skipped_executables++;
-        error = ak_error_null_pointer;
-        goto labexit;
-      }
-
-     /* вычисляем контрольную сумму от заданного файла и помещаем ее в таблицу */
-      memset( icode, 0, sizeof( icode ));
-      ((ak_uint64 *)icode)[0] = phdr.p_filesz;
-      error = ki->icode_ptr( dkey, ptr, phdr.p_filesz, icode +8, ki->size );
-      if( dkey != ki->handle ) ak_skey_delete( dkey );
-     /* проверка результата и его сохнение в хеш-таблице */
-      if( error == ak_error_ok ) {
-        if( !ki->quiet ) aktool_icode_hash_out( stdout, segment_value, ki, icode, ki->size +8 );
-        ak_htable_add_str_value( &ki->icodes, segment_value, icode, ki->size +8 );
-      }
-       else {
-         ki->statistical_data.skipped_executables++;
-         ak_file_unmap( &fp );
-         goto labexit;
-       }
-
-      ak_file_unmap( &fp );
-    } /* конец for */
-
-  labexit:
-    (void) elf_end( e );
-    ak_file_close( &fp );
-
-  return error;
-}
-#endif
-
-/* ----------------------------------------------------------------------------------------------- */
- static int aktool_icode_hash_function( const char *value, ak_pointer ptr )
-{
-    ak_uint8 icode[256];
-    aktool_ki_t *ki = ptr;
-    ak_pointer dkey = NULL;
-    int error = ak_error_ok;
-
-   /* проверяем черный список */
-    if( ak_htable_get_str( &ki->exclude_file, value, NULL ) != NULL ) return ak_error_ok;
-   /* статистика */
-    ki->statistical_data.total_files++;
-
-   /* проверяем, что надо контролировать целостность всего файла */
-    if( !ki->only_segments ) {
-     /* вычисляем производный ключ */
-      if(( dkey = aktool_icode_get_derived_key( value, ki, NULL )) == NULL ) {
-        ki->statistical_data.skiped_files++;
-        return ak_error_null_pointer;
-      }
-     /* вычисляем контрольную сумму от заданного файла и помещаем ее в таблицу */
-      error = ki->icode_file( dkey, value, icode, ki->size );
-      if( dkey != ki->handle ) ak_skey_delete( dkey );
-     /* проверка результата и его сохнение в хеш-таблице */
-      if( error == ak_error_ok ) {
-        ki->statistical_data.hashed_files++;
-        if( !ki->quiet ) aktool_icode_hash_out( stdout, value, ki, icode, ki->size );
-        ak_htable_add_str_value( &ki->icodes, value, icode, ki->size );
-      }
-       else {
-         ki->statistical_data.skiped_files++;
-         goto labexit;
-      }
-    } /* if(only_segments) */
-
-   /* теперь приступаем к разбору исполняемых файлов */
-  #ifdef AK_HAVE_GELF_H
-   if( !ki->ignore_segments ) error = aktool_icode_hash_gelf( value, ki );
-  #endif
-
-   labexit:
- return error;
-}
-
-/* ----------------------------------------------------------------------------------------------- */
- int aktool_icode_hash( aktool_ki_t *ki )
-{
-    tchar *value = NULL;
-    int exit_status = EXIT_SUCCESS;
-
-   /* обнуляем счетчики */
-    memset( &ki->statistical_data, 0, sizeof( struct icode_stat ));
-
-   /* проверяем, что данные для обработки заданы пользователем */
-    if(( ki->include_file.count + ki->include_path.count ) == 0 ) {
-      aktool_error(_("the name of file or directory must be specified"));
-      return EXIT_FAILURE;
-    }
-
-   /* создаем контекст алгоритма хеширования или имитозащиты */
-    if( aktool_icode_create_handle( ki ) != ak_error_ok ) return EXIT_FAILURE;
-
-   /* начинаем с обхода файлов */
-    if( ki->include_file.count ) {
-      ak_list_first( &ki->include_file );
-      do{
-          aktool_icode_hash_function(( char * )ki->include_file.current->data, ki );
-      } while( ak_list_next( &ki->include_file ));
-    }
-
-   /* теперь продолжаем обходом каталогов */
-    if( ki->include_path.count ) {
-      ak_list_first( &ki->include_path );
-      do{
-          value = ( char * )ki->include_path.current->data;
-         /* проверяем черный список */
-          if( ak_htable_get_str( &ki->exclude_path, value, NULL ) != NULL ) continue;
-         /* запускаем вычисление контрольной суммы */
-          ak_file_find( value, ki->pattern, aktool_icode_hash_function, ki, ki->tree );
-      } while( ak_list_next( &ki->include_path ));
-    }
-
-    if(( !ki->quiet ) && ( !ki->dont_show_stat )) {
-      printf(_("\nthe total number of files found: %ju, of which:\n"),
-                                                     (uintmax_t)ki->statistical_data.total_files );
-      printf(_(" %6ju have been discarded\n"), (uintmax_t)ki->statistical_data.skiped_files );
-      printf(_(" %6ju have been proceed\n"), (uintmax_t)ki->statistical_data.hashed_files );
-    #ifdef AK_HAVE_GELF_H
-      printf(_(" %6ju contain downloadable segments\n"),
-                                                     (uintmax_t)ki->statistical_data.executables );
-      if( ki->statistical_data.skipped_executables )
-        printf(_(" %6ju downloadable segments discarded\n"),
-                                             (uintmax_t)ki->statistical_data.skipped_executables );
-    #endif
-   }
-
-   if( ki->statistical_data.skiped_files ) {
-     exit_status = EXIT_FAILURE;
-     aktool_error(_("aktool found %d error(s), try aktool with \"--audit-file stderr --audit 2\""
-                           " options or see syslog messages"), ki->statistical_data.skiped_files );
-   }
-
-   aktool_icode_destroy_handle( ki );
-
-  return exit_status;
-}
-
-/* ----------------------------------------------------------------------------------------------- */
-/*                 Функция для создания и удаления ключевой информации                             */
-/* ----------------------------------------------------------------------------------------------- */
- int aktool_icode_create_handle( aktool_ki_t *ki )
-{
-    ak_oid koid = NULL;
-    char oidstr[32];
-
-   /* начинаем с того, что проверяем, задан алгоритм хеширования или имитозащиты */
-    if( strlen( ki->key_file ) == 0 ) {
-     /* создаем алгоритм хеширования */
-      if(( ki->handle = ak_oid_new_object( ki->method )) == NULL ) {
-        aktool_error(_("wrong creation of internal context of %s algorithm"), ki->method->name[0]);
-        return ak_error_get_value();
-      }
-     /* устанавливаем указатели на обработчики */
-      ki->icode_file = ( ak_function_icode_file *) ak_hash_file;
-     #ifdef AK_HAVE_GELF_H
-      ki->icode_ptr = ( ak_function_icode_ptr *) ak_hash_ptr;
-     #endif
-
-      ki->size = ak_hash_get_tag_size( ki->handle );
-      return ak_error_ok;
-    }
-
-   /* остальное посвящаем обработке алгоритмов имитозащиты */
-    ak_libakrypt_set_password_read_function( aktool_load_user_password );
-    if(( ki->handle = ak_skey_load_from_file( ki->key_file )) == NULL ) {
-      aktool_error(_("wrong reading a secret key from %s file"), ki->key_file );
-      return ak_error_get_value();
-    }
-
-    if(( koid = ((ak_skey)ki->handle)->oid ) == NULL ) {
-      ak_skey_delete( ki->handle );
-      aktool_error(_("null pointer to a secret key oid (%s file)"), ki->key_file );
-      return ak_error_null_pointer;
-    }
-
-   /* устанавливаем обработчики */
-    switch( koid->engine ) {
-       case hmac_function:
-         ki->icode_file = ( ak_function_icode_file *) ak_hmac_file;
-       #ifdef AK_HAVE_GELF_H
-         ki->icode_ptr = ( ak_function_icode_ptr *) ak_hmac_ptr;
-       #endif
-         ki->size = ak_hmac_get_tag_size( ki->handle );
-         ki->method = koid;
-         break;
-
-       case block_cipher:
-        /* сейчас поддерживается только имитовставка по ГОСТ Р 34.13-2015,
-           далее можно подумать о применении, например, aead режимов */
-         ak_snprintf( oidstr, sizeof( oidstr ), "cmac-%s", koid->name[0] );
-         if(( ki->method = ak_oid_find_by_name( oidstr )) == NULL ) {
-           aktool_error(_("unexpected block cipher identifier (%s)"), oidstr );
-           return ak_error_oid_name;
-         }
-         ki->icode_file = ( ak_function_icode_file *) ak_bckey_cmac_file;
-        #ifdef AK_HAVE_GELF_H
-         ki->icode_ptr = ( ak_function_icode_ptr *) ak_bckey_cmac;
-        #endif
-         ki->size = ((ak_bckey)ki->handle)->bsize;
-         break;
-
-       default:
-        ak_skey_delete( ki->handle );
-        aktool_error(
-                _("using a secret key with unsupported type of authentication mechanism (%s)"),
-                                                                                   koid->name[0] );
-        return ak_error_key_usage;
-    }
-
- return ak_error_ok;
-}
-
-/* ----------------------------------------------------------------------------------------------- */
- int aktool_icode_destroy_handle( aktool_ki_t *ki )
-{
-    if( ki->method->engine == hash_function ) ak_oid_delete_object( ki->method, ki->handle );
-     else
-      ak_skey_delete( ki->handle );
-
- return ak_error_ok;
-}
-
-/* ----------------------------------------------------------------------------------------------- */
-/*                 функции для чтения и проверки корректности файла с конфигурацией                */
-/* ----------------------------------------------------------------------------------------------- */
- static int aktool_icode_ini_options( aktool_ki_t *ki,
-                                         const char *section, const char *name, const char *value )
-{
-   /* флаг рекурсивного обхода каталогов */
-    if( memcmp( name, "recursive", 9 ) == 0 ) {
-      if(( memcmp( value, "true", 4 ) == 0 ) || ( memcmp( value, "TRUE", 4 ) == 0 ))
-        ki->tree = ak_true;
-    }
-   /* шаблон поиска файлов */
-    if( memcmp( name, "pattern", 7 ) == 0 ) {
-      if( ki->pattern != NULL ) free( ki->pattern );
-      ki->pattern = strdup( value );
-    }
-
-  return 1;
-}
-
-/* ----------------------------------------------------------------------------------------------- */
- int aktool_icode_ini_control( aktool_ki_t *ki,
-                                         const char *section, const char *name, const char *value )
+ int aktool_icode_add_control_object( aktool_ki_t *ki, const char *name, const char *value )
 {
     int permissions = 0;
 
@@ -861,38 +371,6 @@
 
  /* пропускаем строки с невнятным наполнением */
  return 1;
-}
-
-/* ----------------------------------------------------------------------------------------------- */
- int aktool_icode_ini_handler( void *user,
-                                         const char *section, const char *name, const char *value )
-{
-  aktool_ki_t *ki = user;
-
- /* проверяем указатели */
-  if(( section == NULL ) || ( name == NULL ) || ( value == NULL )) {
-    aktool_error(_("unexpected null-section in config file"));
-    return 0;
-  }
- /* обрабатываем списки файлов и каталогов */
-  if( memcmp( section, "control", 7 ) == 0 )
-    return aktool_icode_ini_control( ki, section, name, value );
- /* обрабатываем дополнительные параметры */
-  if( memcmp( section, "options", 7 ) == 0 )
-    return aktool_icode_ini_options( ki, section, name, value );
-
-  aktool_error("unsupported section: %s, name: %s, value: %s", section, name, value );
- return 1; /* ненулевое значение - успешное завершение обработчика */
-}
-
-/* ----------------------------------------------------------------------------------------------- */
- int aktool_icode_read_config( char *filename, aktool_ki_t *ki )
-{
-  int error = ak_error_ok;
-  if(( error = ak_ini_parse( filename, aktool_icode_ini_handler, ki )) != ak_error_ok )
-    aktool_error(_("incorrect parsing of config file"));
-
-  return error;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -955,10 +433,9 @@
      }
    }
 
-  /* устанволенные пользователем настройки программы */
-   if( strlen( ki->op_file ) != 0 )
-     ak_error_message_fmt( ak_error_ok, __func__, "file with checksum: %s", ki->op_file );
-
+  /* установленные пользователем настройки программы */
+   if( strlen( ki->pubkey_file ) != 0 )
+     ak_error_message_fmt( ak_error_ok, __func__, _("checksum database: %s"), ki->pubkey_file );
 }
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -966,7 +443,7 @@
 /* ----------------------------------------------------------------------------------------------- */
  int aktool_icode_help( void )
 {
-  printf(_("aktool icode [options] [files or directories] - calculation and verification of integrity codes\n\n"));
+  printf(_("aktool icode [options] [files or directories] - creation and verification of integrity codes\n\n"));
   printf(_("available options:\n"));
   printf(_(" -a, --algorithm         set the name or identifier of keyless integrity mechanism\n"));
   printf(_("                         [ enabled values:"));
@@ -978,14 +455,13 @@
   }
   printf(_(", default: %s ]\n"), ki.method->name[0] );
   printf(_("                         for keyed authentication mechanism use --key option\n"));
-  printf(_(" -c, --check             check previously generated authentication or integrity codes\n"));
-  printf(_("     --config            specify the name of the configuration file\n"));
-  printf(_("     --dont-show-stat    don't show a statistical results after calculating/checking of integrity codes\n"));
+  printf(_(" -c, --config            specify the name of the configuration file\n"));
+  printf(_("     --dont-show-icode   don't output calculated authentication or integrity codes to the console\n"));
+  printf(_("     --dont-show-stat    don't show a statistical results after creation or verification of integrity codes\n"));
   printf(_(" -e, --exclude           specify the name of excluded files or directories\n"));
-  printf(_("     --format            set the format of output file [ enabled values: binary linux bsd, default: binary ]\n"));
+  printf(_("     --format            set the format of output hash table [ enabled values: binary linux bsd, default: binary ]\n"));
   printf(_("     --hash-table-nodes  number of high-level nodes in the generated hash table [ default: %llu ]\n"),
                                                                   (unsigned long long int) ki.icode_lists_count );
-  printf(_("     --ignore-errors     don't break a check for new, missing and corrupted files\n"));
   printf(_("     --inpass            set the password for the secret key to be read directly in command line\n"));
   printf(_("     --inpass-hex        set the password for the secret key to be read directly in command line as hexademal string\n"));
   printf(_("     --key               specify the name of file with the secret key\n"));
@@ -993,15 +469,16 @@
   printf(_("     --no-derive         do not use the keyed authentication mechanism's derived key for each controlled entity\n"));
   printf(_("                         this may cause an error due to the exhaustion of a key resource\n"));
 #ifdef AK_HAVE_GELF_H
-  printf(_("     --only-segments     calculate authentication or integrity codes only for downloadable segments\n"));
+  printf(_("     --only-segments     create authentication or integrity codes only for downloadable segments\n"));
 #endif
-  printf(_(" -o, --output            set the output file for generated authentication or integrity codes\n"));
+  printf(_(" -o, --output            set the output file for created authentication or integrity codes\n"));
   printf(_(" -p, --pattern           set the pattern which is used to find files\n"));
   printf(_(" -r, --recursive         recursive search of files\n"));
   printf(_("     --reverse-order     output of authentication or integrity code in reverse byte order\n"));
-  printf(_("     --tag               create a BSD-style checksum format\n"));
+  printf(_("     --tag               create a BSD-style hash table format\n"));
+  printf(_(" -v, --verify            verify previously created authentication or integrity codes\n"));
 #ifdef AK_HAVE_GELF_H
-  printf(_("     --with-segments     calculate authentication or integrity codes for downloadable segments\n"));
+  printf(_("     --with-segments     create authentication or integrity codes for downloadable segments\n"));
 #endif
 
   aktool_print_common_options();

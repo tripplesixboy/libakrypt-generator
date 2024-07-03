@@ -143,6 +143,11 @@
      /* количество отброшенных исполняемых файлов */
       size_t skipped_executables;
  #endif
+     /* общее количество строк в обрабатываемом файле */
+      size_t total_lines;
+     /* общее количество непрочитанных строк */
+      size_t skiped_lines;
+
    } statistical_data;
   /* при установленном флаге программа не проверяет сегменты, загружаемые в память */
    bool_t ignore_segments;
@@ -171,6 +176,8 @@
    size_t icode_lists_count;
   /* при установленном флаге программа не прерывается */
    bool_t ignore_errors;
+  /* при установленном флаге программа не выводит в консоль значения вычисоенных контрольных сумм */
+   bool_t dont_show_icode;
   /* при установленном флаге программа не выводит статистику */
    bool_t dont_show_stat;
   /* структура для параметров асимметричного шифрования */
@@ -227,8 +234,40 @@
  int aktool_test( int argc, tchar *argv[] );
  int aktool_asn1( int argc, tchar *argv[] );
  int aktool_key( int argc, tchar *argv[] );
- int aktool_icode( int argc, tchar *argv[] );
 
+/* ----------------------------------------------------------------------------------------------- */
+/*! формат сохранения файла с вычисленными значениями */
+ typedef enum
+{
+   format_binary = 0x00,
+   format_linux = 0x01,
+   format_bsd = 0x02
+}
+ aktool_icode_format_t;
+
+/* ----------------------------------------------------------------------------------------------- */
+/* глобальный вызов команды контроля целостности */
+ int aktool_icode( int argc, tchar *argv[] );
+/* добавление объекта для контроля целостности (каталога или файла) */
+ int aktool_icode_add_control_object( aktool_ki_t * , const char * , const char * );
+/* чтение конфигурационного файла для команды icode */
+ int aktool_icode_read_config( char *, aktool_ki_t * );
+/* функция вычисляет контроьные суммы */
+ int aktool_icode_evaluate( aktool_ki_t * );
+/* функция создает криптографический контекст, реализующий вычисление контрольной суммы */
+ int aktool_icode_create_handle( aktool_ki_t * );
+/* функция уничтожает криптографический контекст */
+ int aktool_icode_destroy_handle( aktool_ki_t * );
+/* функция для выработки производного ключа контроля целостности */
+ ak_pointer aktool_icode_get_derived_key( const char * , aktool_ki_t * , ak_file );
+/* вывод контрольной суммы в консоль */
+ void aktool_icode_out( FILE * , const char * , aktool_ki_t * , ak_uint8 * , const size_t );
+/* сохранение файла с вычисленными контрольными суммами */
+ int aktool_icode_export_checksum( aktool_ki_t * );
+/* чтение файла с вычисленными ранее контрольными суммами */
+ int aktool_icode_import_checksum( aktool_ki_t * );
+
+/* ----------------------------------------------------------------------------------------------- */
  typedef enum { do_nothing, do_encrypt, do_decrypt } encrypt_t;
  int aktool_encrypt( int argc, tchar *argv[], encrypt_t work );
 
