@@ -293,6 +293,12 @@
   file->blksize = ( ak_int64 )st.st_blksize;
  #endif
 
+ /* в отладочных целях, сохраняем имя файла */
+ file->name = NULL;
+#ifdef AK_HAVE_STRINGS_H
+ file->name = strndup( filename, 512 );
+#endif
+
  return ak_error_ok;
 }
 
@@ -332,12 +338,20 @@
   } else file->blksize = ( ak_int64 )st.st_blksize;
  #endif
 
+ /* в отладочных целях, сохраняем имя файла */
+ file->name = NULL;
+#ifdef AK_HAVE_STRINGS_H
+ file->name = strndup( filename, 512 );
+#endif
+
  return ak_error_ok;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
  int ak_file_close( ak_file file )
 {
+   if( file->name != NULL ) free( file->name );
+
    file->size = 0;
    file->blksize = 0;
   #ifdef AK_HAVE_WINDOWS_H
@@ -441,12 +455,24 @@
     отображаемые данные.*/
 /* ----------------------------------------------------------------------------------------------- */
  ak_pointer ak_file_mmap( ak_file file,
-                                    void *start, size_t length, int prot, int flags, size_t offset )
+                                  void *start, size_t length, int prot, int flags, size_t offset )
 {
+  if( !length ) {
+    ak_error_message_fmt( ak_error_zero_length, __func__,
+                                        "mmaping a file %s with zero length segment", file->name );
+    return NULL;
+  }
+
  #ifdef AK_HAVE_SYSMMAN_H
   if(( file->addr = mmap( start, file->mmaped_size = length,
                                                 prot, flags, file->fd, offset )) == MAP_FAILED ) {
-    ak_error_message_fmt( ak_error_mmap_file, __func__, "mmap error (%s)", strerror( errno ));
+    ak_error_message_fmt( ak_error_mmap_file, __func__, "mmap error (%d, %s) for file %s",
+                                                            errno, strerror( errno ), file->name );
+    if( errno == EINVAL ) {
+      ak_error_message_fmt( ak_error_mmap_file, __func__, "data length: %llx, data offset: %llx",
+                                (long long unsigned int) length, (long long unsigned int) offset );
+    }
+    return NULL;
   }
   return file->addr;
  #else

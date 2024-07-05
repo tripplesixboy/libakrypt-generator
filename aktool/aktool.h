@@ -151,7 +151,8 @@
       size_t deleted_files;
      /* количество измененных файлов */
       size_t changed_files;
-
+     /* количество новых файлов */
+      size_t new_files;
    } statistical_data;
   /* при установленном флаге программа не проверяет сегменты, загружаемые в память */
    bool_t ignore_segments;
@@ -272,6 +273,8 @@
  int aktool_icode_import_checksum( aktool_ki_t * );
 /* проверка контрольных сумм по заданой базе данных */
  int aktool_icode_check_from_database( aktool_ki_t * );
+/* проверка контрольных сумм для заданных каталогов и файлов */
+ int aktool_icode_check_from_directory( aktool_ki_t *);
 
 /* ----------------------------------------------------------------------------------------------- */
  typedef enum { do_nothing, do_encrypt, do_decrypt } encrypt_t;

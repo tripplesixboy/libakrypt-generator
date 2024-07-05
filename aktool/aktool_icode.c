@@ -301,11 +301,10 @@
         - если указаны файлы или каталоги, тогда происходит поиск файлов
           и проверка их контрольных сумм на соотвествие значениям из базы данных
         - если файлы не определены, то перебираются все файлы из сформированной базы данных */
-      if(( !ki.include_file.count ) && ( !ki.include_path.count ))
+      if( !( ki.include_file.count + ki.include_path.count ))
         exit_status = aktool_icode_check_from_database( &ki );
        else
-        exit_status = -13;
-
+        exit_status = aktool_icode_check_from_directory( &ki );
      /* уничтожаем контекст алгоритма хеширования или имитозащиты */
       aktool_icode_destroy_handle( &ki );
       break;
