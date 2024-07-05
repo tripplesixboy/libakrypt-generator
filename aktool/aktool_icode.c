@@ -216,7 +216,6 @@
                  #endif
                    break;
 
-
         case 160: /* --no-derive */
                    ki.key_derive = ak_false;
                    break;
@@ -293,9 +292,22 @@
     case do_check:
      /* считываем таблицу с сохраненными значениями контрольных сумм */
       if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
+     /* создаем контекст алгоритма хеширования или имитозащиты */
+      if( aktool_icode_create_handle( &ki ) != ak_error_ok ) goto exitlab;
+     /* выполняем проверку оперативной памяти */
 
-     /* выполняем проверки */
+     /* выполняем проверку файловой системы,
+        логика проверки заключается в следующем:
+        - если указаны файлы или каталоги, тогда происходит поиск файлов
+          и проверка их контрольных сумм на соотвествие значениям из базы данных
+        - если файлы не определены, то перебираются все файлы из сформированной базы данных */
+      if(( !ki.include_file.count ) && ( !ki.include_path.count ))
+        exit_status = aktool_icode_check_from_database( &ki );
+       else
+        exit_status = -13;
 
+     /* уничтожаем контекст алгоритма хеширования или имитозащиты */
+      aktool_icode_destroy_handle( &ki );
       break;
 
     default:

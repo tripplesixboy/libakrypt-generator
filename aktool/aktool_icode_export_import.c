@@ -104,8 +104,7 @@
     aktool_ki_t *ki = (aktool_ki_t *)ptr;
 
     size_t len;
-    ak_pointer kh = NULL;
-    ak_uint8 buffer[256], out2[256];
+    ak_uint8 out2[256];
     tchar *substr = NULL, *filename = NULL, *icode = NULL;
     int error = ak_error_ok, reterror = ak_error_undefined_value;
 
@@ -153,8 +152,6 @@
                                         filename, out2, ak_hexstr_size( icode ))) != ak_error_ok )
       ak_error_message( error, __func__, "wrong new key pair addition" );
 
-    printf("%s [%s]\n", filename, ak_ptr_to_hexstr( out2, ak_hexstr_size(icode), ak_false ));
-
  return error;
 }
 
@@ -197,7 +194,7 @@
 
    /* создаем таблицу для хранения контрольных сумм */
     if(( error = ak_htable_create( &ki->icodes, ki->icode_lists_count )) != ak_error_ok )
-      return ak_error_message( error, __func__, "incorrect hash table creation" );
+      return ak_error_message( error, __func__, _("incorrect hash table creation"));
 
    /* теперь пытаемся считать символьные строки */
     ki->statistical_data.total_lines = ki->statistical_data.skiped_lines = 0;

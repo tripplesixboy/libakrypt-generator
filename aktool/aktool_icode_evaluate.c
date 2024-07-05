@@ -360,5 +360,125 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
+/*                           функции проверки контрольных сумм                                     */
+/* ----------------------------------------------------------------------------------------------- */
+ static int aktool_icode_check_function( const char *value, ak_pointer ptr )
+{
+    ak_uint8 icode[256];
+    ak_pointer dkey = NULL;
+    ak_uint8 *iptr = (ak_uint8 *)ptr;
+    int error = ak_error_ok;
+
+   /* статистика */
+    ki.statistical_data.total_files++;
+
+   /* вычисляем производный ключ */
+    if(( dkey = aktool_icode_get_derived_key( value, &ki, NULL )) == NULL ) {
+      ki.statistical_data.skiped_files++;
+      return ak_error_get_value();
+    }
+
+   /* вычисляем контрольную сумму от заданного файла и помещаем ее в таблицу */
+    error = ki.icode_file( dkey, value, icode, ki.size );
+    if( dkey != ki.handle ) ak_skey_delete( dkey );
+
+    if( error != ak_error_ok ) {
+      ak_error_message_fmt( error, __func__,
+                   _("the file %s may have been deleted or you don't have access rights"), value );
+      if( !ki.quiet ) aktool_error(
+                   _("the file %s may have been deleted or you don't have access rights"), value );
+      ki.statistical_data.skiped_files++;
+      ki.statistical_data.deleted_files++;
+      return error;
+    }
+
+   /* сравниваем значения */
+    if( memcmp( icode, iptr, ki.size ) != 0 ) {
+      ak_error_message_fmt( ak_error_not_equal_data, __func__,
+                     _("the file %s has been modified, the integrity code is'nt correct"), value );
+      if( !ki.quiet ) aktool_error(
+                     _("the file %s has been modified, the integrity code is'nt correct"), value );
+      ki.statistical_data.skiped_files++;
+      ki.statistical_data.changed_files++;
+      return ak_error_not_equal_data;
+    }
+     else ki.statistical_data.hashed_files++;
+
+   /* пытемся вывести результат в консоль */
+    if(( !ki.quiet ) && ( !ki.dont_show_icode )) {
+      printf("%s %s Ok\n", value, ak_ptr_to_hexstr( iptr,  ki.size, ak_false ));
+    }
+
+ return ak_error_ok;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+ int aktool_icode_check_from_database( aktool_ki_t *ki )
+{
+    size_t i = 0;
+    int exit_status = EXIT_FAILURE;
+
+   /* основной цикл */
+    for( i = 0; i < ki->icodes.count; i++ ) {
+      ak_list list = &ki->icodes.list[i];
+      if( list->count == 0 ) continue;
+      ak_list_first( list );
+      do{
+         ak_keypair kp = (ak_keypair)list->current->data;
+
+        /* проверки  */
+         if( kp->data == NULL ) {
+           ak_error_message( ak_error_null_pointer, __func__, _("using null pointer to keypair"));
+           return EXIT_FAILURE;
+         }
+
+        /* проверяем соотвествие длин */
+         if( ki->size != kp->value_length ) {
+           if( ki->size +8 == kp->value_length ) continue;
+            else {
+              /* расхождение в длинах имитовставок */
+               ki->statistical_data.total_files++;
+               ki->statistical_data.skiped_files++;
+               ak_error_message_fmt( ak_error_not_equal_data, __func__,
+                                  _("unexpected length of integrity code for %s file"), kp->data );
+               continue;
+            }
+         }
+
+        /* выполняем проверку конкретного файла */
+         if( aktool_icode_check_function( (const char *)kp->data,
+                            kp->data +kp->key_length ) != ak_error_ok ) exit_status = EXIT_FAILURE;
+      }
+       while( ak_list_next( list ));
+    }
+
+   /* вывод статистики о проделанной работе */
+    if( !ki->quiet ) {
+      if( !ki->dont_show_stat ) {
+        printf(_("the total number of files checked: %llu, of which:\n"),
+                                       (long long unsigned int) ki->statistical_data.total_files );
+        printf(_(" %6llu have been discarded\n"),
+                                      (long long unsigned int) ki->statistical_data.skiped_files );
+        printf(_(" %6llu have been proceed\n"),
+                                      (long long unsigned int) ki->statistical_data.hashed_files );
+        if( ki->statistical_data.skiped_files ) {
+          printf(_(" %6llu have been deleted\n"),
+                                     (long long unsigned int) ki->statistical_data.deleted_files );
+          printf(_(" %6llu have been changed\n"),
+                                     (long long unsigned int) ki->statistical_data.changed_files );
+        }
+      }
+    }
+
+    if( ki->statistical_data.skiped_files ) {
+      aktool_error(_("aktool found %d error(s), try aktool with \"--audit-file stderr --audit 2\""
+                           " options or see syslog messages"), ki->statistical_data.skiped_files );
+      exit_status = EXIT_FAILURE;
+    }
+     else exit_status = EXIT_SUCCESS;
+
+ return exit_status;
+}
+/* ----------------------------------------------------------------------------------------------- */
 /*                                                                        aktool_icode_evaluate.c  */
 /* ----------------------------------------------------------------------------------------------- */

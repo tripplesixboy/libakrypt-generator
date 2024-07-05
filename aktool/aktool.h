@@ -147,6 +147,10 @@
       size_t total_lines;
      /* общее количество непрочитанных строк */
       size_t skiped_lines;
+     /* количество удаленных файлов */
+      size_t deleted_files;
+     /* количество измененных файлов */
+      size_t changed_files;
 
    } statistical_data;
   /* при установленном флаге программа не проверяет сегменты, загружаемые в память */
@@ -266,6 +270,8 @@
  int aktool_icode_export_checksum( aktool_ki_t * );
 /* чтение файла с вычисленными ранее контрольными суммами */
  int aktool_icode_import_checksum( aktool_ki_t * );
+/* проверка контрольных сумм по заданой базе данных */
+ int aktool_icode_check_from_database( aktool_ki_t * );
 
 /* ----------------------------------------------------------------------------------------------- */
  typedef enum { do_nothing, do_encrypt, do_decrypt } encrypt_t;
