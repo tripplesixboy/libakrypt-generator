@@ -446,8 +446,7 @@
          }
 
         /* выполняем проверку конкретного файла */
-         if( aktool_icode_check_function( (const char *)kp->data,
-                            kp->data +kp->key_length ) != ak_error_ok ) exit_status = EXIT_FAILURE;
+         aktool_icode_check_function( (const char *)kp->data, kp->data +kp->key_length );
       }
        while( ak_list_next( list ));
     }
@@ -455,6 +454,7 @@
    /* вывод статистики о проделанной работе */
     if( !ki->quiet ) {
       if( !ki->dont_show_stat ) {
+        if( !ki->dont_show_icode ) printf("\n");
         printf(_("the total number of files checked: %llu, of which:\n"),
                                        (long long unsigned int) ki->statistical_data.total_files );
         printf(_(" %6llu have been discarded\n"),

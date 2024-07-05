@@ -34,6 +34,13 @@ string( COMPARE EQUAL ${CMAKE_HOST_SYSTEM_NAME} "FreeBSD" AK_FREEBSD )
 #   set( AK_CA_PATH "/usr/share/ca-certificates" )
 
 # -------------------------------------------------------------------------------------------------- #
+# добавляем и такое
+if( CMAKE_BUILD_TYPE )
+else()
+ set( CMAKE_BUILD_TYPE Release )
+endif()
+
+# -------------------------------------------------------------------------------------------------- #
 # Определяем базовое множество исходных текстов библиотеки
 set( MAIN_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/libakrypt-base.h source/libakrypt.h )
 

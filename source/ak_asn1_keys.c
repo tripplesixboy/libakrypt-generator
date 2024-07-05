@@ -448,7 +448,7 @@
  /* вырабатываем производную ключевую информацию */
   if(( passlen = ak_function_default_password_read( ak_default_password_prompt,
                password, sizeof( password ), ak_default_password_interpretation )) < ak_error_ok )
-    return ak_error_message( error, __func__, "incorrect password reading" );
+    return ak_error_message( ak_error_get_value(), __func__, "incorrect password reading" );
 
  /* 1. получаем пользовательский пароль и вырабатываем производную ключевую информацию */
    if(( error = ak_bckey_create_key_pair_from_password( ekey, ikey, eoid,
@@ -1363,11 +1363,11 @@
                                                   "incorrect creation of new secret key context" );
   } else { /* проверяем, что считанный тип совпадает с ожидаемым */
       if( oid->engine != engine )
-        return ak_error_message_fmt( error = ak_error_oid_engine, __func__,
+        return ak_error_message_fmt( ak_error_oid_engine, __func__,
            "unexpected engine (%s) of object identifier (must be: %s)",
               ak_libakrypt_get_engine_name( oid->engine ), ak_libakrypt_get_engine_name( engine ));
       if(( error = oid->func.first.create( *key )) != ak_error_ok )
-        return ak_error_message( ak_error_get_value(), __func__,
+        return ak_error_message( error, __func__,
                                                   "incorrect creation of new secret key context" );
     }
 
@@ -1471,7 +1471,6 @@
       ak_error_message( error, __func__, "incorrect creation of derived keys" );            
       goto lab1;
     }
-
     if(( error = ak_asn1_get_skey_content( content, *key, &ekey, &ikey )) != ak_error_ok )
       ak_error_message( error, __func__, "incorrect assigning a seсret key value");
 
