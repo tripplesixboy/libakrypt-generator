@@ -462,8 +462,7 @@ set( CPACK_SOURCE_IGNORE_FILES
 
 # в зависимостях можно указать в явном виде стандартную библиотеку языка Си,
 # но она и так входит в перечень
-set( CPACK_DEBIAN_PACKAGE_RECOMMENDS "libbz2-1.0" )
-set( CPACK_DEBIAN_PACKAGE_RECOMMENDS "libelf-dev" )
+set( CPACK_DEBIAN_PACKAGE_DEPENDS "libbz2-1.0, libelf-dev" )
 set( CPACK_PACKAGE_VERSION_MAJOR ${HEAD_VERSION} )
 set( CPACK_PACKAGE_VERSION_MINOR ${MAIN_VERSION} )
 set( CPACK_PACKAGE_VERSION_PATCH ${MINOR_VERSION} )

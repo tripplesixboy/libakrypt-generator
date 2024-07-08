@@ -387,10 +387,8 @@
     if( dkey != ki.handle ) ak_skey_delete( dkey );
 
     if( error != ak_error_ok ) {
-      ak_error_message_fmt( error, __func__,
-                   _("the file %s may have been deleted or you don't have access rights"), value );
-      if( !ki.quiet ) aktool_error(
-                   _("the file %s may have been deleted or you don't have access rights"), value );
+      ak_error_message_fmt( error, __func__, _("%s is lost"), value );
+      if( !ki.quiet ) aktool_error(_("%s is lost"), value );
       ki.statistical_data.skiped_files++;
       ki.statistical_data.deleted_files++;
       return error;
@@ -398,10 +396,8 @@
 
    /* сравниваем значения */
     if( memcmp( icode, iptr, ki.size ) != 0 ) {
-      ak_error_message_fmt( ak_error_not_equal_data, __func__,
-                     _("the file %s has been modified, the integrity code is'nt correct"), value );
-      if( !ki.quiet ) aktool_error(
-                     _("the file %s has been modified, the integrity code is'nt correct"), value );
+      ak_error_message_fmt( ak_error_not_equal_data, __func__, _("%s has been modified"), value );
+      if( !ki.quiet ) aktool_error(_("%s has been modified"), value );
       ki.statistical_data.skiped_files++;
       ki.statistical_data.changed_files++;
       return ak_error_not_equal_data;
@@ -498,9 +494,9 @@
     if(( kp = ak_htable_get_keypair_str( &ki->icodes, value )) == NULL ) {
       ki->statistical_data.total_files++;
       ki->statistical_data.new_files++;
-      if( !ki->quiet ) aktool_error( _("the file %s is new and can't be checked"), value );
+      if( !ki->quiet ) aktool_error( _("%s is a new file"), value );
       return ak_error_message_fmt( ak_error_htable_key_not_found, __func__,
-                                             _("the file %s is new and can't be checked"), value );
+                                                                    _("%s is a new file"), value );
     }
 
    /* проверяем, что база корректна */
@@ -535,6 +531,11 @@
       ak_list_first( &ki->include_path );
       do{
           const char *value = ( const char * )ki->include_path.current->data;
+         /* удаляем, при необходимости, обратный слэш */
+          if( strlen(value) > 1 ) {
+            size_t vlen = strlen( value );
+            if( value[vlen -1] == '/' ) ((char *)ki->include_path.current->data)[vlen-1] = 0;
+          }
          /* проверяем черный список */
           if( ak_htable_get_str( &ki->exclude_path, value, NULL ) != NULL ) continue;
          /* запускаем вычисление контрольной суммы */

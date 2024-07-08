@@ -54,7 +54,7 @@
  int ak_file_find( const char *root , const char *mask,
                                           ak_function_find *function, ak_pointer ptr, bool_t tree )
 {
-  int ev, error = ak_error_ok;
+  int ev = 0, error = ak_error_ok;
 
 #ifdef _WIN32
   WIN32_FIND_DATA ffd;
@@ -176,7 +176,7 @@
           if( !fnmatch( mask, ent->d_name, FNM_PATHNAME )) {
             memset( filename, 0, FILENAME_MAX );
             ak_snprintf( filename, FILENAME_MAX, "%s/%s", root, ent->d_name );
-            if(( ev = function( filename, ptr )) != ak_error_ok ) error = ev;
+            function( filename, ptr );
           }
        }
   }
