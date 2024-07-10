@@ -486,12 +486,13 @@
 {
     ak_keypair kp = NULL;
     aktool_ki_t *ki = ptr;
+    int error = ak_error_ok;
 
    /* проверяем черный список */
     if( ak_htable_get_str( &ki->exclude_file, value, NULL ) != NULL ) return ak_error_ok;
 
    /* ищем файл в базе */
-    if(( kp = ak_htable_get_keypair_str( &ki->icodes, value )) == NULL ) {
+    if(( kp = ak_htable_exclude_keypair_str( &ki->icodes, value )) == NULL ) {
       ki->statistical_data.total_files++;
       ki->statistical_data.new_files++;
       if( !ki->quiet ) aktool_error( _("%s is a new file"), value );
@@ -500,16 +501,23 @@
     }
 
    /* проверяем, что база корректна */
-    if( kp->data == NULL )
-      return ak_error_message( ak_error_null_pointer, __func__,
-                                                               _("using null pointer to keypair"));
+    if( kp->data == NULL ) {
+      ak_error_message( ak_error_null_pointer, __func__, _("using null pointer to keypair"));
+      goto labex;
+    }
+
    /* выполняем проверку конкретного файла */
-  return aktool_icode_check_function( (const char *)kp->data, kp->data +kp->key_length );
+    error = aktool_icode_check_function( (const char *)kp->data, kp->data +kp->key_length );
+
+  labex:
+    if( kp != NULL ) ak_keypair_delete( kp );
+    return error;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
  int aktool_icode_check_from_directory( aktool_ki_t *ki )
 {
+    size_t total_errors = 0;
     int exit_status = EXIT_FAILURE;
 
    /* обнуляем счетчики */
@@ -541,14 +549,37 @@
          /* запускаем вычисление контрольной суммы */
           ak_file_find( value, ki->pattern, aktool_icode_check_file_function, ki, ki->tree );
       } while( ak_list_next( &ki->include_path ));
-    }
+
+     /* осталось найти то, что осталось непроверенным */
+      for( size_t i = 0; i < ki->icodes.count; i++ ) {
+         ak_list list = &ki->icodes.list[i];
+         if( list->count == 0 ) continue;
+         ak_list_first( list );
+         do{
+            ak_keypair kp = (ak_keypair)list->current->data;
+            // printf("    - [key: %s, val: %s]\n", kp->data,
+            //   ak_ptr_to_hexstr( kp->data + kp->key_length,  kp->value_length, ak_false ));
+
+            if( kp->value_length == ki->size ) {
+            /**/
+              ki->statistical_data.total_files++;
+              ki->statistical_data.deleted_files++;
+              aktool_error(_("%s has been deleted"), kp->data );
+              ak_error_message_fmt( ak_error_file_exists, __func__, _("%s has been deleted"), kp->data );
+            }
+         } while( ak_list_next( list ));
+      }
+    } /* if( include_path ) */
 
    /* финальное сообщение об ошибках */
-    if( ki->statistical_data.skiped_files ) {
+    total_errors = ki->statistical_data.skiped_files +
+                               ki->statistical_data.deleted_files + ki->statistical_data.new_files;
+    if( total_errors ) {
       exit_status = EXIT_FAILURE;
       aktool_error(_("aktool found %d error(s), try aktool with \"--audit-file stderr --audit 2\""
-                           " options or see syslog messages"), ki->statistical_data.skiped_files );
+                                                " options or see syslog messages"), total_errors );
     }
+     else exit_status = EXIT_SUCCESS;
 
    /* вывод статистики о проделанной работе */
     if( !ki->quiet ) {
@@ -556,22 +587,21 @@
         if(( !ki->dont_show_icode ) || ( ki->statistical_data.skiped_files )) printf("\n");
         printf(_("the total number of files checked: %llu, of which:\n"),
                                        (long long unsigned int) ki->statistical_data.total_files );
+       /* успешно проверены */
         printf(_(" %6llu have been proceed\n"),
                                       (long long unsigned int) ki->statistical_data.hashed_files );
-        printf(_(" %6llu have been discarded\n"),
-                                      (long long unsigned int) ki->statistical_data.skiped_files );
-        if( ki->statistical_data.skiped_files ) {
+       /* проверка завершилась с ошибкой */
+        if( ki->statistical_data.deleted_files )
           printf(_(" %6llu have been deleted\n"),
                                      (long long unsigned int) ki->statistical_data.deleted_files );
+        if( ki->statistical_data.changed_files )
           printf(_(" %6llu have been changed\n"),
                                      (long long unsigned int) ki->statistical_data.changed_files );
-        }
         if( ki->statistical_data.new_files )
           printf(_(" %6llu new files found\n"),
                                          (long long unsigned int) ki->statistical_data.new_files );
       }
     }
-
 
    aktool_icode_destroy_handle( ki );
 

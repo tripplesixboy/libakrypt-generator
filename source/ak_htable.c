@@ -322,6 +322,50 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
+ ak_keypair ak_htable_exclude_keypair( ak_htable tbl, ak_const_pointer key, const size_t key_size )
+{
+    ak_list lst = NULL;
+    ak_keypair kp = NULL;
+
+   /* необходимые проверки */
+    if( tbl == NULL ) {
+      ak_error_message( ak_error_null_pointer, __func__,
+                                                      "using null pointer to hash table context" );
+      return NULL;
+    }
+   /* вычисляем индекс ключа в массиве списков */
+    lst = &tbl->list[ tbl->hash( key, key_size ) % tbl->count ];
+   /* проверяем, что список не пуст */
+    if( lst->count == 0 ) return NULL;
+   /* выполняем поиск по списку */
+    ak_list_first( lst );
+    do {
+      /* проверяем, что ключевая пара определена */
+       if(( kp = (ak_keypair) lst->current->data ) == NULL ) continue;
+      /* проверяем совпадение длин */
+       if( kp->key_length != key_size ) continue;
+      /* в случае совпадения значений изымаем элемент из списка */
+       if( memcmp( kp->data, key, key_size ) == 0 ) {
+        /* удаляем list_node */
+         ak_list_node ln = ak_list_exclude(lst);
+         ln->data = NULL;
+         ak_list_node_delete( lst, ln );
+        /* собственно значение ключевой пары отправляем пользователю */
+         return kp;
+       }
+    } while( ak_list_next( lst ));
+
+ /* ничего не найдено */
+  return NULL;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+ ak_keypair ak_htable_exclude_keypair_str( ak_htable tbl, const tchar *key )
+{
+  return ak_htable_exclude_keypair( tbl, key, strlen(key) +1 );
+}
+
+/* ----------------------------------------------------------------------------------------------- */
 /*                        функции экспорта и импорта хэш-таблицы                                   */
 /* ----------------------------------------------------------------------------------------------- */
  int ak_htable_export_to_file( ak_htable tbl, const tchar *name )

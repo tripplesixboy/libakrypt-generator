@@ -1178,8 +1178,9 @@
          ak_hash_context_streebog_x( B, ctx->h, n );
          ak_hash_context_streebog_lps( K, B );
        }
-        else
+        else {
          ak_hash_context_streebog_lps( K, ctx->h );
+        }
 
        /* K - ключ K1 */
        for( idx = 0; idx < 8; idx++ ) T[idx] = m[idx]; /* memcpy( T, m, 64 ); */

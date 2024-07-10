@@ -43,7 +43,7 @@
      { "output",              1, NULL,  'o' },
      { "no-derive",           0, NULL,  160 },
      { "dont-show-stat",      0, NULL,  161 },
-     { "dont-show-icode",      0, NULL, 162 },
+     { "dont-show-icode",     0, NULL,  162 },
      { "format",              1, NULL,  163 },
 #ifdef AK_HAVE_GELF_H
      { "with-segments",       0, NULL,  164 },
@@ -304,7 +304,7 @@
       if( !( ki.include_file.count + ki.include_path.count ))
         exit_status = aktool_icode_check_from_database( &ki );
        else
-        exit_status = aktool_icode_check_from_directory( &ki );
+         exit_status = aktool_icode_check_from_directory( &ki );
      /* уничтожаем контекст алгоритма хеширования или имитозащиты */
       aktool_icode_destroy_handle( &ki );
       break;

@@ -206,7 +206,7 @@ set( BASE_EXAMPLES_LIST
 # определяем перечень примеров из FAQ
 set( EXAMPLES_LIST
      g01n01 g01n02 g01n03
-     g02n01 g02n02 g02n03 g02n04 g02n05
+     g02n01 g02n02 g02n03 g02n04 g02n05 g02n06
      g03n01 g03n02 g03n03 g03n04
      g04n01 g04n02
      g05n01 g05n02 g05n03
@@ -275,6 +275,7 @@ set ( ARITHMETIC_TESTS_LIST
       hmac
       kdf-state
       hash01
+      hash02
     )
 
 if( AK_TESTS_GMP )

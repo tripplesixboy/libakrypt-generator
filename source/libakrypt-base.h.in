@@ -482,6 +482,13 @@ extern "C" {
  dll_export ak_pointer ak_htable_get( ak_htable , ak_const_pointer , const size_t , size_t * );
 /*! \brief Функция возвращает указатель на данные по ключу, заданному null-строкой */
  dll_export ak_pointer ak_htable_get_str( ak_htable , const tchar *, size_t * );
+
+
+/*! \brief  Функция изымает текущюю ключевую пару из хэш-таблицы */
+ dll_export ak_keypair ak_htable_exclude_keypair( ak_htable , ak_const_pointer , const size_t );
+/*! \brief  Функция изымает текущюю ключевую пару из хэш-таблицы */
+ dll_export ak_keypair ak_htable_exclude_keypair_str( ak_htable , const tchar * );
+
 /*! \brief Функция возвращает количество элементов, помещенных в хэш-таблицу */
  dll_export size_t ak_htable_count( ak_htable );
 /*! \brief Функция экспортирует хэш-таблицу в файл */
