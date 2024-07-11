@@ -294,10 +294,8 @@
  #endif
 
  /* в отладочных целях, сохраняем имя файла */
- file->name = NULL;
-#ifdef AK_HAVE_STRINGS_H
- file->name = strndup( filename, 512 );
-#endif
+ memset( file->name, 0, sizeof( file->name ));
+ strncpy( file->name, filename, sizeof( file->name ) -1 );
 
  return ak_error_ok;
 }
@@ -339,10 +337,8 @@
  #endif
 
  /* в отладочных целях, сохраняем имя файла */
- file->name = NULL;
-#ifdef AK_HAVE_STRINGS_H
- file->name = strndup( filename, 512 );
-#endif
+ memset( file->name, 0, sizeof( file->name ));
+ strncpy( file->name, filename, sizeof( file->name ) -1 );
 
  return ak_error_ok;
 }
@@ -350,7 +346,7 @@
 /* ----------------------------------------------------------------------------------------------- */
  int ak_file_close( ak_file file )
 {
-   if( file->name != NULL ) free( file->name );
+   memset( file->name, 0, sizeof( file->name ));
 
    file->size = 0;
    file->blksize = 0;

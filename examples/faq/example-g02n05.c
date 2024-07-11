@@ -60,6 +60,11 @@
 {
     struct hs hp;
     struct file fp;
+  #ifdef AK_HAVE_WINDOWS_H
+    char *filename = "example-g02n05.htable";
+  #else
+    char *filename = "/var/tmp/example-g02n05.htable";
+  #endif
 
    /* настаиваем бибилиотеку на подробный сообщений */
     ak_log_set_level( ak_log_maximum );
@@ -71,30 +76,34 @@
     ak_hash_create_crc64( &hp.ctx );
     hp.count = 0;
    /* выводим первичное сообщение */
-    printf(" формируем таблицу ... "); fflush( stdout );
+    printf(" hash table creating ... "); fflush( stdout );
    /* рекурсивно обходим текущий каталог и помещаем контрольные суммы в хэш-таблицу */
     ak_file_find( ".", "*", first_function, &hp, ak_false );
    /* выводим краткое резюме */
-    printf("Ok\n обработано %lu файлов\n", (unsigned long int) ak_htable_count( &hp.tbl ));
+    printf("Ok\n founded %lu files\n", (unsigned long int) ak_htable_count( &hp.tbl ));
    /* сохраняем таблицу в файл */
-    ak_htable_export_to_file( &hp.tbl, "/var/tmp/example-g02n05.htable");
+    printf("code: %d\n", ak_htable_export_to_file( &hp.tbl, filename ));
    /* удаляем таблицу из памяти */
-    ak_htable_destroy( &hp.tbl );
+    printf("code: %d\n", ak_htable_destroy( &hp.tbl ));
 
    /* создаем новый файл */
-    ak_file_create_to_write( &fp, "new-file.txt" );
-    ak_file_close( &fp );
+    printf(" create: %d\n", ak_file_create_to_write( &fp, "new-file.txt" ));
+    printf(" write: %u\n",
+                (unsigned int )ak_file_printf( &fp, "Created with block_size: %u\n", fp.blksize ));
+    printf(" close: %d\n", ak_file_close( &fp ));
 
    /* выводим сообщение */
-    printf(" считываем таблицу ... "); fflush( stdout );
+    printf(" reading the table ... "); fflush( stdout );
    /* создаем новую таблицу, используя сохраненные на диске значения */
-    if( ak_htable_create_from_file( &hp.tbl, "/var/tmp/example-g02n05.htable" ) != ak_error_ok )
+    if( ak_htable_create_from_file( &hp.tbl, filename ) != ak_error_ok ) {
+      printf("incorrect reading hash table from %s file\n", filename );
       return EXIT_FAILURE;
+    }
    /* выводим краткое резюме */
     printf("Ok\n");
    /* рекурсивно обходим текущий каталог и проверяем контрольные суммы */
     ak_file_find( ".", "*", second_function, &hp, ak_false );
-    printf(" успешно проверено %lu файлов\n", (unsigned long int) hp.count );
+    printf(" successfully checked %lu files\n", (unsigned long int) hp.count );
    /* удаляем таблицу из памяти */
     ak_htable_destroy( &hp.tbl );
    /* уничтожаем контекст хеширования */

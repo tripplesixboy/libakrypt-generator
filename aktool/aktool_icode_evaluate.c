@@ -145,8 +145,8 @@
       ((ak_skey)dkey)->resource.value.counter = blocks;
       if( ak_log_get_level() > ak_log_standard ) {
          ak_error_message_fmt( ak_error_ok, __func__,
-                _("the resource of the derived key was increased up to %ju blocks (file %s)"),
-                                       (uintmax_t)((ak_skey)dkey)->resource.value.counter, value );
+                _("the resource of the derived key was increased up to %llu blocks (file %s)"),
+                                       (ak_uint64)((ak_skey)dkey)->resource.value.counter, value );
       }
     }
 

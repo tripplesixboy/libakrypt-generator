@@ -170,7 +170,10 @@
     return ak_false;
   }
  /* если список пуст */
-  if( list->current == NULL ) return ak_false;
+  if( list->current == NULL ) {
+    list->count = 0;
+    return ak_false;
+  }
  /* если в списке только один элемент */
   if(( list->current->next == NULL ) && ( list->current->prev == NULL )) {
     list->current = ak_list_node_delete( list, list->current );
@@ -216,7 +219,10 @@
     return NULL;
   }
  /* если список пуст */
-  if( list->current == NULL ) return NULL;
+  if( list->current == NULL ) {
+    list->count = 0;
+    return NULL;
+  }
  /* если в списке только один элемент */
   if(( list->current->next == NULL ) && ( list->current->prev == NULL )) {
     tlv = list->current; /* элемент, который будет возвращаться */
@@ -255,6 +261,7 @@
   if( !list )
     return ak_error_message( ak_error_null_pointer, __func__, "using null pointer to list context" );
   while( ak_list_remove( list ) == ak_true );
+  list->free_data = NULL;
  return ak_error_ok;
 }
 
