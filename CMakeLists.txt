@@ -276,6 +276,7 @@ set ( ARITHMETIC_TESTS_LIST
       kdf-state
       hash01
       hash02
+      kuznechik01
     )
 
 if( AK_TESTS_GMP )
