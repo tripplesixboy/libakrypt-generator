@@ -608,6 +608,88 @@
   return exit_status;
 }
 
+#ifdef AK_HAVE_GELF_H
+/* ----------------------------------------------------------------------------------------------- */
+/*                 часть, отвечающая за проверку процессов в памяти                                */
+/* ----------------------------------------------------------------------------------------------- */
+ static int aktool_icode_check_maps_file_line( const char *buffer, ak_pointer inptr )
+{
+   printf("%s\n", buffer );
+/*
+ n = sscanf(buf, "%lx-%lx %c%c%c%c %lx %x:%x %lu %s", &vm_start, &vm_end, &r, &w, &x,
+                   &s, &pgoff, &major, &minor, &ino, imgPath);
+*/
+ return ak_error_ok;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+ int aktool_icode_check_process_with_pid( pid_t pid, aktool_ki_t *ki )
+{
+    struct file fp;
+    char cat[128], filename[128];
+
+   /* формируем имя каталога, который будет использоваться далее */
+    memset( cat, 0, sizeof( cat ));
+    ak_snprintf( cat, sizeof(cat), "/proc/%d", pid );
+
+   /* проверяем права доступа */
+    switch( ak_file_or_directory(cat) ) {
+      case ak_error_access_file:
+         aktool_error("access to catalog %s is not granted (%s)", cat, strerror( errno ));
+         ak_error_message_fmt( ak_error_access_file, __func__,
+                               "access to catalog %s is not granted (%s)", cat, strerror( errno ));
+         return EXIT_FAILURE;
+      case DT_REG:
+         aktool_error("checkin' a regular file %s", cat );
+         ak_error_message_fmt( ak_error_not_directory, __func__,
+                                                               "checkin' a regular file %s", cat );
+         return EXIT_FAILURE;
+      default:
+         break;
+    }
+
+   /* delme or syslog */
+    printf("testing pid: %d\n", pid );
+
+
+   /* формируем имя файла с картой адресов памяти */
+    memset( filename, 0, sizeof( filename ));
+    ak_snprintf( filename, sizeof(filename), "%s/maps", cat );
+
+   /* получаем карту адресов памяти для контроля */
+    if( ak_file_open_to_read( &fp, filename ) != ak_error_ok ) {
+      aktool_error("file %s can't be opened (%s)", cat, strerror( errno ));
+      ak_error_message_fmt( ak_error_open_file, __func__,
+                                           "file %s can't be opened (%s)", cat, strerror( errno ));
+      return EXIT_FAILURE;
+    }
+
+   /* delme or syslog */
+    printf("testing file: %s\n", filename );
+
+    int error = ak_file_read_by_lines( filename, aktool_icode_check_maps_file_line, NULL );
+
+
+    ak_file_close( &fp );
+
+
+ return EXIT_FAILURE;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+ int aktool_icode_check_processes( aktool_ki_t *ki )
+{
+   /* тестируем только один процесс */
+    if( ki->pid != -1 )
+      return aktool_icode_check_process_with_pid( ki->pid, ki );
+
+   /* выполняем поиск процессов, выполняющихся в настоящий момент */
+   /* последовательно тестируем все найденные процессы */
+
+  return EXIT_FAILURE;
+}
+#endif
+
 /* ----------------------------------------------------------------------------------------------- */
 /*                                                                        aktool_icode_evaluate.c  */
 /* ----------------------------------------------------------------------------------------------- */

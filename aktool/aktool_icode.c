@@ -48,6 +48,8 @@
 #ifdef AK_HAVE_GELF_H
      { "with-segments",       0, NULL,  164 },
      { "only-segments",       0, NULL,  165 },
+     { "pid",                 1, NULL,  166 },
+     { "only-one-pid",        1, NULL,  166 },
 #endif
 
     /* аналоги из aktool_key */
@@ -88,6 +90,7 @@
   ki.ignore_segments = ak_true;
   ki.only_segments = ak_false;
   ki.dont_show_icode = ak_false;
+  ki.pid = -1;
 
  /* разбираем опции командной строки */
   do {
@@ -242,6 +245,15 @@
                    ki.only_segments = ak_true;
                    ki.ignore_segments = ak_false;
                    break;
+
+        case 166: /* --only-one-pid, --pid */
+                   if(( ki.pid = atoi( optarg )) < 0 ) {
+                     aktool_error(
+                      _("incorrect value of the process identifier (pid), option --only-one-pid"));
+                     goto exitlab;
+                   }
+                   ki.ignore_segments = ak_false;
+                   break;
 #endif
 
         default:  /* обрабатываем ошибочные параметры */
@@ -295,16 +307,23 @@
      /* создаем контекст алгоритма хеширования или имитозащиты */
       if( aktool_icode_create_handle( &ki ) != ak_error_ok ) goto exitlab;
      /* выполняем проверку оперативной памяти */
-
+      if(( ki.only_segments ) || ( !ki.ignore_segments )) {
+       if(( exit_status = aktool_icode_check_processes( &ki )) != EXIT_SUCCESS ) {
+         aktool_icode_destroy_handle( &ki );
+         goto exitlab;
+       }
+      }
      /* выполняем проверку файловой системы,
         логика проверки заключается в следующем:
         - если указаны файлы или каталоги, тогда происходит поиск файлов
           и проверка их контрольных сумм на соотвествие значениям из базы данных
         - если файлы не определены, то перебираются все файлы из сформированной базы данных */
-      if( !( ki.include_file.count + ki.include_path.count ))
-        exit_status = aktool_icode_check_from_database( &ki );
-       else
-         exit_status = aktool_icode_check_from_directory( &ki );
+      if( ! ki.only_segments) {
+        if( !( ki.include_file.count + ki.include_path.count ))
+          exit_status = aktool_icode_check_from_database( &ki );
+         else
+          exit_status = aktool_icode_check_from_directory( &ki );
+      }
      /* уничтожаем контекст алгоритма хеширования или имитозащиты */
       aktool_icode_destroy_handle( &ki );
       break;
@@ -480,16 +499,20 @@
   printf(_("     --no-derive         do not use the keyed authentication mechanism's derived key for each controlled entity\n"));
   printf(_("                         this may cause an error due to the exhaustion of a key resource\n"));
 #ifdef AK_HAVE_GELF_H
-  printf(_("     --only-segments     create authentication or integrity codes only for downloadable segments\n"));
+  printf(_("     --only-one-pid      verify only one process with given identifier (pid)\n"));
+  printf(_("     --only-segments     create or verify authentication or integrity codes only for downloadable segments\n"));
 #endif
   printf(_(" -o, --output            set the output file for created authentication or integrity codes\n"));
   printf(_(" -p, --pattern           set the pattern which is used to find files\n"));
+#ifdef AK_HAVE_GELF_H
+  printf(_("     --pid               short form of --only-one-pid option\n"));
+#endif
   printf(_(" -r, --recursive         recursive search of files\n"));
   printf(_("     --reverse-order     output of authentication or integrity code in reverse byte order\n"));
   printf(_("     --tag               create a BSD-style hash table format\n"));
   printf(_(" -v, --verify            verify previously created authentication or integrity codes\n"));
 #ifdef AK_HAVE_GELF_H
-  printf(_("     --with-segments     create authentication or integrity codes for downloadable segments\n"));
+  printf(_("     --with-segments     create or verify authentication or integrity codes for downloadable segments\n"));
 #endif
 
   aktool_print_common_options();

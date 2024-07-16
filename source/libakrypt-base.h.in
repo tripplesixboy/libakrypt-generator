@@ -518,7 +518,7 @@ extern "C" {
 /*! \brief Определение функции для выполнения действий с заданным файлом */
  typedef int ( ak_function_find )( const tchar * , ak_pointer );
 /*! \brief Определение функции, передаваемой в качестве аргумента в функцию построчного чтения файлов. */
- typedef int ( ak_file_read_function ) ( const char * , ak_pointer );
+ typedef int ( ak_function_file_read ) ( const char * , ak_pointer );
 /*! \brief Определение функции, передаваемой в качестве аргумента в функции вывода информации. */
  typedef int ( ak_function_file_output ) ( const char * );
 
@@ -590,7 +590,7 @@ extern "C" {
 /*! \brief Обход каталога с учетом заданной маски */
  dll_export int ak_file_find( const tchar *, const tchar *, ak_function_find *, ak_pointer , bool_t );
 /*! \brief Функция построчного чтения заданного файла */
- dll_export int ak_file_read_by_lines( const tchar *, ak_file_read_function * , ak_pointer );
+ dll_export int ak_file_read_by_lines( const tchar *, ak_function_file_read * , ak_pointer );
 /*! \brief Функция вырабатывает полное имя файла */
  dll_export int ak_realpath( const char * , char * , size_t );
 /*! \brief Функция получает домашний каталог пользователя. */

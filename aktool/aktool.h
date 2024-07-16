@@ -185,6 +185,12 @@
    bool_t dont_show_icode;
   /* при установленном флаге программа не выводит статистику */
    bool_t dont_show_stat;
+#ifdef AK_HAVE_GELF_H
+  /* текущий процесс для проверки целостности */
+   pid_t pid;
+  /* список номеров всех выполняющихся процессов */
+   struct list pidlist;
+#endif
   /* структура для параметров асимметричного шифрования */
    struct encryption_set heset;
  #ifdef AK_HAVE_BZLIB_H
@@ -274,7 +280,11 @@
 /* проверка контрольных сумм по заданой базе данных */
  int aktool_icode_check_from_database( aktool_ki_t * );
 /* проверка контрольных сумм для заданных каталогов и файлов */
- int aktool_icode_check_from_directory( aktool_ki_t *);
+ int aktool_icode_check_from_directory( aktool_ki_t * );
+#ifdef AK_HAVE_GELF_H
+/* проверка контрольных сумм для процессов в оперативной памяти */
+ int aktool_icode_check_processes( aktool_ki_t * );
+#endif
 
 /* ----------------------------------------------------------------------------------------------- */
  typedef enum { do_nothing, do_encrypt, do_decrypt } encrypt_t;

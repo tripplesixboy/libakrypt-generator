@@ -193,7 +193,7 @@
     \return В случае успеха возвращается \ref ak_error_ok. В случае возникновения ошибки
     возвращается ее код.                                                                           */
 /* ----------------------------------------------------------------------------------------------- */
- int ak_file_read_by_lines( const tchar *filename, ak_file_read_function *function , ak_pointer ptr )
+ int ak_file_read_by_lines( const tchar *filename, ak_function_file_read *function , ak_pointer ptr )
 {
   #define buffer_length ( FILENAME_MAX + 160 )
 
@@ -214,12 +214,17 @@
 
  /* нарезаем входные на строки длиной не более чем buffer_length - 2 символа */
   memset( localbuffer, 0, buffer_length );
-  for( idx = 0; idx < (size_t) st.st_size; idx++ ) {
+  do{
+     idx++;
      if( read( fd, &ch, 1 ) != 1 ) {
        close(fd);
-       return ak_error_message_fmt( ak_error_read_data, __func__ ,
-                                                                "unexpected end of %s", filename );
+      /* if( idx != st.st_size ) {  ???  }
+         - при чтении служебных файлов может выполняться условие idx != st.st_size,
+           например, функция stat возвращает длину файла равной нулю.
+         - в настоящее время, мы ни как не сигнализируем об этом событии */
+       return error;
      }
+    /* проверка длины считанной строки */
      if( off > buffer_length - 2 ) {
        close( fd );
        return ak_error_message_fmt( ak_error_read_data, __func__ ,
@@ -236,7 +241,7 @@
     } else localbuffer[off++] = ch;
    /* выходим из цикла если процедура проверки нарушена */
     if( error != ak_error_ok ) return error;
-  }
+  } while( ch != EOF );
 
   close( fd );
  return error;
