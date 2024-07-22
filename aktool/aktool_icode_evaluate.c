@@ -12,6 +12,8 @@
 #endif
 #ifdef AK_HAVE_GELF_H
  #include <gelf.h>
+ #include <sys/ptrace.h>
+ #include <sys/wait.h>
 #endif
 #ifdef AK_HAVE_UNISTD_H
  #include <unistd.h>
@@ -612,34 +614,210 @@
 /* ----------------------------------------------------------------------------------------------- */
 /*                 часть, отвечающая за проверку процессов в памяти                                */
 /* ----------------------------------------------------------------------------------------------- */
- static int aktool_icode_check_maps_file_line( const char *buffer, ak_pointer inptr )
+ static int aktool_icode_check_maps_static( size_t length, ak_keypair kp, aktool_ki_t *ki )
 {
-   printf("%s\n", buffer );
-/*
- n = sscanf(buf, "%lx-%lx %c%c%c%c %lx %x:%x %lu %s", &vm_start, &vm_end, &r, &w, &x,
-                   &s, &pgoff, &major, &minor, &ino, imgPath);
-*/
- return ak_error_ok;
+    struct file fm;
+    ak_pointer dkey = NULL;
+    int error = ak_error_ok;
+    char fmemory[128], icode[128];
+    ak_uint8 *buffer = NULL, *iptr = NULL;
+
+   /* формируем имя */
+    memset( fmemory, 0, sizeof( fmemory ));
+    ak_snprintf( fmemory, sizeof( fmemory ), "/proc/%d/mem", ki->pid );
+
+   /* открываем файл */
+    if( ak_file_open_to_read( &fm, fmemory ) != ak_error_ok )
+      return ak_error_message_fmt( ak_error_access_file, __func__,
+                                                   _("access to file %s is'nt granted"), fmemory );
+   /* присоединяемся и блокируем процесс */
+    if( ptrace( PTRACE_ATTACH, ki->pid, NULL, NULL) < 0 ) {
+      ak_file_close( &fm );
+      return ak_error_message_fmt( ak_error_access_file, __func__,
+                                                  _("ptrace attach error: %s"), strerror( errno ));
+    }
+    waitpid( ki->pid, NULL, 0 );
+
+   /* получаем данные */
+    if(( buffer = alloca( length )) == NULL ) {
+      ak_file_close( &fm );
+      return ak_error_message_fmt( ak_error_out_of_memory, __func__,
+                                                      _("segment exceeds the allowed stack size"));
+    }
+    lseek( fm.fd, ki->curmem.st_addr, SEEK_SET );
+    if( read( fm.fd, buffer, length ) != length ) {
+      ak_file_close( &fm );
+      return ak_error_message_fmt( ak_error_read_data, __func__,
+                                                     _("read data error (%s)"), strerror( errno ));
+    }
+   /* отсоединяемся */
+    if( ptrace( PTRACE_DETACH, ki->pid, NULL, NULL) < 0 ) {
+      ak_file_close( &fm );
+      return ak_error_message_fmt( ak_error_access_file, __func__,
+                                                  _("ptrace detach error: %s"), strerror( errno ));
+    }
+    ak_file_close( &fm );
+
+   /* только теперь выполняем проверку целостности считанных из памяти данных */
+   /* вычисляем производный ключ */
+    if(( dkey = aktool_icode_get_derived_key( (char *)kp->data, ki, NULL )) == NULL ) {
+      return ak_error_message_fmt( ak_error_get_value(), __func__,
+                                    _("incorrect creation of derived key for %s line"), kp->data );
+    }
+
+   /* вычисляем контрольную сумму от считанной ранее области памяти */
+    error = ki->icode_ptr( dkey, buffer, length, icode, ki->size );
+    if( dkey != ki->handle ) ak_skey_delete( dkey );
+
+   /* сравниваем значения */
+    if( kp->value_length == ki->size +8 ) iptr = ( kp->data + kp->key_length + 8 );
+      else iptr = ( kp->data + kp->key_length );
+
+    if( memcmp( icode, iptr, ki->size ) != 0 ) {
+      ak_error_message_fmt( ak_error_not_equal_data, __func__,
+                                                     _("segment %s has been modified"), kp->data );
+      aktool_error(_("segment %s has been modified"), kp->data );
+      return ak_error_not_equal_data;
+    }
+     else {
+       if( ak_log_get_level() > ak_log_standard )
+         ak_error_message_fmt( ak_error_ok, __func__, _("segment %s is Ok"), kp->data );
+     }
+
+ return error;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
- int aktool_icode_check_process_with_pid( pid_t pid, aktool_ki_t *ki )
+ static int rp_counter = 0;
+ static char old_name[FILENAME_MAX];
+
+/* ----------------------------------------------------------------------------------------------- */
+ static int aktool_icode_check_maps_file_line( const char *buffer, ak_pointer inptr )
+{
+    Elf *e;
+    char r, w, x, s;
+    struct file fp;
+    ak_keypair kp = NULL;
+    size_t inode, flen = 0;
+    aktool_ki_t *ki = inptr;
+    int error = ak_error_ok;
+    unsigned int major, minor;
+    char filename[FILENAME_MAX], segment_value[FILENAME_MAX];
+
+   /* базовые проверки */
+    if( ki == NULL ) return ak_error_null_pointer;
+
+   /* начинаем разбор параметров строки */
+    if( sscanf( buffer, "%lx-%lx %c%c%c%c %lx %x:%x %lu %s",
+                &ki->curmem.st_addr, &ki->curmem.en_addr, &r, &w, &x, &s, &ki->curmem.offset,
+                                                       &major, &minor, &inode, filename ) < 11 ) {
+      if( inode != 0 || major != 0 || minor != 0 ) /* иначе это нулевая страница */
+        return ak_error_message_fmt( ak_error_undefined_value, __func__,
+                                                           _("unexpected map's line %s"), buffer );
+      return ak_error_ok;
+    }
+
+   /* обрабатываем флаги доступа */
+    if( r != 'r' ) return ak_error_message_fmt( ak_error_access_file, __func__,
+                                              _("segment that cannot be read (line %s)"), buffer );
+    if( w == 'w' ) return ak_error_ok; /* сегмент с правами на запись */
+    if( memcmp( old_name, filename, strlen( filename )) == 0 ) { /* надо разобраться */
+      if(( r == 'r' ) && ( s == 'p' ) && ( x == '-' )) {
+        if( ++rp_counter > 1 ) {
+          rp_counter = 0;
+          return ak_error_ok;
+        }
+      }
+    } else {
+        rp_counter = 0;
+        memset( old_name, 0, sizeof(old_name));
+        strncpy( old_name, filename, sizeof( old_name ));
+      }
+
+   /* обрабатыаем специальные сегменты */
+    if(( flen = strlen(filename)) == 0 )
+      return ak_error_message_fmt( ak_error_zero_length, __func__,
+                                               _("zero length of loaded file (line %s)"), buffer );
+    if( filename[0] == '[' ) {
+      if( flen < 2 )
+        return ak_error_message_fmt( ak_error_wrong_length, __func__,
+                                            _("short name of special segment (line %s)"), buffer );
+      filename[ strlen(filename) -1 ] = 0;
+     /* обработка специальных сегментов пока не реализована */
+      return ak_error_ok;
+    }
+
+   /* проверяем, что файл не имеет структуру исполняемого файла (elf) */
+    if( ak_file_open_to_read( &fp, filename ) != ak_error_ok )
+      return ak_error_message_fmt( ak_error_access_file, __func__,
+                                                        "link to non-existent file %s", filename );
+    if(( e = elf_begin( fp.fd, ELF_C_READ, NULL )) == NULL ) {
+      ak_file_close( &fp );
+      return ak_error_message_fmt( ak_error_access_file, __func__,
+                                             _("elf_begin() function failed: %s"), elf_errmsg(-1));
+    }
+
+   /* статистика */
+    ki->statistical_data.segments++;
+
+   /* рассматриваем каждый случай отдельно */
+    if( elf_kind(e) != ELF_K_ELF ) {
+      if(( kp = ak_htable_get_keypair_str( &ki->icodes, filename )) == NULL ) {
+        error = ak_error_message_fmt( ak_error_htable_key_not_found, __func__,
+                                                   _("link to non-controlled file %s"), filename );
+      }
+       else error = aktool_icode_check_maps_static( fp.size, kp, ki );
+    }
+     else {
+      /* формируем строку для поиска */
+       ak_snprintf( segment_value, sizeof( segment_value ) -1,
+                                                         "%s/%08jx", filename, ki->curmem.offset );
+       if(( kp = ak_htable_get_keypair_str( &ki->icodes, segment_value )) == NULL ) {
+         error = ak_error_message_fmt( ak_error_htable_key_not_found, __func__,
+                                           _("link to non-controlled segment %s"), segment_value );
+       }
+        else {
+          size_t length = ((ak_uint64 *)(kp->data + kp->key_length))[0];
+          error = aktool_icode_check_maps_static( length, kp, ki );
+        }
+     }
+
+   /* освобождаем память */
+    elf_end(e);
+    ak_file_close( &fp );
+
+   /* статистика */
+    if( error != ak_error_ok ) ki->statistical_data.skipped_segments++;
+
+ return error;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! номер обрабатываемого процесса (pid) передается в переменной ki->pid */
+/* ----------------------------------------------------------------------------------------------- */
+ int aktool_icode_check_process_with_pid( aktool_ki_t *ki )
 {
     struct file fp;
+    int error = ak_error_ok;
     char cat[128], filename[128];
 
    /* формируем имя каталога, который будет использоваться далее */
     memset( cat, 0, sizeof( cat ));
-    ak_snprintf( cat, sizeof(cat), "/proc/%d", pid );
+    ak_snprintf( cat, sizeof(cat), "/proc/%d", ki->pid );
+
+   /* статистика */
+    ki->statistical_data.processes++;
 
    /* проверяем права доступа */
     switch( ak_file_or_directory(cat) ) {
       case ak_error_access_file:
+         ki->statistical_data.skipped_processes++;
          aktool_error("access to catalog %s is not granted (%s)", cat, strerror( errno ));
          ak_error_message_fmt( ak_error_access_file, __func__,
                                "access to catalog %s is not granted (%s)", cat, strerror( errno ));
          return EXIT_FAILURE;
       case DT_REG:
+         ki->statistical_data.skipped_processes++;
          aktool_error("checkin' a regular file %s", cat );
          ak_error_message_fmt( ak_error_not_directory, __func__,
                                                                "checkin' a regular file %s", cat );
@@ -648,30 +826,29 @@
          break;
     }
 
-   /* delme or syslog */
-    printf("testing pid: %d\n", pid );
-
-
    /* формируем имя файла с картой адресов памяти */
     memset( filename, 0, sizeof( filename ));
     ak_snprintf( filename, sizeof(filename), "%s/maps", cat );
 
    /* получаем карту адресов памяти для контроля */
     if( ak_file_open_to_read( &fp, filename ) != ak_error_ok ) {
+      ki->statistical_data.skipped_processes++;
       aktool_error("file %s can't be opened (%s)", cat, strerror( errno ));
       ak_error_message_fmt( ak_error_open_file, __func__,
                                            "file %s can't be opened (%s)", cat, strerror( errno ));
       return EXIT_FAILURE;
     }
 
-   /* delme or syslog */
-    printf("testing file: %s\n", filename );
+   /* подготавливаем внутренние переменные */
+    memset( &ki->curmem, 0, sizeof( memaddr_t ));
+    memset( old_name, 0, sizeof( old_name ));
 
-    int error = ak_file_read_by_lines( filename, aktool_icode_check_maps_file_line, NULL );
-
-
+   /* построчно считываем данные и выполняем проверку */
+    error = ak_file_read_by_lines( filename, aktool_icode_check_maps_file_line, ki );
     ak_file_close( &fp );
 
+    if( error == ak_error_ok ) return EXIT_SUCCESS;
+    ki->statistical_data.skipped_processes++;
 
  return EXIT_FAILURE;
 }
@@ -679,14 +856,48 @@
 /* ----------------------------------------------------------------------------------------------- */
  int aktool_icode_check_processes( aktool_ki_t *ki )
 {
+    int exit_status = EXIT_FAILURE;
+
+   /* обнуляем статистику */
+    ki->statistical_data.processes =
+    ki->statistical_data.skipped_processes =
+    ki->statistical_data.segments =
+    ki->statistical_data.skipped_segments = 0;
+
    /* тестируем только один процесс */
-    if( ki->pid != -1 )
-      return aktool_icode_check_process_with_pid( ki->pid, ki );
+    if( ki->pid != -1 ) {
+      exit_status = aktool_icode_check_process_with_pid( ki );
+      goto labstat;
+    }
 
    /* выполняем поиск процессов, выполняющихся в настоящий момент */
    /* последовательно тестируем все найденные процессы */
 
-  return EXIT_FAILURE;
+   /* вывод статистики о проделанной работе */
+    labstat:
+
+    if( !ki->quiet ) {
+      if( !ki->dont_show_stat ) {
+        printf(_("the total number of processes checked: %llu, of which\n"),
+                                         (long long unsigned int) ki->statistical_data.processes );
+        printf(_(" %6llu have been succesfully proceed\n"),
+                          (long long unsigned int)( ki->statistical_data.processes
+                                                       - ki->statistical_data.skipped_processes ));
+       /* проверка завершилась с ошибкой */
+        if( ki->statistical_data.skipped_processes )
+          printf(_(" %6llu have been skipped\n"),
+                                 (long long unsigned int) ki->statistical_data.skipped_processes );
+
+        printf(_(" %6llu the total founded segments\n"),
+                                          (long long unsigned int) ki->statistical_data.segments );
+       /* проверка завершилась с ошибкой */
+        if( ki->statistical_data.skipped_segments )
+          printf(_(" %6llu segments have been skipped\n"),
+                                  (long long unsigned int) ki->statistical_data.skipped_segments );
+      }
+    }
+
+  return exit_status;
 }
 #endif
 
