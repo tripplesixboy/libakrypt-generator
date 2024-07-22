@@ -23,6 +23,25 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
+/*! \brief Функция выводит все контрольные суммы в консоль */
+ void aktool_icode_out_all( FILE *fp, aktool_ki_t *ki )
+{
+    size_t i = 0;
+
+   /* перебираем всю хеш-таблицу */
+    for( i = 0; i < ki->icodes.count; i++ ) {
+       ak_list list = &ki->icodes.list[i];
+       if( list->count == 0 ) continue;
+       ak_list_first( list );
+       do{
+         ak_keypair kp = (ak_keypair)list->current->data;
+         aktool_icode_out( fp, (const char *)kp->data,
+                                                   ki, kp->data+kp->key_length, kp->value_length );
+       } while( ak_list_next( list ));
+    }
+}
+
+/* ----------------------------------------------------------------------------------------------- */
 /*! \brief Функция сохраняет хэш-таблицу с вычисленными контрольными суммами или имтовставками в
     заданный файл в формате, который указан пользователем                                          */
 /* ----------------------------------------------------------------------------------------------- */
@@ -168,7 +187,7 @@
     if( ki->field == format_binary ) {
 
      /* начинаем с того, что пытаемся открыть файл как двоичную хэш-таблицу*/
-      if(( error = ak_htable_create_from_file( &ki->icodes, ki->os_file )) == ak_error_ok )
+      if(( error = ak_htable_create_from_file( &ki->icodes, ki->pubkey_file )) == ak_error_ok )
         return ak_error_ok;
 
       switch( error ) {
@@ -176,7 +195,7 @@
         case ak_error_open_file:
         case ak_error_access_file:
         case ak_error_null_pointer:
-          aktool_error(_("the file %s cannot be accessed"), ki->os_file );
+          aktool_error(_("the file %s cannot be accessed"), ki->pubkey_file );
           return error;
 
        /* ошибки разбора и интерпретации данных */
@@ -187,7 +206,7 @@
           /* далее, сделаем еще одну попытку и попробуем разобрать файл как набор строк */
           ak_error_set_value( ak_error_ok );
           if( ak_log_get_level() > ak_log_standard ) ak_error_message_fmt( ak_error_ok, __func__,
-                                         _("trying to read %s file in text format"), ki->os_file );
+                                     _("trying to read %s file in text format"), ki->pubkey_file );
           break;
       }
     }
@@ -198,7 +217,7 @@
 
    /* теперь пытаемся считать символьные строки */
     ki->statistical_data.total_lines = ki->statistical_data.skiped_lines = 0;
-    if(( error = ak_file_read_by_lines( ki->os_file,
+    if(( error = ak_file_read_by_lines( ki->pubkey_file,
                                        aktool_icode_import_checksum_line, ki )) != ak_error_ok ) {
       ak_htable_destroy( &ki->icodes );
       aktool_error(_("incorrect loading predefined values from %s file"), ki->os_file );

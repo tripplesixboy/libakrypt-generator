@@ -20,6 +20,9 @@
 #endif
 
 /* ----------------------------------------------------------------------------------------------- */
+ #define aktool_icode_database_file ("/var/tmp/aktool.icodes")
+
+/* ----------------------------------------------------------------------------------------------- */
  int aktool_icode_help( void );
  void aktool_icode_log_options( aktool_ki_t * );
 
@@ -27,7 +30,7 @@
  int aktool_icode( int argc, tchar *argv[] )
 {
   int next_option = 0, exit_status = EXIT_FAILURE;
-  enum { do_nothing, do_hash, do_check } work = do_hash;
+  enum { do_nothing, do_hash, do_check, do_list } work = do_hash;
 
   const struct option long_options[] = {
    /* сначала уникальные */
@@ -36,7 +39,7 @@
      { "exclude",             1, NULL,  'e' },
      { "pattern",             1, NULL,  'p' },
      { "recursive",           0, NULL,  'r' },
-     { "verify",              1, NULL,  'v' },
+     { "verify",              0, NULL,  'v' },
      { "reverse-order",       0, NULL,  254 },
      { "tag",                 0, NULL,  250 },
      { "hash-table-nodes",    1, NULL,  222 },
@@ -51,6 +54,8 @@
      { "pid",                 1, NULL,  166 },
      { "only-one-pid",        1, NULL,  166 },
 #endif
+     { "list",                0, NULL,  'l' },
+     { "input",               1, NULL,  'i' },
 
     /* аналоги из aktool_key */
      { "key",                 1, NULL,  203 },
@@ -94,7 +99,7 @@
 
  /* разбираем опции командной строки */
   do {
-       next_option = getopt_long( argc, argv, "he:rp:o:a:c:v:", long_options, NULL );
+       next_option = getopt_long( argc, argv, "he:rp:o:a:c:vli:", long_options, NULL );
        switch( next_option )
       {
         aktool_common_functions_run( aktool_icode_help );
@@ -207,17 +212,24 @@
 
         case 'v' : /* --verify выполняем проверку контрольных сумм */
                    work = do_check;
+                   break;
+
+        case 'l': /* --list выполняем вывод контрольных сумм */
+                   work = do_list;
+                   break;
+
+        case 'i': /* --input устанавливаем имя для файла с результатами */
                  #ifdef _WIN32
-                   GetFullPathName( optarg, FILENAME_MAX, ki.os_file, NULL );
+                   GetFullPathName( optarg, FILENAME_MAX, ki.pubkey_file, NULL );
                  #else
-                   if( ak_realpath( optarg, ki.os_file, sizeof( ki.os_file ) -1 ) != ak_error_ok )
+                   if( ak_realpath( optarg,
+                                    ki.pubkey_file, sizeof( ki.pubkey_file ) -1 ) != ak_error_ok )
                    {
                      aktool_error(
                             _("the full name of checksum file \"%s\" cannot be created"), optarg );
                      goto exitlab;
                    }
                  #endif
-                   break;
 
         case 160: /* --no-derive */
                    ki.key_derive = ak_false;
@@ -255,7 +267,6 @@
                    ki.ignore_segments = ak_false;
                    break;
 #endif
-
         default:  /* обрабатываем ошибочные параметры */
                    if( next_option != -1 ) goto exitlab;
                    break;
@@ -278,12 +289,12 @@
  //      goto exitlab;
  //  }
 
- /* разбираемся с именем файла для сохранения результатов */
+ /* разбираемся с именем файла для чтения или сохранения результатов */
   if( strlen( ki.pubkey_file ) == 0 ) {
    #ifdef _WIN32
      GetFullPathName( "aktool.icodes", FILENAME_MAX, ki.pubkey_file, NULL );
     #else
-     ak_realpath( "/var/tmp/aktool.icodes", ki.pubkey_file, sizeof( ki.pubkey_file ) -1 );
+     ak_realpath( aktool_icode_database_file, ki.pubkey_file, sizeof( ki.pubkey_file ) -1 );
     #endif
   }
 
@@ -328,6 +339,12 @@
       aktool_icode_destroy_handle( &ki );
       break;
 
+    case do_list:
+     /* считываем таблицу с сохраненными значениями контрольных сумм */
+      if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
+     /* выводим все, что есть */
+      aktool_icode_out_all( stdout, &ki );
+      break;
     default:
       break;
   }
@@ -494,8 +511,11 @@
                                                                   (unsigned long long int) ki.icode_lists_count );
   printf(_("     --inpass            set the password for the secret key to be read directly in command line\n"));
   printf(_("     --inpass-hex        set the password for the secret key to be read directly in command line as hexademal string\n"));
+  printf(_(" -i, --input             set the name of file with previously created authentication or integrity codes\n"));
+  printf(_("                         [ default name: %s]\n"), aktool_icode_database_file );
   printf(_("     --key               specify the name of file with the secret key\n"));
   printf(_("                         this option also sets the type of keyed authentication mechanism\n"));
+  printf(_(" -l, --list              list the table of previously created authentication or integrity codes\n"));
   printf(_("     --no-derive         do not use the keyed authentication mechanism's derived key for each controlled entity\n"));
   printf(_("                         this may cause an error due to the exhaustion of a key resource\n"));
 #ifdef AK_HAVE_GELF_H

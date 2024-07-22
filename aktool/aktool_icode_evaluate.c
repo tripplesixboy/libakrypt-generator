@@ -614,7 +614,7 @@
 /* ----------------------------------------------------------------------------------------------- */
 /*                 часть, отвечающая за проверку процессов в памяти                                */
 /* ----------------------------------------------------------------------------------------------- */
- static int aktool_icode_check_maps_static( size_t length, ak_keypair kp, aktool_ki_t *ki )
+ static int aktool_icode_check_maps_segment( size_t length, ak_keypair kp, aktool_ki_t *ki )
 {
     struct file fm;
     ak_pointer dkey = NULL;
@@ -625,6 +625,9 @@
    /* формируем имя */
     memset( fmemory, 0, sizeof( fmemory ));
     ak_snprintf( fmemory, sizeof( fmemory ), "/proc/%d/mem", ki->pid );
+
+    printf("TRYING TO READ: %s\n", fmemory );
+
 
    /* открываем файл */
     if( ak_file_open_to_read( &fm, fmemory ) != ak_error_ok )
@@ -638,12 +641,17 @@
     }
     waitpid( ki->pid, NULL, 0 );
 
+    printf("TRYING TO ALLOCATE on STACK %llu bytes\n", length );
+
    /* получаем данные */
     if(( buffer = alloca( length )) == NULL ) {
       ak_file_close( &fm );
       return ak_error_message_fmt( ak_error_out_of_memory, __func__,
                                                       _("segment exceeds the allowed stack size"));
     }
+    printf("ALLOCATE IS OK\n" );
+
+
     lseek( fm.fd, ki->curmem.st_addr, SEEK_SET );
     if( read( fm.fd, buffer, length ) != length ) {
       ak_file_close( &fm );
@@ -717,6 +725,8 @@
       return ak_error_ok;
     }
 
+   printf("%c%c%c%c %s\n", r, w, x, s, filename );
+
    /* обрабатываем флаги доступа */
     if( r != 'r' ) return ak_error_message_fmt( ak_error_access_file, __func__,
                                               _("segment that cannot be read (line %s)"), buffer );
@@ -747,6 +757,8 @@
       return ak_error_ok;
     }
 
+   printf("TRYING: %s\n", filename );
+
    /* проверяем, что файл не имеет структуру исполняемого файла (elf) */
     if( ak_file_open_to_read( &fp, filename ) != ak_error_ok )
       return ak_error_message_fmt( ak_error_access_file, __func__,
@@ -766,19 +778,22 @@
         error = ak_error_message_fmt( ak_error_htable_key_not_found, __func__,
                                                    _("link to non-controlled file %s"), filename );
       }
-       else error = aktool_icode_check_maps_static( fp.size, kp, ki );
+       else error = aktool_icode_check_maps_segment( fp.size, kp, ki );
     }
      else {
       /* формируем строку для поиска */
        ak_snprintf( segment_value, sizeof( segment_value ) -1,
                                                          "%s/%08jx", filename, ki->curmem.offset );
+
+       printf("SEGMENTVal: %s\n", segment_value );
+
        if(( kp = ak_htable_get_keypair_str( &ki->icodes, segment_value )) == NULL ) {
          error = ak_error_message_fmt( ak_error_htable_key_not_found, __func__,
                                            _("link to non-controlled segment %s"), segment_value );
        }
         else {
           size_t length = ((ak_uint64 *)(kp->data + kp->key_length))[0];
-          error = aktool_icode_check_maps_static( length, kp, ki );
+          error = aktool_icode_check_maps_segment( length, kp, ki );
         }
      }
 

@@ -293,6 +293,8 @@
  ak_pointer aktool_icode_get_derived_key( const char * , aktool_ki_t * , ak_file );
 /* вывод контрольной суммы в консоль */
  void aktool_icode_out( FILE * , const char * , aktool_ki_t * , ak_uint8 * , const size_t );
+/* вывод всех контрольных сумм в консоль */
+ void aktool_icode_out_all( FILE * , aktool_ki_t * );
 /* сохранение файла с вычисленными контрольными суммами */
  int aktool_icode_export_checksum( aktool_ki_t * );
 /* чтение файла с вычисленными ранее контрольными суммами */
