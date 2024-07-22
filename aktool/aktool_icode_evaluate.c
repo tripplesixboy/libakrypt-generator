@@ -429,6 +429,10 @@
     size_t i = 0;
     int exit_status = EXIT_FAILURE;
 
+   /* аудит */
+    if( ak_log_get_level() > ak_log_standard )
+      ak_error_message_fmt( ak_error_ok, __func__,
+                                _("checking all files from given database: %s"), ki->pubkey_file );
    /* основной цикл */
     for( i = 0; i < ki->icodes.count; i++ ) {
       ak_list list = &ki->icodes.list[i];
@@ -531,6 +535,10 @@
     size_t total_errors = 0;
     int exit_status = EXIT_FAILURE;
 
+   /* аудит */
+    if( ak_log_get_level() > ak_log_standard )
+      ak_error_message_fmt( ak_error_ok, __func__,
+                                                 _("checking all files from selected catalogues"));
    /* обнуляем счетчики */
     memset( &ki->statistical_data, 0, sizeof( struct icode_stat ));
 

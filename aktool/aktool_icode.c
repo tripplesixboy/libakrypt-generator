@@ -30,7 +30,7 @@
  int aktool_icode( int argc, tchar *argv[] )
 {
   int next_option = 0, exit_status = EXIT_FAILURE;
-  enum { do_nothing, do_hash, do_check, do_list } work = do_hash;
+  enum { do_nothing, do_hash, do_check, do_list, do_add } work = do_hash;
 
   const struct option long_options[] = {
    /* сначала уникальные */
@@ -54,6 +54,7 @@
      { "pid",                 1, NULL,  166 },
      { "only-one-pid",        1, NULL,  166 },
 #endif
+     { "add",                 0, NULL,  167 },
      { "list",                0, NULL,  'l' },
      { "input",               1, NULL,  'i' },
 
@@ -218,6 +219,10 @@
                    work = do_list;
                    break;
 
+        case 167: /* --add дополняем существующий список */
+                   work = do_add;
+                   break;
+
         case 'i': /* --input устанавливаем имя для файла с результатами */
                  #ifdef _WIN32
                    GetFullPathName( optarg, FILENAME_MAX, ki.pubkey_file, NULL );
@@ -306,6 +311,15 @@
     case do_hash:
      /* создаем таблицу для хранения контрольных сумм */
        if( ak_htable_create( &ki.icodes, ki.icode_lists_count ) != ak_error_ok ) goto exitlab;
+     /* выполняем вычисления */
+       if(( exit_status = aktool_icode_evaluate( &ki )) != EXIT_SUCCESS ) goto exitlab;
+      /* сохраняем результат */
+       exit_status = aktool_icode_export_checksum( &ki );
+      break;
+
+    case do_add:
+     /* считываем таблицу с сохраненными значениями контрольных сумм */
+      if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
      /* выполняем вычисления */
        if(( exit_status = aktool_icode_evaluate( &ki )) != EXIT_SUCCESS ) goto exitlab;
       /* сохраняем результат */
@@ -492,6 +506,7 @@
 {
   printf(_("aktool icode [options] [files or directories] - creation and verification of integrity codes\n\n"));
   printf(_("available options:\n"));
+  printf(_("     --add               add new authentication or integrity codes to an existing database\n"));
   printf(_(" -a, --algorithm         set the name or identifier of keyless integrity mechanism\n"));
   printf(_("                         [ enabled values:"));
  /* выводим перечень доступных идентификаторов */
