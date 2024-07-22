@@ -38,6 +38,9 @@
       ki->icode_file = ( ak_function_icode_file *) ak_hash_file;
      #ifdef AK_HAVE_GELF_H
       ki->icode_ptr = ( ak_function_icode_ptr *) ak_hash_ptr;
+      ki->icode_clean = ( ak_function_clean *) ak_hash_clean;
+      ki->icode_update = ( ak_function_update *) ak_hash_update;
+      ki->icode_finalize = ( ak_function_finalize *) ak_hash_finalize;
      #endif
 
       ki->size = ak_hash_get_tag_size( ki->handle );
@@ -63,6 +66,9 @@
          ki->icode_file = ( ak_function_icode_file *) ak_hmac_file;
        #ifdef AK_HAVE_GELF_H
          ki->icode_ptr = ( ak_function_icode_ptr *) ak_hmac_ptr;
+         ki->icode_clean = ( ak_function_clean *) ak_hmac_clean;
+         ki->icode_update = ( ak_function_update *) ak_hmac_update;
+         ki->icode_finalize = ( ak_function_finalize *) ak_hmac_finalize;
        #endif
          ki->size = ak_hmac_get_tag_size( ki->handle );
          ki->method = koid;
@@ -79,6 +85,9 @@
          ki->icode_file = ( ak_function_icode_file *) ak_bckey_cmac_file;
         #ifdef AK_HAVE_GELF_H
          ki->icode_ptr = ( ak_function_icode_ptr *) ak_bckey_cmac;
+         ki->icode_clean = ( ak_function_clean *) ak_bckey_cmac_clean;
+         ki->icode_update = ( ak_function_update *) ak_bckey_cmac_update;
+         ki->icode_finalize = ( ak_function_finalize *) ak_bckey_cmac_finalize;
         #endif
          ki->size = ((ak_bckey)ki->handle)->bsize;
          break;
@@ -617,65 +626,61 @@
  static int aktool_icode_check_maps_segment( size_t length, ak_keypair kp, aktool_ki_t *ki )
 {
     struct file fm;
+    ak_uint8 *iptr = NULL;
     ak_pointer dkey = NULL;
-    int error = ak_error_ok;
-    char fmemory[128], icode[128];
-    ak_uint8 *buffer = NULL, *iptr = NULL;
+    char fmemory[128], icode[128], buffer[4096];
 
    /* формируем имя */
     memset( fmemory, 0, sizeof( fmemory ));
     ak_snprintf( fmemory, sizeof( fmemory ), "/proc/%d/mem", ki->pid );
 
-    printf("TRYING TO READ: %s\n", fmemory );
-
-
    /* открываем файл */
-    if( ak_file_open_to_read( &fm, fmemory ) != ak_error_ok )
-      return ak_error_message_fmt( ak_error_access_file, __func__,
+    if( ak_file_open_to_read( &fm, fmemory ) != ak_error_ok ) {
+      ak_error_message_fmt( ak_error_access_file, __func__,
                                                    _("access to file %s is'nt granted"), fmemory );
-   /* присоединяемся и блокируем процесс */
-    if( ptrace( PTRACE_ATTACH, ki->pid, NULL, NULL) < 0 ) {
-      ak_file_close( &fm );
-      return ak_error_message_fmt( ak_error_access_file, __func__,
-                                                  _("ptrace attach error: %s"), strerror( errno ));
+      return ak_error_ok;
     }
-    waitpid( ki->pid, NULL, 0 );
 
-    printf("TRYING TO ALLOCATE on STACK %llu bytes\n", length );
-
-   /* получаем данные */
-    if(( buffer = alloca( length )) == NULL ) {
-      ak_file_close( &fm );
-      return ak_error_message_fmt( ak_error_out_of_memory, __func__,
-                                                      _("segment exceeds the allowed stack size"));
-    }
-    printf("ALLOCATE IS OK\n" );
-
-
-    lseek( fm.fd, ki->curmem.st_addr, SEEK_SET );
-    if( read( fm.fd, buffer, length ) != length ) {
-      ak_file_close( &fm );
-      return ak_error_message_fmt( ak_error_read_data, __func__,
-                                                     _("read data error (%s)"), strerror( errno ));
-    }
-   /* отсоединяемся */
-    if( ptrace( PTRACE_DETACH, ki->pid, NULL, NULL) < 0 ) {
-      ak_file_close( &fm );
-      return ak_error_message_fmt( ak_error_access_file, __func__,
-                                                  _("ptrace detach error: %s"), strerror( errno ));
-    }
-    ak_file_close( &fm );
-
-   /* только теперь выполняем проверку целостности считанных из памяти данных */
    /* вычисляем производный ключ */
     if(( dkey = aktool_icode_get_derived_key( (char *)kp->data, ki, NULL )) == NULL ) {
+      ak_file_close( &fm );
+      aktool_error(_("incorrect creation of derived key for %s line"), kp->data );
       return ak_error_message_fmt( ak_error_get_value(), __func__,
                                     _("incorrect creation of derived key for %s line"), kp->data );
     }
 
-   /* вычисляем контрольную сумму от считанной ранее области памяти */
-    error = ki->icode_ptr( dkey, buffer, length, icode, ki->size );
-    if( dkey != ki->handle ) ak_skey_delete( dkey );
+   /* присоединяемся и блокируем процесс */
+    if( ptrace( PTRACE_ATTACH, ki->pid, NULL, NULL) < 0 ) {
+      ak_error_message_fmt( ak_error_access_file, __func__,
+                                                  _("ptrace attach error: %s"), strerror( errno ));
+      goto labexit;
+    }
+    waitpid( ki->pid, NULL, 0 );
+
+   /* считываем данные небольшими фрагментами и формируем контрольную сумму */
+    lseek( fm.fd, ki->curmem.st_addr, SEEK_SET );
+    ki->icode_clean( dkey );
+    while( length > 0 ) {
+     size_t rlen = read( fm.fd, buffer, ak_min( length, sizeof( buffer )));
+     size_t rem = rlen%ki->size;
+     if( rem == 0 ) ki->icode_update( dkey, buffer, rlen );
+      else {
+        ki->icode_finalize( dkey, buffer, rlen, icode, ki->size );
+        break;
+      }
+     length -= rlen;
+     if(( length == 0 ) && ( rem == 0 )) {
+       ki->icode_finalize( dkey, NULL, 0, icode, ki->size );
+       break;
+     }
+    }
+
+   /* отсоединяемся */
+    if( ptrace( PTRACE_DETACH, ki->pid, NULL, NULL) < 0 ) {
+      ak_error_message_fmt( ak_error_access_file, __func__,
+                                                  _("ptrace detach error: %s"), strerror( errno ));
+      goto labexit;
+    }
 
    /* сравниваем значения */
     if( kp->value_length == ki->size +8 ) iptr = ( kp->data + kp->key_length + 8 );
@@ -685,14 +690,17 @@
       ak_error_message_fmt( ak_error_not_equal_data, __func__,
                                                      _("segment %s has been modified"), kp->data );
       aktool_error(_("segment %s has been modified"), kp->data );
-      return ak_error_not_equal_data;
     }
      else {
        if( ak_log_get_level() > ak_log_standard )
          ak_error_message_fmt( ak_error_ok, __func__, _("segment %s is Ok"), kp->data );
      }
 
- return error;
+   labexit:
+    if( dkey != ki->handle ) ak_skey_delete( dkey );
+    ak_file_close( &fm );
+
+ return ak_error_ok;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -720,16 +728,17 @@
                 &ki->curmem.st_addr, &ki->curmem.en_addr, &r, &w, &x, &s, &ki->curmem.offset,
                                                        &major, &minor, &inode, filename ) < 11 ) {
       if( inode != 0 || major != 0 || minor != 0 ) /* иначе это нулевая страница */
-        return ak_error_message_fmt( ak_error_undefined_value, __func__,
+        ak_error_message_fmt( ak_error_undefined_value, __func__,
                                                            _("unexpected map's line %s"), buffer );
       return ak_error_ok;
     }
 
-   printf("%c%c%c%c %s\n", r, w, x, s, filename );
-
    /* обрабатываем флаги доступа */
-    if( r != 'r' ) return ak_error_message_fmt( ak_error_access_file, __func__,
+    if( r != 'r' ) {
+      ak_error_message_fmt( ak_error_access_file, __func__,
                                               _("segment that cannot be read (line %s)"), buffer );
+      return ak_error_ok;
+    }
     if( w == 'w' ) return ak_error_ok; /* сегмент с правами на запись */
     if( memcmp( old_name, filename, strlen( filename )) == 0 ) { /* надо разобраться */
       if(( r == 'r' ) && ( s == 'p' ) && ( x == '-' )) {
@@ -745,36 +754,43 @@
       }
 
    /* обрабатыаем специальные сегменты */
-    if(( flen = strlen(filename)) == 0 )
-      return ak_error_message_fmt( ak_error_zero_length, __func__,
+    if(( flen = strlen(filename)) == 0 ) {
+      ak_error_message_fmt( ak_error_zero_length, __func__,
                                                _("zero length of loaded file (line %s)"), buffer );
+      return ak_error_ok;
+    }
     if( filename[0] == '[' ) {
-      if( flen < 2 )
-        return ak_error_message_fmt( ak_error_wrong_length, __func__,
+      if( flen < 2 ) {
+        ak_error_message_fmt( ak_error_wrong_length, __func__,
                                             _("short name of special segment (line %s)"), buffer );
+        return ak_error_ok;
+      }
       filename[ strlen(filename) -1 ] = 0;
      /* обработка специальных сегментов пока не реализована */
       return ak_error_ok;
     }
 
-   printf("TRYING: %s\n", filename );
-
-   /* проверяем, что файл не имеет структуру исполняемого файла (elf) */
-    if( ak_file_open_to_read( &fp, filename ) != ak_error_ok )
-      return ak_error_message_fmt( ak_error_access_file, __func__,
-                                                        "link to non-existent file %s", filename );
-    if(( e = elf_begin( fp.fd, ELF_C_READ, NULL )) == NULL ) {
-      ak_file_close( &fp );
-      return ak_error_message_fmt( ak_error_access_file, __func__,
-                                             _("elf_begin() function failed: %s"), elf_errmsg(-1));
-    }
-
    /* статистика */
     ki->statistical_data.segments++;
+
+   /* проверяем, что файл не имеет структуру исполняемого файла (elf) */
+    if( ak_file_open_to_read( &fp, filename ) != ak_error_ok ) {
+      aktool_error(_("link to non-existent file %s"), filename );
+      error = ak_error_message_fmt( ak_error_access_file, __func__,
+                                                     _("link to non-existent file %s"), filename );
+      goto labexit;
+    }
+    if(( e = elf_begin( fp.fd, ELF_C_READ, NULL )) == NULL ) {
+      ak_file_close( &fp );
+      error = ak_error_message_fmt( ak_error_access_file, __func__,
+                                             _("elf_begin() function failed: %s"), elf_errmsg(-1));
+      goto labexit;
+    }
 
    /* рассматриваем каждый случай отдельно */
     if( elf_kind(e) != ELF_K_ELF ) {
       if(( kp = ak_htable_get_keypair_str( &ki->icodes, filename )) == NULL ) {
+        aktool_error(_("link to non-controlled file %s"), filename );
         error = ak_error_message_fmt( ak_error_htable_key_not_found, __func__,
                                                    _("link to non-controlled file %s"), filename );
       }
@@ -784,10 +800,8 @@
       /* формируем строку для поиска */
        ak_snprintf( segment_value, sizeof( segment_value ) -1,
                                                          "%s/%08jx", filename, ki->curmem.offset );
-
-       printf("SEGMENTVal: %s\n", segment_value );
-
        if(( kp = ak_htable_get_keypair_str( &ki->icodes, segment_value )) == NULL ) {
+         aktool_error(_("link to non-controlled segment %s"), segment_value );
          error = ak_error_message_fmt( ak_error_htable_key_not_found, __func__,
                                            _("link to non-controlled segment %s"), segment_value );
        }
@@ -802,9 +816,11 @@
     ak_file_close( &fp );
 
    /* статистика */
-    if( error != ak_error_ok ) ki->statistical_data.skipped_segments++;
+   labexit:
+    if( error != ak_error_ok )
+      ki->statistical_data.skipped_segments++;
 
- return error;
+ return ak_error_ok;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -819,7 +835,9 @@
    /* формируем имя каталога, который будет использоваться далее */
     memset( cat, 0, sizeof( cat ));
     ak_snprintf( cat, sizeof(cat), "/proc/%d", ki->pid );
-
+    if( ak_log_get_level() > ak_log_standard )
+      ak_error_message_fmt( ak_error_ok, __func__, _("checking the pid %llu"),
+                                                                (long long unsigned int) ki->pid );
    /* статистика */
     ki->statistical_data.processes++;
 

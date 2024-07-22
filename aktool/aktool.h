@@ -80,6 +80,12 @@
 #ifdef AK_HAVE_GELF_H
   /* указатель на функцию криптографического сжатия информации */
    ak_function_icode_ptr *icode_ptr;
+  /* указатель на функцию очистки контекста */
+  ak_function_clean *icode_clean;
+  /* указатель на функцию обработки одного блока */
+  ak_function_update *icode_update;
+  /* указатель на функцию завершения обработки */
+  ak_function_finalize *icode_finalize;
 #endif
   /* указатель на функцию криптографического сжатия информации */
    ak_function_icode_file *icode_file;
