@@ -24,21 +24,29 @@
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Функция выводит все контрольные суммы в консоль */
- void aktool_icode_out_all( FILE *fp, aktool_ki_t *ki )
+ int aktool_icode_out_all( FILE *fp, aktool_ki_t *ki )
 {
-    size_t i = 0;
+    size_t i = 0, cnt = 0;
 
    /* перебираем всю хеш-таблицу */
     for( i = 0; i < ki->icodes.count; i++ ) {
        ak_list list = &ki->icodes.list[i];
+       cnt += list->count;
        if( list->count == 0 ) continue;
        ak_list_first( list );
        do{
          ak_keypair kp = (ak_keypair)list->current->data;
-         aktool_icode_out( fp, (const char *)kp->data,
+         if( !ki->quiet ) aktool_icode_out( fp, (const char *)kp->data,
                                                    ki, kp->data+kp->key_length, kp->value_length );
        } while( ak_list_next( list ));
     }
+
+   /* выводим статистику  */
+    if(( !ki->quiet ) && ( !ki->dont_show_stat )) {
+      printf(_("the database contains %llu values\n"), (long long unsigned int) cnt );
+    }
+
+ return EXIT_SUCCESS;
 }
 
 /* ----------------------------------------------------------------------------------------------- */

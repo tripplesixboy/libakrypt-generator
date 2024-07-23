@@ -212,8 +212,10 @@
 #ifdef AK_HAVE_GELF_H
   /* текущий процесс для проверки целостности */
    pid_t pid;
-  /* список номеров всех выполняющихся процессов */
-   struct list pidlist;
+  /* минимальный номер процесса для проверки целостности */
+   pid_t min_pid;
+  /* максимальный номер процесса для проверки целостности */
+   pid_t max_pid;
   /* текущий фрагмент карты памяти */
    memaddr_t curmem;
 #endif
@@ -300,7 +302,7 @@
 /* вывод контрольной суммы в консоль */
  void aktool_icode_out( FILE * , const char * , aktool_ki_t * , ak_uint8 * , const size_t );
 /* вывод всех контрольных сумм в консоль */
- void aktool_icode_out_all( FILE * , aktool_ki_t * );
+ int aktool_icode_out_all( FILE * , aktool_ki_t * );
 /* сохранение файла с вычисленными контрольными суммами */
  int aktool_icode_export_checksum( aktool_ki_t * );
 /* чтение файла с вычисленными ранее контрольными суммами */

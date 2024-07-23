@@ -53,8 +53,10 @@
      { "only-segments",       0, NULL,  165 },
      { "pid",                 1, NULL,  166 },
      { "only-one-pid",        1, NULL,  166 },
+     { "min-pid",             1, NULL,  167 },
+     { "max-pid",             1, NULL,  168 },
 #endif
-     { "add",                 0, NULL,  167 },
+     { "add",                 0, NULL,  169 },
      { "list",                0, NULL,  'l' },
      { "input",               1, NULL,  'i' },
 
@@ -97,6 +99,8 @@
   ki.only_segments = ak_false;
   ki.dont_show_icode = ak_false;
   ki.pid = -1;
+  ki.min_pid = 1;
+  ki.max_pid = 2147483647; /* максимальное знаковое четырехбайтное целое */
 
  /* разбираем опции командной строки */
   do {
@@ -219,7 +223,7 @@
                    work = do_list;
                    break;
 
-        case 167: /* --add дополняем существующий список */
+        case 169: /* --add дополняем существующий список */
                    work = do_add;
                    break;
 
@@ -271,6 +275,15 @@
                    }
                    ki.ignore_segments = ak_false;
                    break;
+
+        case 167: /* --min-pid */
+                   if(( ki.min_pid = atol( optarg )) == 0 ) ki.min_pid = 1;
+                   break;
+
+        case 168: /* --max-pid */
+                   if(( ki.max_pid = atol( optarg )) == 0 ) ki.min_pid = 2147483647;
+                   break;
+
 #endif
         default:  /* обрабатываем ошибочные параметры */
                    if( next_option != -1 ) goto exitlab;
@@ -309,55 +322,56 @@
  /* теперь выбираем, что делать */
   switch( work ) {
     case do_hash:
-     /* создаем таблицу для хранения контрольных сумм */
+      /* создаем таблицу для хранения контрольных сумм */
        if( ak_htable_create( &ki.icodes, ki.icode_lists_count ) != ak_error_ok ) goto exitlab;
-     /* выполняем вычисления */
+      /* выполняем вычисления */
        if(( exit_status = aktool_icode_evaluate( &ki )) != EXIT_SUCCESS ) goto exitlab;
       /* сохраняем результат */
        exit_status = aktool_icode_export_checksum( &ki );
       break;
 
     case do_add:
-     /* считываем таблицу с сохраненными значениями контрольных сумм */
-      if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
-     /* выполняем вычисления */
+      /* считываем таблицу с сохраненными значениями контрольных сумм */
+       if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
+      /* выполняем вычисления */
        if(( exit_status = aktool_icode_evaluate( &ki )) != EXIT_SUCCESS ) goto exitlab;
       /* сохраняем результат */
        exit_status = aktool_icode_export_checksum( &ki );
       break;
 
     case do_check:
-     /* считываем таблицу с сохраненными значениями контрольных сумм */
-      if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
-     /* создаем контекст алгоритма хеширования или имитозащиты */
-      if( aktool_icode_create_handle( &ki ) != ak_error_ok ) goto exitlab;
-     /* выполняем проверку оперативной памяти */
-      if(( ki.only_segments ) || ( !ki.ignore_segments )) {
-       if(( exit_status = aktool_icode_check_processes( &ki )) != EXIT_SUCCESS ) {
-         aktool_icode_destroy_handle( &ki );
-         goto exitlab;
+      /* считываем таблицу с сохраненными значениями контрольных сумм */
+       if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
+      /* создаем контекст алгоритма хеширования или имитозащиты */
+       if( aktool_icode_create_handle( &ki ) != ak_error_ok ) goto exitlab;
+      /* выполняем проверку оперативной памяти */
+       if(( ki.only_segments ) || ( !ki.ignore_segments )) {
+         if(( exit_status = aktool_icode_check_processes( &ki )) != EXIT_SUCCESS ) {
+           aktool_icode_destroy_handle( &ki );
+           goto exitlab;
+         }
        }
-      }
-     /* выполняем проверку файловой системы,
-        логика проверки заключается в следующем:
-        - если указаны файлы или каталоги, тогда происходит поиск файлов
-          и проверка их контрольных сумм на соотвествие значениям из базы данных
-        - если файлы не определены, то перебираются все файлы из сформированной базы данных */
-      if( ! ki.only_segments) {
-        if( !( ki.include_file.count + ki.include_path.count ))
-          exit_status = aktool_icode_check_from_database( &ki );
-         else
-          exit_status = aktool_icode_check_from_directory( &ki );
-      }
-     /* уничтожаем контекст алгоритма хеширования или имитозащиты */
-      aktool_icode_destroy_handle( &ki );
+
+      /* выполняем проверку файловой системы,
+         логика проверки заключается в следующем:
+         - если указаны файлы или каталоги, тогда происходит поиск файлов
+           и проверка их контрольных сумм на соотвествие значениям из базы данных
+         - если файлы не определены, то перебираются все файлы из сформированной базы данных */
+       if( ! ki.only_segments) {
+         if( !( ki.include_file.count + ki.include_path.count ))
+           exit_status = aktool_icode_check_from_database( &ki );
+          else
+           exit_status = aktool_icode_check_from_directory( &ki );
+       }
+      /* уничтожаем контекст алгоритма хеширования или имитозащиты */
+       aktool_icode_destroy_handle( &ki );
       break;
 
     case do_list:
      /* считываем таблицу с сохраненными значениями контрольных сумм */
       if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
      /* выводим все, что есть */
-      aktool_icode_out_all( stdout, &ki );
+      exit_status = aktool_icode_out_all( stdout, &ki );
       break;
     default:
       break;
@@ -531,6 +545,8 @@
   printf(_("     --key               specify the name of file with the secret key\n"));
   printf(_("                         this option also sets the type of keyed authentication mechanism\n"));
   printf(_(" -l, --list              list the table of previously created authentication or integrity codes\n"));
+  printf(_("     --max-pid           set the maximal identifier of verified process [default: %d]\n"), ki.max_pid );
+  printf(_("     --min-pid           set the minimal identifier of verified process [default: %d]\n"), ki.min_pid );
   printf(_("     --no-derive         do not use the keyed authentication mechanism's derived key for each controlled entity\n"));
   printf(_("                         this may cause an error due to the exhaustion of a key resource\n"));
 #ifdef AK_HAVE_GELF_H
