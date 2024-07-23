@@ -59,6 +59,7 @@
      { "add",                 0, NULL,  169 },
      { "list",                0, NULL,  'l' },
      { "input",               1, NULL,  'i' },
+     { "search-deleted",      0, NULL,  170 },
 
     /* аналоги из aktool_key */
      { "key",                 1, NULL,  203 },
@@ -101,6 +102,7 @@
   ki.pid = -1;
   ki.min_pid = 1;
   ki.max_pid = 2147483647; /* максимальное знаковое четырехбайтное целое */
+  ki.search_deleted = ak_false;
 
  /* разбираем опции командной строки */
   do {
@@ -283,8 +285,12 @@
         case 168: /* --max-pid */
                    if(( ki.max_pid = atol( optarg )) == 0 ) ki.min_pid = 2147483647;
                    break;
-
 #endif
+
+        case 170: /* --search-deleted */
+                   ki.search_deleted = ak_true;
+                   break;
+
         default:  /* обрабатываем ошибочные параметры */
                    if( next_option != -1 ) goto exitlab;
                    break;
@@ -358,10 +364,12 @@
            и проверка их контрольных сумм на соотвествие значениям из базы данных
          - если файлы не определены, то перебираются все файлы из сформированной базы данных */
        if( ! ki.only_segments) {
-         if( !( ki.include_file.count + ki.include_path.count ))
+         if( !( ki.include_file.count + ki.include_path.count )) {
            exit_status = aktool_icode_check_from_database( &ki );
-          else
-           exit_status = aktool_icode_check_from_directory( &ki );
+         }
+          else {
+            exit_status = aktool_icode_check_from_directory( &ki );
+          }
        }
       /* уничтожаем контекст алгоритма хеширования или имитозащиты */
        aktool_icode_destroy_handle( &ki );
@@ -373,6 +381,7 @@
      /* выводим все, что есть */
       exit_status = aktool_icode_out_all( stdout, &ki );
       break;
+
     default:
       break;
   }
@@ -560,6 +569,7 @@
 #endif
   printf(_(" -r, --recursive         recursive search of files\n"));
   printf(_("     --reverse-order     output of authentication or integrity code in reverse byte order\n"));
+  printf(_("     --search-deleted    additional search for deleted files in the process of verifying directories\n"));
   printf(_("     --tag               create a BSD-style hash table format\n"));
   printf(_(" -v, --verify            verify previously created authentication or integrity codes\n"));
 #ifdef AK_HAVE_GELF_H

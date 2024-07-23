@@ -545,9 +545,6 @@
    /* обнуляем счетчики */
     memset( &ki->statistical_data, 0, sizeof( struct icode_stat ));
 
-   /* создаем контекст алгоритма хеширования или имитозащиты */
-    if( aktool_icode_create_handle( ki ) != ak_error_ok ) return EXIT_FAILURE;
-
    /* начинаем с обхода файлов */
     if( ki->include_file.count ) {
       ak_list_first( &ki->include_file );
@@ -573,24 +570,25 @@
       } while( ak_list_next( &ki->include_path ));
 
      /* осталось найти то, что осталось непроверенным */
-      for( size_t i = 0; i < ki->icodes.count; i++ ) {
-         ak_list list = &ki->icodes.list[i];
-         if( list->count == 0 ) continue;
-         ak_list_first( list );
-         do{
-            ak_keypair kp = (ak_keypair)list->current->data;
-            // printf("    - [key: %s, val: %s]\n", kp->data,
-            //   ak_ptr_to_hexstr( kp->data + kp->key_length,  kp->value_length, ak_false ));
+      if( ki->search_deleted ) {
+        for( size_t i = 0; i < ki->icodes.count; i++ ) {
+           ak_list list = &ki->icodes.list[i];
+           if( list->count == 0 ) continue;
+           ak_list_first( list );
+           do{
+              ak_keypair kp = (ak_keypair)list->current->data;
+             // printf("    - [key: %s, val: %s]\n", kp->data,
+             //   ak_ptr_to_hexstr( kp->data + kp->key_length,  kp->value_length, ak_false ));
 
-            if( kp->value_length == ki->size ) {
-            /**/
-              ki->statistical_data.total_files++;
-              ki->statistical_data.deleted_files++;
-              aktool_error(_("%s has been deleted"), kp->data );
-              ak_error_message_fmt( ak_error_file_exists, __func__, _("%s has been deleted"), kp->data );
-            }
-         } while( ak_list_next( list ));
-      }
+              if( kp->value_length == ki->size ) {
+                ki->statistical_data.total_files++;
+                ki->statistical_data.deleted_files++;
+                aktool_error(_("%s has been deleted"), kp->data );
+                ak_error_message_fmt( ak_error_file_exists, __func__, _("%s has been deleted"), kp->data );
+              }
+           } while( ak_list_next( list ));
+        }
+      } /* if( search_deleted ) */
     } /* if( include_path ) */
 
    /* финальное сообщение об ошибках */
