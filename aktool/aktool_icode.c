@@ -307,11 +307,11 @@
  /* начинаем работу с криптографическими примитивами */
   if( !aktool_create_libakrypt( )) goto exitlab;
 
- // /* считываем оставшиеся конфигурационные настройки из заданного файла */
- //  if( strlen( ki.capubkey_file ) > 0 ) {
- //    if(( exit_status = aktool_icode_read_config( ki.capubkey_file, &ki )) != ak_error_ok )
- //      goto exitlab;
- //  }
+ /* считываем оставшиеся конфигурационные настройки из заданного файла */
+  if( strlen( ki.capubkey_file ) > 0 ) {
+    if(( exit_status = aktool_icode_read_config( ki.capubkey_file, &ki )) != ak_error_ok )
+      goto exitlab;
+  }
 
  /* разбираемся с именем файла для чтения или сохранения результатов */
   if( strlen( ki.pubkey_file ) == 0 ) {
