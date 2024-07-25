@@ -268,7 +268,6 @@
 
    /* проверяем черный список */
     if( ak_htable_get_str( &ki->exclude_file, value, NULL ) != NULL ) return ak_error_ok;
-
    /* статистика */
     ki->statistical_data.total_files++;
 

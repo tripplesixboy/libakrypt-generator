@@ -328,15 +328,22 @@
  /* теперь выбираем, что делать */
   switch( work ) {
     case do_hash:
+      /* аудит */
+       if( ak_log_get_level() > ak_log_standard ) ak_error_message( ak_error_ok, __func__,
+                                        _("performing the integrity codes calculation procedure"));
       /* создаем таблицу для хранения контрольных сумм */
        if( ak_htable_create( &ki.icodes, ki.icode_lists_count ) != ak_error_ok ) goto exitlab;
-      /* выполняем вычисления */
-       if(( exit_status = aktool_icode_evaluate( &ki )) != EXIT_SUCCESS ) goto exitlab;
-      /* сохраняем результат */
-       exit_status = aktool_icode_export_checksum( &ki );
+      /* выполняем вычисления и сохраняем результат */
+       if(( exit_status = aktool_icode_evaluate( &ki )) != EXIT_SUCCESS )
+         aktool_icode_export_checksum( &ki );
+        else
+         exit_status = aktool_icode_export_checksum( &ki );
       break;
 
     case do_add:
+      /* аудит */
+       if( ak_log_get_level() > ak_log_standard ) ak_error_message( ak_error_ok, __func__,
+                               _("performing the integrity codes addition to database procedure"));
       /* считываем таблицу с сохраненными значениями контрольных сумм */
        if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
       /* выполняем вычисления */
@@ -346,6 +353,8 @@
       break;
 
     case do_check:
+       if( ak_log_get_level() > ak_log_standard ) ak_error_message( ak_error_ok, __func__,
+                                                     _("verifying the integrity codes procedure"));
       /* считываем таблицу с сохраненными значениями контрольных сумм */
        if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
       /* создаем контекст алгоритма хеширования или имитозащиты */
@@ -376,6 +385,8 @@
       break;
 
     case do_list:
+       if( ak_log_get_level() > ak_log_standard ) ak_error_message( ak_error_ok, __func__,
+                                                       _("listing the integrity codes procedure"));
      /* считываем таблицу с сохраненными значениями контрольных сумм */
       if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
      /* выводим все, что есть */
@@ -518,8 +529,25 @@
    }
 
   /* установленные пользователем настройки программы */
-   if( strlen( ki->pubkey_file ) != 0 )
-     ak_error_message_fmt( ak_error_ok, __func__, _("checksum database: %s"), ki->pubkey_file );
+   if( strlen( ki->pubkey_file ) != 0 ) {
+     ak_error_message_fmt( ak_error_ok, __func__, _("database file: %s"),
+                                                                                 ki->pubkey_file );
+     ak_error_message_fmt( ak_error_ok, __func__, _("database format: %s"),
+          ki->field == format_binary ? "binary" : ( ki->field == format_linux ? "linux" : "bsd" ));
+     ak_error_message_fmt( ak_error_ok, __func__, _("database nodes: %u"), ki->icode_lists_count );
+   }
+
+  /* вывод поддерживаемых через конфиг опций */
+   if( ki->reverse_order )
+     ak_error_message_fmt( ak_error_ok, __func__, _("reverse output: true"));
+   if( ki->pattern != NULL )
+     ak_error_message_fmt( ak_error_ok, __func__, _("file pattern: %s"), ki->pattern );
+
+   ak_error_message_fmt( ak_error_ok, __func__, _("recursive directory traversal: %s"),
+                                                                     ki->tree ? "true" : "false" );
+
+
+//   ak_error_message_fmt( ak_error_ok, __func__, _("algorithm: %s"), ki->method->name[0] );
 }
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -550,7 +578,6 @@
   printf(_("     --inpass            set the password for the secret key to be read directly in command line\n"));
   printf(_("     --inpass-hex        set the password for the secret key to be read directly in command line as hexademal string\n"));
   printf(_(" -i, --input             set the name of file with previously created authentication or integrity codes\n"));
-  printf(_("                         [ default name: %s]\n"), aktool_icode_database_file );
   printf(_("     --key               specify the name of file with the secret key\n"));
   printf(_("                         this option also sets the type of keyed authentication mechanism\n"));
   printf(_(" -l, --list              list the table of previously created authentication or integrity codes\n"));
@@ -563,6 +590,7 @@
   printf(_("     --only-segments     create or verify authentication or integrity codes only for downloadable segments\n"));
 #endif
   printf(_(" -o, --output            set the output file for created authentication or integrity codes\n"));
+  printf(_("                         [ default name: %s]\n"), aktool_icode_database_file );
   printf(_(" -p, --pattern           set the pattern which is used to find files\n"));
 #ifdef AK_HAVE_GELF_H
   printf(_("     --pid               short form of --only-one-pid option\n"));

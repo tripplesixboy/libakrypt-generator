@@ -317,6 +317,8 @@
 /* проверка контрольных сумм для процессов в оперативной памяти */
  int aktool_icode_check_processes( aktool_ki_t * );
 #endif
+/* чтение файла с конфигурацией */
+ int aktool_icode_read_config( char * , aktool_ki_t * );
 
 /* ----------------------------------------------------------------------------------------------- */
  typedef enum { do_nothing, do_encrypt, do_decrypt } encrypt_t;

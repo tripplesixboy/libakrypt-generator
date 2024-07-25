@@ -320,6 +320,7 @@ set( AKTOOL_SOURCES
      aktool/aktool_icode.c
      aktool/aktool_icode_evaluate.c
      aktool/aktool_icode_export_import.c
+     aktool/aktool_icode_config.c
      aktool/aktool_encrypt.c
    )
 set( AKTOOL_FILES

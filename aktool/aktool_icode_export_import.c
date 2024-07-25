@@ -7,6 +7,9 @@
 /* ----------------------------------------------------------------------------------------------- */
  #include "aktool.h"
  #include <libakrypt.h>
+#ifdef AK_HAVE_ERRNO_H
+ #include <errno.h>
+#endif
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Функция выводит контрольную сумму в консоль */
@@ -64,10 +67,10 @@
     if( ki->field == format_bsd ) ki->tag = ak_true;
 
     switch( ki->field ) {
-
       case format_binary:
         if( ak_htable_export_to_file( &ki->icodes, ki->pubkey_file ) != ak_error_ok )
-          aktool_error(_("incorrectly writing results to a file %s"), ki->pubkey_file );
+          aktool_error(_("incorrectly writing results to a file %s (%s)"),
+                                                               ki->pubkey_file, strerror( errno ));
          else {
            exit_status = EXIT_SUCCESS;
          }
@@ -75,7 +78,8 @@
 
       default: /* выводим в текстовом формате */
         if(( fp = fopen( ki->pubkey_file, "w" )) == NULL ) {
-          aktool_error(_("incorrect output checksum to file %s"), ki->pubkey_file );
+          aktool_error(_("incorrect output checksum to file %s (%s)"),
+                                                               ki->pubkey_file, strerror( errno ));
           break;
         }
 
