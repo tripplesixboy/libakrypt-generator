@@ -22,14 +22,15 @@
     if(( memcmp( name, "input", 5 ) == 0 ) ||
        ( memcmp( name, "output", 6 ) == 0  ) ||
        ( memcmp( name, "database", 8 ) == 0 )) {
-    #ifdef _WIN32
-     GetFullPathName( value, FILENAME_MAX, ki->pubkey_file, NULL );
-    #else
-     if( ak_realpath( value, ki->pubkey_file, sizeof( ki->pubkey_file ) -1 ) != ak_error_ok ) {
-       aktool_error(_("the full name of checksum file \"%s\" cannot be created"), value );
-       return 0;
-     }
-    #endif
+     #ifdef _WIN32
+      GetFullPathName( value, FILENAME_MAX, ki->pubkey_file, NULL );
+     #else
+      if( ak_realpath( value, ki->pubkey_file, sizeof( ki->pubkey_file ) -1 ) != ak_error_ok ) {
+        aktool_error(_("the full name of checksum file \"%s\" cannot be created"), value );
+        return 0;
+      }
+     #endif
+      return 1;
     }
 
    /* --format устанавливаем формат хранения вычисленных/проверочных значений */
@@ -37,26 +38,70 @@
       if( memcmp( value, "bsd", 3 ) == 0 ) ki->field = format_bsd;
       if( memcmp( value, "linux", 5 ) == 0 ) ki->field = format_linux;
       if( memcmp( value, "binary", 6 ) == 0 ) ki->field = format_binary;
+      return 1;
     }
 
    /* --hash-table-nodes устанавливаем количество узлов верхнего уровня в хеш-таблице
                       результирующее значение всегда находится между 16 и 4096 */
     if( memcmp( name, "hash-table-nodes", 16 ) == 0 ) {
       ki->icode_lists_count = ak_min( 4096, ak_max( 16, atoi( value )));
-    }
+      return 1;
+   }
 
    /* --recursive устанавливаем флаг рекурсивного обхода каталогов */
     if( memcmp( name, "recursive", 9 ) == 0 ) {
       if(( memcmp( value, "true", 4 ) == 0 ) || ( memcmp( value, "TRUE", 4 ) == 0 ))
         ki->tree = ak_true;
+      return 1;
     }
 
    /* шаблон поиска файлов */
     if( memcmp( name, "pattern", 7 ) == 0 ) {
       if( ki->pattern != NULL ) free( ki->pattern );
       ki->pattern = strdup( value );
+      return 1;
     }
 
+   /* --algorithm  устанавливаем имя алгоритма бесключевого хеширования */
+    if( memcmp( name, "algorithm", 9 ) == 0 ) {
+      if(( ki->method = ak_oid_find_by_ni( value )) == NULL ) {
+        aktool_error(_("using unsupported name or identifier \"%s\""), value );
+        printf(_("try \"aktool s --oid hash\" for list of all available identifiers\n"));
+        return 0;
+      }
+      if( ki->method->engine != hash_function ) {
+        aktool_error(_("option --algorithm accepts only keyless integrity mechanism"));
+        printf(_("try \"aktool s --oid hash\" for list of all available identifiers\n"));
+        return 0;
+      }
+      return 1;
+    }
+
+   /* --key устанавливаем имя файла, содержащего секретный ключ */
+    if( memcmp( name, "key", 3 ) == 0 ) {
+     #ifdef _WIN32
+      GetFullPathName( value, FILENAME_MAX, ki->key_file, NULL );
+     #else
+      if( ak_realpath( value, ki->key_file, sizeof( ki->key_file ) -1 ) != ak_error_ok ) {
+        aktool_error(_("the full name of key file \"%s\" cannot be created"), value );
+        return 0;
+      }
+     #endif
+      return 1;
+    }
+
+   /* --no-derive */
+    if( memcmp( name, "no-derive", 9 ) == 0 ) {
+      if(( memcmp( value, "false", 5 ) == 0 ) || ( memcmp( value, "FALSE", 5 ) == 0 )) {
+        ki->key_derive = ak_false;
+      }
+      return 1;
+    }
+
+
+    if( ak_log_get_level() > ak_log_standard )
+      ak_error_message_fmt( ak_error_undefined_value, __func__,
+                             "unsupported record in section [%s]: %s = %s", section, name, value );
   return 1;
 }
 
