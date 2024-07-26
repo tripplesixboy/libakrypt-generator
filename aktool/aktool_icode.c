@@ -330,7 +330,7 @@
     case do_hash:
       /* аудит */
        if( ak_log_get_level() > ak_log_standard ) ak_error_message( ak_error_ok, __func__,
-                                        _("performing the integrity codes calculation procedure"));
+                                                                       _("calculation procedure"));
       /* создаем таблицу для хранения контрольных сумм */
        if( ak_htable_create( &ki.icodes, ki.icode_lists_count ) != ak_error_ok ) goto exitlab;
       /* выполняем вычисления и сохраняем результат */
@@ -343,7 +343,7 @@
     case do_add:
       /* аудит */
        if( ak_log_get_level() > ak_log_standard ) ak_error_message( ak_error_ok, __func__,
-                               _("performing the integrity codes addition to database procedure"));
+                                                              _("addition to database procedure"));
       /* считываем таблицу с сохраненными значениями контрольных сумм */
        if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
       /* выполняем вычисления */
@@ -354,7 +354,7 @@
 
     case do_check:
        if( ak_log_get_level() > ak_log_standard ) ak_error_message( ak_error_ok, __func__,
-                                                     _("verifying the integrity codes procedure"));
+                                                                         _("verifying procedure"));
       /* считываем таблицу с сохраненными значениями контрольных сумм */
        if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
       /* создаем контекст алгоритма хеширования или имитозащиты */
@@ -386,7 +386,7 @@
 
     case do_list:
        if( ak_log_get_level() > ak_log_standard ) ak_error_message( ak_error_ok, __func__,
-                                                       _("listing the integrity codes procedure"));
+                                                                           _("listing procedure"));
      /* считываем таблицу с сохраненными значениями контрольных сумм */
       if( aktool_icode_import_checksum( &ki ) != ak_error_ok ) goto exitlab;
      /* выводим все, что есть */

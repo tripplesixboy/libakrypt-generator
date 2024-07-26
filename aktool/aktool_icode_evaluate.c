@@ -119,7 +119,7 @@
 /* ----------------------------------------------------------------------------------------------- */
 /*                      функция выработки производного ключа                                       */
 /* ----------------------------------------------------------------------------------------------- */
- ak_pointer aktool_icode_get_derived_key( const char *value, aktool_ki_t *ki, ak_file fp )
+ ak_pointer aktool_icode_get_derived_key( const char *value, aktool_ki_t *ki, ak_uint64 fp_size )
 {
     struct file infp;
     ak_pointer dkey = NULL;
@@ -130,6 +130,7 @@
       return ki->handle;
      else {
         ak_oid koid = ((ak_skey)ki->handle)->oid;
+
        /* имеем секретный ключ, надо сделать производный того же типа */
         if(( dkey = ak_skey_new_derive_kdf256_from_skey(
                        koid,                           /* идентификатор создаваемого ключа */
@@ -144,7 +145,7 @@
     }
 
    /* если снаружи ни чего не открыто, то делаем это самостоятельно */
-    if( fp != NULL ) total_size = fp->size;
+    if( fp_size != 0 ) total_size = fp_size;
       else {
              if( ak_file_open_to_read( &infp, value ) == ak_error_ok ) {
                total_size = infp.size;
@@ -224,7 +225,7 @@
      /* формируем виртуальное имя файла - ключ доступа в виртуальной таблице */
       ak_snprintf( segment_value, sizeof( segment_value ) -1, "%s/%08jx", value, phdr.p_offset );
      /* при необходимости, формируем производный ключ */
-      if(( dkey = aktool_icode_get_derived_key( segment_value, ki, &fp )) == NULL ) {
+      if(( dkey = aktool_icode_get_derived_key( segment_value, ki, fp.size )) == NULL ) {
         ki->statistical_data.skipped_executables++;
         error = ak_error_null_pointer;
         goto labexit;
@@ -274,7 +275,7 @@
    /* проверяем, что надо контролировать целостность всего файла */
     if( !ki->only_segments ) {
      /* вычисляем производный ключ */
-      if(( dkey = aktool_icode_get_derived_key( value, ki, NULL )) == NULL ) {
+      if(( dkey = aktool_icode_get_derived_key( value, ki, 0 )) == NULL ) {
         ki->statistical_data.skiped_files++;
         return ak_error_null_pointer;
       }
@@ -390,7 +391,7 @@
     ki.statistical_data.total_files++;
 
    /* вычисляем производный ключ */
-    if(( dkey = aktool_icode_get_derived_key( value, &ki, NULL )) == NULL ) {
+    if(( dkey = aktool_icode_get_derived_key( value, &ki, 0 )) == NULL ) {
       ki.statistical_data.skiped_files++;
       return ak_error_get_value();
     }
@@ -650,7 +651,7 @@
     }
 
    /* вычисляем производный ключ */
-    if(( dkey = aktool_icode_get_derived_key( (char *)kp->data, ki, NULL )) == NULL ) {
+    if(( dkey = aktool_icode_get_derived_key( (char *)kp->data, ki, length )) == NULL ) {
       ak_file_close( &fm );
       aktool_error(_("incorrect creation of derived key for %s line"), kp->data );
       return ak_error_message_fmt( ak_error_get_value(), __func__,
@@ -670,17 +671,11 @@
     ki->icode_clean( dkey );
     while( length > 0 ) {
      size_t rlen = read( fm.fd, buffer, ak_min( length, sizeof( buffer )));
-     size_t rem = rlen%ki->size;
-     if( rem == 0 ) ki->icode_update( dkey, buffer, rlen );
-      else {
-        ki->icode_finalize( dkey, buffer, rlen, icode, ki->size );
-        break;
-      }
-     length -= rlen;
-     if(( length == 0 ) && ( rem == 0 )) {
-       ki->icode_finalize( dkey, NULL, 0, icode, ki->size );
-       break;
+     if( rlen == length ) { /* считали последний блок */
+       ki->icode_finalize( dkey, buffer, rlen, icode, ki->size );
      }
+      else ki->icode_update( dkey, buffer, rlen );
+     length -= rlen;
     }
 
    /* отсоединяемся */

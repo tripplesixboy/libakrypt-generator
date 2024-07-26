@@ -300,7 +300,7 @@
 /* функция уничтожает криптографический контекст */
  int aktool_icode_destroy_handle( aktool_ki_t * );
 /* функция для выработки производного ключа контроля целостности */
- ak_pointer aktool_icode_get_derived_key( const char * , aktool_ki_t * , ak_file );
+ ak_pointer aktool_icode_get_derived_key( const char * , aktool_ki_t * , ak_uint64 );
 /* вывод контрольной суммы в консоль */
  void aktool_icode_out( FILE * , const char * , aktool_ki_t * , ak_uint8 * , const size_t );
 /* вывод всех контрольных сумм в консоль */
