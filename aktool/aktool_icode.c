@@ -99,11 +99,12 @@
   ki.ignore_segments = ak_true;
   ki.only_segments = ak_false;
   ki.dont_show_icode = ak_false;
+  ki.search_deleted = ak_false;
+#ifdef AK_HAVE_GELF_H
   ki.pid = -1;
   ki.min_pid = 1;
   ki.max_pid = 2147483647; /* максимальное знаковое четырехбайтное целое */
-  ki.search_deleted = ak_false;
-
+#endif
  /* разбираем опции командной строки */
   do {
        next_option = getopt_long( argc, argv, "he:rp:o:a:c:vli:", long_options, NULL );
@@ -360,13 +361,14 @@
       /* создаем контекст алгоритма хеширования или имитозащиты */
        if( aktool_icode_create_handle( &ki ) != ak_error_ok ) goto exitlab;
       /* выполняем проверку оперативной памяти */
+      #ifdef AK_HAVE_GELF_H
        if(( ki.only_segments ) || ( !ki.ignore_segments )) {
          if(( exit_status = aktool_icode_check_processes( &ki )) != EXIT_SUCCESS ) {
            aktool_icode_destroy_handle( &ki );
            goto exitlab;
          }
        }
-
+      #endif
       /* выполняем проверку файловой системы,
          логика проверки заключается в следующем:
          - если указаны файлы или каталоги, тогда происходит поиск файлов
@@ -545,9 +547,6 @@
 
    ak_error_message_fmt( ak_error_ok, __func__, _("recursive directory traversal: %s"),
                                                                      ki->tree ? "true" : "false" );
-
-
-//   ak_error_message_fmt( ak_error_ok, __func__, _("algorithm: %s"), ki->method->name[0] );
 }
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -555,6 +554,7 @@
 /* ----------------------------------------------------------------------------------------------- */
  int aktool_icode_help( void )
 {
+ /* выводим все опции в алфавитном порядке */
   printf(_("aktool icode [options] [files or directories] - creation and verification of integrity codes\n\n"));
   printf(_("available options:\n"));
   printf(_("     --add               add new authentication or integrity codes to an existing database\n"));
@@ -581,8 +581,10 @@
   printf(_("     --key               specify the name of file with the secret key\n"));
   printf(_("                         this option also sets the type of keyed authentication mechanism\n"));
   printf(_(" -l, --list              list the table of previously created authentication or integrity codes\n"));
+#ifdef AK_HAVE_GELF_H
   printf(_("     --max-pid           set the maximal identifier of verified process [default: %d]\n"), ki.max_pid );
   printf(_("     --min-pid           set the minimal identifier of verified process [default: %d]\n"), ki.min_pid );
+#endif
   printf(_("     --no-derive         do not use the keyed authentication mechanism's derived key for each controlled entity\n"));
   printf(_("                         this may cause an error due to the exhaustion of a key resource\n"));
 #ifdef AK_HAVE_GELF_H
