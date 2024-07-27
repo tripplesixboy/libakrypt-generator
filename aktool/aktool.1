@@ -28,7 +28,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "AKTOOL" "1" "июн. 10, 2024" "версия библиотеки 0.9.14" "libakrypt"
+.TH "AKTOOL" "1" "июл. 27, 2024" "версия библиотеки 0.9.14" "libakrypt"
 .SH NAME
 aktool \- Правила пользования
 .sp
@@ -118,7 +118,7 @@ t
 T}	T{
 test
 T}	T{
-Тестирование корректности и скорости работы криптограграфических механизмов
+Тестирование корректности и скорости работы
 T}
 _
 .TE
@@ -173,7 +173,7 @@ aktool \-\-version
 .sp
 Опция позволяет определить метод или алгоритм, используемый для генерации ключевой
 информации. Для этого необходимо указать его имя или идентификатор.
-Опция необходима в некоторых схемах выработки ключей, например, при использовании \fI\%схемы Блома\fP\&.
+Опция необходима в некоторых схемах выработки ключей, например, при использовании \X'tty: link aktool.html#id6'\fI\%схемы Блома\fP\X'tty: link'\&.
 .INDENT 0.0
 .TP
 .B \-\-ca\-cert=файл
@@ -484,7 +484,7 @@ aktool \-\-version
 .B \-\-size=[ 1, \&.., 4096 ]
 .UNINDENT
 .sp
-Опция позволяет указать размер ключевого множества для создаваемого секретного ключа, например, в \fI\%схеме Блома\fP\&.
+Опция позволяет указать размер ключевого множества для создаваемого секретного ключа, например, в \X'tty: link aktool.html#id6'\fI\%схеме Блома\fP\X'tty: link'\&.
 Максимально допустимым значением в настоящее время является величина 4096.
 .INDENT 0.0
 .TP
@@ -615,7 +615,7 @@ aktool k \-nt hmac\-streebog256 \-o secret\-hmac256.key \e\e
 .UNINDENT
 .sp
 При этом, значение создаваемого ключа считывается из файла \fI/dev/random\fP,
-предоставляющего в \fIUnix\fP\-системах доступ к биологическому генератору случайных чисел, см. \fI\%[P1323565.1.012\-2017]\fP, раздел 3.4.
+предоставляющего в \fIUnix\fP\-системах доступ к биологическому генератору случайных чисел, см. \X'tty: link #p1323565-1-012-2017'\fI\%[P1323565.1.012\-2017]\fP\X'tty: link', раздел 3.4.
 Опция программы \fI\%\-\-label\fP задает метку ключа \fBused for testing purpose\fP,
 а сам ключ будет сохранен в файл \fIsecret\-hmac256.key\fP\&.
 .sp
@@ -759,7 +759,7 @@ aktool k \-\-repo\-add cacer.p7b
 для выработки и верификации сертификатов открытых ключей.
 .SS Примеры выработки ключевой информации в схеме Блома
 .sp
-Для генерации ключей парной связи (общих симметричных ключей) в схеме Блома \fI\%[BLOM82]\fP необходимо
+Для генерации ключей парной связи (общих симметричных ключей) в схеме Блома \X'tty: link #blom82'\fI\%[BLOM82]\fP\X'tty: link' необходимо
 выполнить последовательность из трех шагов:
 .INDENT 0.0
 .INDENT 3.5
@@ -890,7 +890,7 @@ xxd \-g1 pairwise\-ba.plain
 .UNINDENT
 .sp
 Реализация схемы Блома соотвествует рекомендациям
-\fI\%Р 1323565.1.028\-2019\fP,
+\X'tty: link https://tc26.ru/standarts/rekomendatsii-po-standartizatsii/r-1323565-1-028-2019-informatsionnaya-tekhnologiya-kriptograficheskaya-zashchita-informatsii-kriptograficheskie-mekhanizmy-zashchishchennogo-vzaimodeystviya-kontrolnykh-i-izmeritelnykh-ustroystv.html'\fI\%Р 1323565.1.028\-2019\fP\X'tty: link',
 см. приложение Б.
 .SH КОНТРОЛЬ ЦЕЛОСТНОСТИ
 .sp
@@ -1099,9 +1099,9 @@ aktool i \-c result.txt
 .INDENT 3.5
 .INDENT 0.0
 .IP \(bu 2
-\fI\%gost12sum\fP, которая входит в состав дополнительного модуля (engine) для хорошо известной программы \fIopenssl\fP,
+\X'tty: link https://github.com/gost-engine/engine'\fI\%gost12sum\fP\X'tty: link', которая входит в состав дополнительного модуля (engine) для хорошо известной программы \fIopenssl\fP,
 .IP \(bu 2
-\fI\%rhash\fP\&.
+\X'tty: link https://github.com/rhash/RHash'\fI\%rhash\fP\X'tty: link'\&.
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -1693,7 +1693,7 @@ aktool t \-n sign
 .sp
 Опция позволяет использовать нестандартизированные форматы представления данных
 для некоторых криптографических алгоритмов, аналогично тому,
-как они реализованы в \fI\%gost\-engine\fP библиотеки \fIopenssl\fP\&.
+как они реализованы в \X'tty: link https://github.com/gost-engine/engine'\fI\%gost\-engine\fP\X'tty: link' библиотеки \fIopenssl\fP\&.
 .INDENT 0.0
 .TP
 .B \-\-quiet
@@ -1737,7 +1737,7 @@ aktool test \-\-crypto \-\-audit 2 \-\-audit\-file stderr
 .sp
 Реализованные утилитой \fIaktool\fP криптографические преобразования и форматы данных
 соотвествуют следующим стандартам Российской Федерации и рекомендациям по стандартизации
-Технического комитета РФ «\fI\%Криптографическая защита информации\fP».
+Технического комитета РФ «\X'tty: link https://tc26.ru/standarts/'\fI\%Криптографическая защита информации\fP\X'tty: link'».
 .INDENT 0.0
 .INDENT 3.5
 .INDENT 0.0
