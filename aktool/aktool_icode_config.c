@@ -98,6 +98,22 @@
       return 1;
     }
 
+#ifdef AK_HAVE_GELF_H
+   /* --with-segments */
+    if( memcmp( name, "with-segments", 13 ) == 0 ) {
+      if(( memcmp( value, "true", 4 ) == 0 ) || ( memcmp( value, "TRUE", 4 ) == 0 )) {
+        ki->ignore_segments = ak_false;
+      }
+    }
+
+   /* --only-segments */
+    if( memcmp( name, "only-segments", 13 ) == 0 ) {
+      if(( memcmp( value, "true", 4 ) == 0 ) || ( memcmp( value, "TRUE", 4 ) == 0 )) {
+        ki->only_segments = ak_true;
+        ki->ignore_segments = ak_false;
+      }
+    }
+#endif
 
     if( ak_log_get_level() > ak_log_standard )
       ak_error_message_fmt( ak_error_undefined_value, __func__,
