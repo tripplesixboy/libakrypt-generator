@@ -1414,18 +1414,17 @@
     return ak_error_message( error, __func__, "incorrect initialization of internal mac context" );
 
  /* добавочная проверка корректной работы алгоритма хэширования */
-  ak_hash_clean( hctx );
-  ak_hash_ptr( hctx, streebog_M1_message, 63, out, sizeof( out ));
-  if(( error = ak_error_get_value()) != ak_error_ok ) {
-    return ak_error_message( error, __func__ , "invalid calculation of streebog256 code" );
-  }
+  if( ak_libakrypt_get_option_by_name( "use_additional_algorithm_check_context" ) == ak_true ) {
+    ak_hash_context_streebog_clean( &hctx->data.sctx );
+    if(( error = ak_hash_ptr( hctx, streebog_M1_message, 63, out, sizeof( out ))) != ak_error_ok )
+      return ak_error_message( error, __func__ , "invalid calculation of streebog256 code" );
 
-  if( ak_ptr_is_equal_with_log( out, streebog256_testM1, 32 ) != ak_true ) {
-    return ak_error_message( ak_error_not_equal_data, __func__ ,
+    if( ak_ptr_is_equal_with_log( out, streebog256_testM1, sizeof( out )) != ak_true )
+      return ak_error_message( ak_error_not_equal_data, __func__ ,
                                              "the 1st test from GOST R 34.11-2012 is wrong" );
+    if( ak_log_get_level() >= ak_log_maximum )
+      ak_error_message( ak_error_ok, __func__ , "the 1st test from GOST R 34.11-2012 is Ok" );
   }
-  if( ak_log_get_level() >= ak_log_maximum )
-    ak_error_message( ak_error_ok, __func__ , "the 1st test from GOST R 34.11-2012 is Ok" );
 
   return ak_hash_context_streebog_clean( &hctx->data.sctx );
 }
@@ -1454,18 +1453,17 @@
     return ak_error_message( error, __func__, "incorrect initialization of internal mac context" );
 
  /* добавочная проверка корректной работы алгоритма хэширования */
-  ak_hash_clean( hctx );
-  ak_hash_ptr( hctx, streebog_M1_message, 63, out, sizeof( out ));
-  if(( error = ak_error_get_value()) != ak_error_ok ) {
-    return ak_error_message( error, __func__ , "invalid calculation of streebog512 code" );
-  }
+  if( ak_libakrypt_get_option_by_name( "use_additional_algorithm_check_context" ) == ak_true ) {
+    ak_hash_context_streebog_clean( &hctx->data.sctx );
+    if(( error = ak_hash_ptr( hctx, streebog_M1_message, 63, out, sizeof( out ))) != ak_error_ok )
+      return ak_error_message( error, __func__ , "invalid calculation of streebog256 code" );
 
-  if( ak_ptr_is_equal_with_log( out, streebog512_testM1, 64 ) != ak_true ) {
-    return ak_error_message( ak_error_not_equal_data, __func__ ,
+    if( ak_ptr_is_equal_with_log( out, streebog512_testM1, sizeof( out )) != ak_true )
+      return ak_error_message( ak_error_not_equal_data, __func__ ,
                                              "the 1st test from GOST R 34.11-2012 is wrong" );
+    if( ak_log_get_level() >= ak_log_maximum )
+      ak_error_message( ak_error_ok, __func__ , "the 1st test from GOST R 34.11-2012 is Ok" );
   }
-  if( ak_log_get_level() >= ak_log_maximum )
-    ak_error_message( ak_error_ok, __func__ , "the 1st test from GOST R 34.11-2012 is Ok" );
 
   return ak_hash_context_streebog_clean( &hctx->data.sctx );
 }

@@ -971,7 +971,7 @@
 
 
    if( ak_log_get_level() >= ak_log_maximum ) ak_error_message( ak_error_ok, __func__ ,
-                  "4200 tests for comparison of different realizations of tlstree funcion is Ok" );
+                 "4200 tests for comparison of different realizations of tlstree function is Ok" );
   return ak_true;
 }
 

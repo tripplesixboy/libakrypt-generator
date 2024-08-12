@@ -8,7 +8,7 @@ cmake_minimum_required( VERSION 3.5 )
 # -------------------------------------------------------------------------------------------------- #
 set( HEAD_VERSION 0 )
 set( MAIN_VERSION 9 )
-set( MINOR_VERSION 14 )
+set( MINOR_VERSION 15 )
 set( MAJOR_VERSION ${HEAD_VERSION}.${MAIN_VERSION} )
 set( FULL_VERSION ${MAJOR_VERSION}.${MINOR_VERSION} )
 # строка с текущей датой, используется при сборке документации
@@ -29,9 +29,10 @@ string( COMPARE EQUAL ${CMAKE_HOST_SYSTEM_NAME} "FreeBSD" AK_FREEBSD )
 
 # -------------------------------------------------------------------------------------------------- #
 # Перечень опций, которые имеют предустановленные значения и могут изменяться через командную строку
-# для linux
-#   set( AK_CONFIG_PATH  "/etc" )
-#   set( AK_CA_PATH "/usr/share/ca-certificates" )
+# для unix-like
+#   set( AK_CONFIG_PATH  "/etc" )                  % куда устанавливается файл с настройками библиотеки
+#   set( AK_CA_PATH "/usr/share/ca-certificates" ) % куда устанавливаются корневые сертификаты библиотеки
+#   set( AK_LOCALE_PATH "/usr/share/locale" ) % куда устанавливаются файлы русификации утилиты aktool
 
 # -------------------------------------------------------------------------------------------------- #
 # добавляем и такое
