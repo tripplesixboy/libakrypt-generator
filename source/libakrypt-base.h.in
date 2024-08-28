@@ -530,6 +530,9 @@ extern "C" {
  #define	S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
  #define	S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
 #endif
+#ifndef DT_CHR
+ #define DT_CHR (2)
+#endif
 #ifndef DT_DIR
  #define DT_DIR (4)
 #endif
@@ -663,6 +666,8 @@ extern "C" {
  dll_export ak_pointer ak_aligned_malloc( size_t );
 /*! \brief Освобождение выравненной памяти. */
  dll_export void ak_aligned_free( ak_pointer );
+/*! \brief Вывод времени ( в секундах) в человекочитаемом формате. */
+ dll_export char *ak_time_to_str( time_t );
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Способ конвертации двоичных данных в строку символов в формате base64 */

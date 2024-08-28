@@ -37,6 +37,7 @@
   if(( !filename ) || ( stat( filename, &st )))  return ak_error_access_file;
   if( S_ISREG( st.st_mode )) return DT_REG;
   if( S_ISDIR( st.st_mode )) return DT_DIR;
+  if( S_ISCHR( st.st_mode )) return DT_CHR;
 
  return 0;
 }

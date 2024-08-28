@@ -21,7 +21,7 @@ project( libakrypt C )
 # -------------------------------------------------------------------------------------------------- #
 # Перечень доступных опций для сборки библиотеки
 option( AK_SHARED_LIB "Build the shared library" ON )
-option( AK_STATIC_LIB "Build the static library" ON )
+option( AK_STATIC_LIB "Build the static library" OFF )
 option( AK_EXAMPLES "Build examples for libakrypt" OFF )
 option( AK_TESTS "Build tests for libakrypt" OFF )
 option( AK_TESTS_GMP "Build comparison tests for gmp and libakrypt" OFF )

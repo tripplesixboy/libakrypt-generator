@@ -291,39 +291,45 @@
 /* ----------------------------------------------------------------------------------------------- */
  static int ak_random_file_ptr( ak_random rnd, const ak_pointer ptr, const ssize_t size )
 {
-  ak_uint8 *value = ptr;
-  ssize_t result = 0, count = size;
+    ak_uint8 *value = ptr;
+    ssize_t result = 0, offset = 0, count = size;
 
-  if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+    if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
                                                      "use a null pointer to a random generator" );
-  if( ptr == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+    if( ptr == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
                                                                    "use a null pointer to data" );
-  if( size <= 0 ) return ak_error_message( ak_error_zero_length, __func__ ,
+    if( size <= 0 ) return ak_error_message( ak_error_zero_length, __func__ ,
                                                                  "use a data with wrong length" );
-  /* считываем несколько байт */
-  slabel: result = read( rnd->data.fd, value,
-  #ifdef _MSC_VER
-    (unsigned int)
-  #else
-    (size_t)
-  #endif
-    count );
+   /* обнуляем */
+    memset( ptr, 0, size );
 
-  /* если конец файла, то переходим в начало */
-  if( result == 0 ) {
-    lseek( rnd->data.fd, 0, SEEK_SET );
-    goto slabel;
-  }
-  /* если мы считали меньше, чем надо */
-  if( result < count ) {
-    value += result;
+slabel:
+   /* считываем, сколько получится */
+    result = read( rnd->data.fd, value +offset,
+                #ifdef _MSC_VER
+                  (unsigned int)
+                #else
+                  (size_t)
+                #endif
+                  count
+                 );
+
+    if( result < 0 ) { /* здесь ошибка чтения:
+                          - файл мог потеряться,
+                          - или устройство могло выключиться */
+      return ak_error_message( ak_error_read_data, __func__, "incorrect data reading");
+    }
+    if( result == 0 ) {
+      lseek( rnd->data.fd, 0, SEEK_SET );
+      goto slabel;
+    }
+
+   /* ищменяем значения индексов */
+    offset += result;
     count -= result;
+
+    if( offset >= size ) return ak_error_ok;
     goto slabel;
-  }
-  /* если ошибка чтения, то возбуждаем ошибку */
-  if( result == -1 ) return ak_error_message( ak_error_read_data, __func__ ,
-                                                                 "wrong reading data from file" );
- return ak_error_ok;
 }
 
 /* ----------------------------------------------------------------------------------------------- */

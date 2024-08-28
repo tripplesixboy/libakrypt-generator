@@ -1092,5 +1092,37 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
+/*! Функция формирует строку, содержащую время (в часах, минута и секундах)
+    @param timea Количество секунд
+    @return Указатель на константную область памяти.                                               */
+/* ----------------------------------------------------------------------------------------------- */
+ char *ak_time_to_str( time_t timea )
+{
+    ak_uint32 days = timea/86400;
+    ak_uint32 hours = ( timea - days*86400 )/3600;
+    ak_uint32 minutes = ( timea - days*86400 - hours*3600 )/60;
+    ak_uint32 seconds = timea%60;
+
+    if( days > 0 ) {
+      ak_snprintf( ak_static_buffer, sizeof( ak_static_buffer) -1,
+                                      "%u д. %u ч. %u м. %u сек.", days, hours, minutes, seconds );
+      return ak_static_buffer;
+    }
+    if( hours > 0 ) {
+      ak_snprintf( ak_static_buffer, sizeof( ak_static_buffer) -1,
+                                                  "%u ч. %u м. %u сек.", hours, minutes, seconds );
+      return ak_static_buffer;
+    }
+    if( minutes > 0 ) {
+      ak_snprintf( ak_static_buffer, sizeof( ak_static_buffer) -1,
+                                                               "%u м. %u сек.", minutes, seconds );
+      return ak_static_buffer;
+    }
+
+    ak_snprintf( ak_static_buffer, sizeof( ak_static_buffer) -1, "%u сек.", (unsigned int) timea );
+    return ak_static_buffer;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
 /*                                                                                     ak_tools.c  */
 /* ----------------------------------------------------------------------------------------------- */
