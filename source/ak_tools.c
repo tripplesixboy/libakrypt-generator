@@ -1105,21 +1105,20 @@
 
     if( days > 0 ) {
       ak_snprintf( ak_static_buffer, sizeof( ak_static_buffer) -1,
-                                      "%u д. %u ч. %u м. %u сек.", days, hours, minutes, seconds );
+                                              "%u:%02u:%02u:%02u", days, hours, minutes, seconds );
       return ak_static_buffer;
     }
     if( hours > 0 ) {
       ak_snprintf( ak_static_buffer, sizeof( ak_static_buffer) -1,
-                                                  "%u ч. %u м. %u сек.", hours, minutes, seconds );
+                                                         "%u:%02u:%02u", hours, minutes, seconds );
       return ak_static_buffer;
     }
     if( minutes > 0 ) {
-      ak_snprintf( ak_static_buffer, sizeof( ak_static_buffer) -1,
-                                                               "%u м. %u сек.", minutes, seconds );
+      ak_snprintf( ak_static_buffer, sizeof( ak_static_buffer) -1, "%02u:%02u", minutes, seconds );
       return ak_static_buffer;
     }
 
-    ak_snprintf( ak_static_buffer, sizeof( ak_static_buffer) -1, "%u сек.", (unsigned int) timea );
+    ak_snprintf( ak_static_buffer, sizeof( ak_static_buffer) -1, "00:%02u", (unsigned int) timea );
     return ak_static_buffer;
 }
 
