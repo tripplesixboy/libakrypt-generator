@@ -293,7 +293,49 @@
           list->current = node;
         }
   list->count++;
- return ak_error_ok;
+  return ak_error_ok;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! @details Функция вставляет указатель в список, одновременно сортируя его.
+ *  Для сортировки указателей успользуется пользовательская функция.
+ *  @param list Указатель на контекст двусвязного списка
+ *  @param node Добавляемый элемент двусвязного списка
+ *  @param compare Функция, выполняющая сравнение данных,
+ *  должна возвращать значения аналогично функции strcmp().
+ *  @return В случае успеха функция фозвращает ноль (ak_error_ok). В противном случае,
+ *  возвращается код ошибки                                                                        */
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_list_add_node_sorted( ak_list list, ak_list_node node, ak_function_compare_ptr compare )
+{
+  if( !list ) return ak_error_message( ak_error_null_pointer,
+                                                  __func__, "using null pointer to list context" );
+  if( !node ) return ak_error_null_pointer;
+  if( !compare ) return ak_error_message( ak_error_null_pointer,
+                                              __func__, "using null pointer to compare function" );
+  ak_list_first( list );
+  if( list->current == NULL ) list->current = node;
+   else { /* начинаем обход списка */
+     do{
+        if( compare( list->current->data, node->data ) >= 0 ) { /* вставляем перед текущим */
+          if(( node->prev = list->current->prev ) != NULL ) {
+            node->prev->next = node;
+          }
+          node->next = list->current;
+          list->current->prev = node;
+          goto exlab;
+        }
+     } while( ak_list_next( list ));
+
+    /* здесь просто добавляем элемент в конец списка */
+     node->prev = list->current;
+     list->current->next = node;
+     list->current = node;
+   }
+
+exlab:
+  list->count++;
+  return ak_error_ok;
 }
 
 /* ----------------------------------------------------------------------------------------------- */

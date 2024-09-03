@@ -365,6 +365,7 @@ extern "C" {
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Функция, выполняющая операции по удалению объекта из памяти */
  typedef ak_pointer ( ak_function_delete_object )( ak_pointer );
+ typedef int ( ak_function_compare_ptr )( ak_const_pointer, ak_const_pointer );
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Двусвязный список. */
@@ -410,6 +411,8 @@ extern "C" {
  dll_export ak_pointer ak_list_delete( ak_list );
 /*! \brief Добавление нового узла к двусвязному списку. */
  dll_export int ak_list_add_node( ak_list , ak_list_node );
+/*! \brief Добавление нового узла к двусвязному списку. */
+ dll_export int ak_list_add_node_sorted( ak_list , ak_list_node , ak_function_compare_ptr );
 /** @} */
 
 /* ----------------------------------------------------------------------------------------------- */
