@@ -532,6 +532,7 @@ extern "C" {
 #ifdef _MSC_VER
  #define	S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
  #define	S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
+ #define	S_ISCHR(mode)  (((mode) & S_IFMT) == S_IFCHR)
 #endif
 #ifndef DT_CHR
  #define DT_CHR (2)
