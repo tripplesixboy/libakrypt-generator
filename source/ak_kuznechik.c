@@ -1190,7 +1190,7 @@
 /* ----------------------------------------------------------------------------------------------- */
  bool_t ak_libakrypt_test_kuznechik( void )
 {
-  int audit = audit = ak_log_get_level();
+  int audit = ak_log_get_level();
   int oc = (int) ak_libakrypt_get_option_by_name( "openssl_compability" );
 
  /* мы тестируем алгоритм Магма в двух режимах совместимисти,

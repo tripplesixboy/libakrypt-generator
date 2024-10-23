@@ -19,17 +19,21 @@
 #endif
 
 /* ----------------------------------------------------------------------------------------------- */
-             /* Реализация функций генерации ключей согласно Р 50.1.113-2016 */
+/*  Генерация производных ключей согласно обобщенному алгоритму из Р 50.1.113-2016                 */
 /* ----------------------------------------------------------------------------------------------- */
-/*! Для генерации ключа используется алгоритм, названный в рекомендациях KDF_GOSTR3411_2012_256.
-    Вырабатываемый ключ `K` имеет длину 256 бит и определяется равенством
+/*! Функция реализует общий алгоритм выработки производного ключа `K`, описываемый равенством
 
     \code
-      K = KDF256( Kin, label, seed ) = HMAC256( Kin, 0x01 || label || 0x00 || seed || 0x01 || 0x00 )
+      K = KDF( Kin, label, seed ) = HMAC( Kin, 0x01 || label || 0x00 || seed || 0x01 || 0x00 )
     \endcode
+    где `HMAC` произвольная реализованная в библиотеке функция выработки имитовставки HMAC.
 
-    \note Особенность реализации данной функции состоит в том, что исходный ключ передается
-          в аргументах функции в открытом виде.
+    Длина исходного ключа Kin может быть произвольной, отличной от нуля.
+
+    \note Исходный ключ передается в аргументах функции в открытом виде.
+
+    \param type Тип алгоритма hmac.
+     Допустимыми значениями являются hmac_hmc256_kdf, hmac_hmac512_kdf и hmac_nmac_kdf.
 
     \param master_key Указатель на область памяти.
     \param master_key_size Размер памяти в байтах.
@@ -37,69 +41,110 @@
     \param label_size Длина метки (в октетах)
     \param seed Используемое в алгоритме инициализирующее значение
     \param seed_size Длина инициализирующего значения (в октетах)
-    \param out Указатель на область памяти, в которую помещается выработанное значение
-     (память в размере 32 октета должна быть выделена заранее)
+    \param out Указатель на область памяти, в которую помещается выработанное значение.
+     Память должна быть выделена заранее. Размер выделяемой памяти определяется
+     используемой функцией выработки имитовставки HMAC -
+     либо 32 октета для функций hmac256 и nmac, либо 64 октета для функции hmac512.
     \param size Размер выделенной памяти
 
     \return В случае возникновения ошибки функция возвращает ее код. В случае успеха
     возвращается \ref ak_error_ok (ноль).                                                          */
 /* ----------------------------------------------------------------------------------------------- */
- int ak_skey_derive_kdf256( ak_uint8 *master_key, const size_t master_key_size,
-               ak_uint8 *label, const size_t label_size, ak_uint8 *seed, const size_t seed_size,
-                                                                 ak_uint8 *out, const size_t size )
+ int ak_skey_derive_kdf_hmac( kdf_t type,
+                              ak_uint8 *master_key, const size_t master_key_size,
+                              ak_uint8 *label, const size_t label_size,
+                              ak_uint8 *seed, const size_t seed_size,
+                              ak_uint8 *out, const size_t size )
 {
-    struct hmac pctx;
+    struct hmac hctx;
     int error = ak_error_ok;
     ak_uint8 cv[2] = { 0x01, 0x00 };
 
-   /* создаем контекст алгоритма hmac */
-    if(( error = ak_hmac_create_streebog256( &pctx )) != ak_error_ok )
-      return ak_error_message( error, __func__, "incorrect creation of hmac context" );
-    if(( error = ak_hmac_set_key( &pctx, master_key, master_key_size )) != ak_error_ok ) {
-      ak_hmac_destroy( &pctx );
-      return ak_error_message( error, __func__, "incorrect creation of hmac secret key" );
+   /* проверяем входные данные */
+    if(( master_key == NULL ) || ( master_key_size == 0 ))
+      return ak_error_message( ak_error_null_pointer, __func__, "initial secret key undefined ");
+    if(( out == NULL ) || ( size == 0 ))
+      return ak_error_message( ak_error_null_pointer, __func__, "output buffer undefined ");
+
+   /* проверяем тип алгоритма и создаем контекст алгоритма hmac */
+    switch( type ) {
+      case hmac_hmac256_kdf:
+        if(( error = ak_hmac_create_streebog256( &hctx )) != ak_error_ok )
+          return ak_error_message( error, __func__, "incorrect creation of hmac context" );
+        break;
+
+      case hmac_nmac_kdf:
+        if(( error = ak_hmac_create_nmac( &hctx )) != ak_error_ok )
+          return ak_error_message( error, __func__, "incorrect creation of hmac context" );
+        break;
+
+      case hmac_hmac512_kdf:
+        if(( error = ak_hmac_create_streebog512( &hctx )) != ak_error_ok )
+          return ak_error_message( error, __func__, "incorrect creation of hmac context" );
+        break;
+
+      default:
+        return ak_error_message( ak_error_wrong_key_type, __func__,
+                                                       "incorrect type of derivative secret key" );
     }
 
+   /* инициализируем контекст алгоритма hmac */
+    if(( error = ak_hmac_set_key( &hctx, master_key, master_key_size )) != ak_error_ok ) {
+      ak_error_message( error, __func__, "incorrect assigning an initial secret key" );
+      goto labex;
+    }
+
+   /* подготавливаем память */
+    ak_hmac_clean( &hctx );
+    memset( out, 0, size );
+
    /* только теперь приступаем к выработке нового ключевого значения */
-    ak_hmac_clean( &pctx );
-    ak_hmac_update( &pctx, cv, 1 );
-    if(( label != NULL ) && ( label_size != 0 )) ak_hmac_update( &pctx, label, label_size );
-    ak_hmac_update( &pctx, cv+1, 1 );
-    if(( seed != NULL ) && ( seed_size != 0 )) ak_hmac_update( &pctx, seed, seed_size );
-    if(( error = ak_hmac_finalize( &pctx, cv, 2, out, size )) != ak_error_ok )
-      ak_error_message( error, __func__, "wrong creation of a derivative value of a secret key" );
-    ak_hmac_destroy( &pctx );
+    ak_hmac_update( &hctx, cv, 1 );
+    if(( label != NULL ) && ( label_size != 0 )) ak_hmac_update( &hctx, label, label_size );
+    ak_hmac_update( &hctx, cv+1, 1 );
+    if(( seed != NULL ) && ( seed_size != 0 )) ak_hmac_update( &hctx, seed, seed_size );
+    if(( error = ak_hmac_finalize( &hctx, cv, 2, out, size )) != ak_error_ok )
+      ak_error_message( error, __func__, "wrong creation of a derivative secret key" );
+
+  labex:
+    ak_hmac_destroy( &hctx );
   return error;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
-/*! Для генерации ключа используется алгоритм, названный в рекомендациях KDF_GOSTR3411_2012_256.
-    Вырабатываемый ключ `K` имеет длину 256 бит и определяется равенством
+/*! Функция реализует общий алгоритм выработки производного ключа `K`, описываемый равенством
 
     \code
-      K = KDF256( Kin, label, seed ) = HMAC256( Kin, 0x01 || label || 0x00 || seed || 0x01 || 0x00 )
+      K = KDF( Kin, label, seed ) = HMAC( Kin, 0x01 || label || 0x00 || seed || 0x01 || 0x00 )
     \endcode
+    где `HMAC` произвольная реализованная в библиотеке функция выработки имитовставки HMAC.
+
+    Длина исходного ключа Kin может быть произвольной, отличной от нуля.
 
     \note Особенность реализации данной функции состоит в том, что исходный ключ передается
           в составе указателя на структуру skey или ее наследника, что обеспечивает контроль
-          целостности ключевой информации.
+          целостности исходной ключевой информации.
 
+    \param type Тип алгоритма hmac.
+     Допустимыми значениями являются hmac_hmc256_kdf, hmac_hmac512_kdf и hmac_nmac_kdf.
     \param master_key Указатель на корректно созданный ранее контекст секретного ключа `Kin`.
-    В качестве типов криптографических механизмов для данного ключа допускаются блочные шифры и
-    ключи выработки hmac. Использование ключей с другим установленным значением типа
-    криптографического механизма приводит к ошибке.
+     В качестве типов криптографических механизмов для исходного ключа
+     допускаются блочные шифры и ключи выработки hmac. Использование ключей с другим
+     установленным значением типа криптографического механизма приводит к ошибке.
     \param label Используемая в алгоритме метка производного ключа
     \param label_size Длина метки (в октетах)
     \param seed Используемое в алгоритме инициализирующее значение
     \param seed_size Длина инициализирующего значения (в октетах)
-    \param out Указатель на область памяти, в которую помещается выработанное значение
-     (память в размере 32 октета должна быть выделена заранее)
+    \param out Указатель на область памяти, в которую помещается выработанное значение.
+     Память должна быть выделена заранее. Размер выделяемой памяти определяется
+     используемой функцией выработки имитовставки HMAC -
+     либо 32 октета для функций hmac256 и nmac, либо 64 октета для функции hmac512.
     \param size Размер выделенной памяти
 
     \return В случае возникновения ошибки функция возвращает ее код. В случае успеха
     возвращается \ref ak_error_ok (ноль).                                                          */
 /* ----------------------------------------------------------------------------------------------- */
- int ak_skey_derive_kdf256_from_skey( ak_pointer master_key, ak_uint8 *label,
+ int ak_skey_derive_kdf_hmac_from_skey( kdf_t type, ak_pointer master_key, ak_uint8 *label,
                                const size_t label_size, ak_uint8 *seed, const size_t seed_size,
                                                                  ak_uint8 *out, const size_t size )
 {
@@ -108,23 +153,17 @@
 
    /* проверяем указатели */
     if( master_key == NULL )  return ak_error_message( ak_error_null_pointer, __func__,
-                                                              "using null pointer to master key" );
-    if(( label == NULL ) && ( seed == NULL ))
-      return ak_error_message( ak_error_null_pointer, __func__,
-                                                "using null pointer to both input data pointers" );
-    if(( label_size == 0 ) && ( seed_size == 0 ))
-      return ak_error_message( ak_error_null_pointer, __func__,
-                                                "using zero length for both input data pointers" );
+                                                      "using null pointer to initial secret key" );
    /* проверяем, что мастер-ключ установлен */
     if( master->oid->mode != algorithm )
       return ak_error_message( ak_error_oid_mode, __func__,
-                                   "using the master key which is not a cryptographic algorithm" );
+                                              "using the initial secret key with incorrect mode" );
     switch( master->oid->engine ) {
       case block_cipher:
       case hmac_function:
         break;
       default: return ak_error_message_fmt( ak_error_oid_engine, __func__,
-                                            "using the master key with unsupported engine (%s)",
+                                       "using the initial secret key with unsupported engine (%s)",
                                               ak_libakrypt_get_engine_name( master->oid->engine ));
     }
 
@@ -134,87 +173,85 @@
    /* целостность ключа */
     if( master->check_icode( master ) != ak_true )
       return ak_error_message( ak_error_wrong_key_icode,
-                                              __func__, "incorrect integrity code of master key" );
+                                           __func__, "incorrect integrity of initial secret key" );
 
   /* только теперь вызываем функцию генерации производного ключа */
     master->unmask( master );
-    error = ak_skey_derive_kdf256( master->key, master->key_size, label, label_size,
+    error = ak_skey_derive_kdf_hmac( type, master->key, master->key_size, label, label_size,
                                                                      seed, seed_size, out, size );
     master->set_mask( master );
     if( error != ak_error_ok )
-       ak_error_message( error, __func__, "incorrect creation of derivative secret key value" );
+      ak_error_message( error, __func__, "incorrect creation of derivative secret key" );
 
   return error;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
-/*! Для генерации ключа используется алгоритм, названный в рекомендациях KDF_GOSTR3411_2012_256.
-    Вырабатываемый ключ `K` имеет длину 256 бит и определяется равенством
+/*! Функция реализует общий алгоритм выработки производного ключа `K`, описываемый равенством
 
     \code
-      K = KDF256( Kin, label, seed ) = HMAC256( Kin, 0x01 || label || 0x00 || seed || 0x01 || 0x00 )
+      K = KDF( Kin, label, seed ) = HMAC( Kin, 0x01 || label || 0x00 || seed || 0x01 || 0x00 )
     \endcode
+    где `HMAC` произвольная реализованная в библиотеке функция выработки имитовставки HMAC.
+
+    Длина исходного ключа Kin может быть произвольной, отличной от нуля.
 
     \note Особенность реализации данной функции состоит в том, что в процессе выполнения функция
-    выделяет в памяти область для нового ключа, инициализирует его и присваивает выработанное
-    значение, а также устанавливает ресурс ключа.
+          присваивает выработанное значение созданному ранее контексту секретного ключа.
 
-    \param oid Идентификатор создаваемого ключа
-    \param master_key Указатель на корректно созданный ранее контекст секретного ключа `Kin`.
-    В качестве типов криптографических механизмов для данного ключа допускаются блочные шифры и
-    ключи выработки hmac. Использование ключей с другим установленным значением типа
-    криптографического механизма приводит к ошибке.
+    \param next_key Указатель на корректно созданный ранее контекст производного ключа `K`.
+    \param type Тип алгоритма hmac.
+     Допустимыми значениями являются hmac_hmc256_kdf, hmac_hmac512_kdf и hmac_nmac_kdf.
+    \param master_key Указатель на корректно созданный ранее контекст исходного ключа `Kin`.
+     В качестве типов криптографических механизмов для исходного ключа
+     допускаются блочные шифры и ключи выработки hmac. Использование ключей с другим
+     установленным значением типа криптографического механизма приводит к ошибке.
     \param label Используемая в алгоритме метка производного ключа
     \param label_size Длина метки (в октетах)
     \param seed Используемое в алгоритме инициализирующее значение
     \param seed_size Длина инициализирующего значения (в октетах)
 
-    \return В случае возникновения ошибки функция возвращает NULL, а код ошибки может быть
-    получен с помощью функции ak_error_get_value(). В случае успеха
-    возвращает указатель на созданый контекст секретного ключа.                                    */
+    \return В случае возникновения ошибки функция возвращает ее код. В случае успеха
+    возвращается \ref ak_error_ok (ноль).                                                          */
 /* ----------------------------------------------------------------------------------------------- */
- ak_pointer ak_skey_new_derive_kdf256_from_skey( ak_oid oid, ak_pointer master_key,
-                ak_uint8* label, const size_t label_size, ak_uint8* seed, const size_t seed_size )
+ int ak_skey_set_derive_kdf_hmac_from_skey( ak_pointer derived_key,
+                                 kdf_t type, ak_pointer master_key, ak_uint8 *label,
+                                 const size_t label_size, ak_uint8 *seed, const size_t seed_size )
 {
-  ak_uint8 out[32]; /* размер 32 определяется используемым алгоритмом kdf256 */
-  int error = ak_error_ok;
-  ak_pointer handle = NULL;
+    ak_uint8 out[64]; /* размер 64 определяется масимальной длиной алгоритма kdf512 */
+    int error = ak_error_ok;
+    ak_skey sk = (ak_skey) derived_key;
 
- /* выполняем проверки */
-  if( oid == NULL ) {
-    ak_error_message( ak_error_null_pointer, __func__, "using null pointer to oid context" );
-    return NULL;
-  }
-  if( oid->func.first.set_key == NULL ) {
-    ak_error_message_fmt( ak_error_undefined_function, __func__,
-                         "using oid (%s) with unsupported key assigning mechanism", oid->name[0] );
-    return NULL;
-  }
+   /* проверяем указатели */
+    if( derived_key == NULL )
+      return ak_error_message( ak_error_null_pointer, __func__,
+                                                     "using null pointer to derived key context" );
+    if( sk->oid == NULL )
+      return ak_error_message( ak_error_wrong_oid, __func__,
+                                  "using uncreated derived key context with null pointer to oid" );
+    if( sk->oid->func.first.set_key == NULL )
+      return ak_error_message_fmt( ak_error_undefined_function, __func__,
+             "using derived key with unsupported key assigning mechanism (%s)", sk->oid->name[0] );
+    if( sk->key_size == 0 )
+      return ak_error_message( ak_error_wrong_key_length, __func__,
+                              "using uncreated derived key context with null size of key buffer" );
+    if( sk->key_size > sizeof( out ))
+      return ak_error_message( ak_error_wrong_key_length, __func__,
+                                 "using derived key context with very llarge size of key buffer" );
 
- /* создаем производный ключ */
-  if(( error = ak_skey_derive_kdf256_from_skey( master_key,
-                                 label, label_size, seed, seed_size, out, 32 )) != ak_error_ok ) {
-    ak_error_message( error, __func__, "incorrect creation of derivative secret key value" );
-    goto labex;
-  }
+   /* создаем производный ключ */
+    if(( error = ak_skey_derive_kdf_hmac_from_skey( type, master_key,
+                         label, label_size, seed, seed_size, out, sk->key_size )) != ak_error_ok )
+      return ak_error_message( error, __func__, "incorrect creation of derived key value" );
 
- /* погружаем данные в контекст */
-  if(( handle = ak_oid_new_object( oid )) == NULL ) {
-    ak_error_message( error = ak_error_get_value(), __func__,
-                                                  "incorrect creation of new secret key context" );
-    goto labex;
-  }
-  if(( error = oid->func.first.set_key( handle, out, 32 )) != ak_error_ok ) {
-   ak_error_message( error, __func__, "incorrect assigning a derivative key value" );
-   goto labex;
-  }
+   /* присваиваем значение ключа */
+    if(( error = sk->oid->func.first.set_key( sk, out, sk->key_size )) != ak_error_ok )
+      ak_error_message( error, __func__, "incorrect assigning a derived key value" );
 
- /* очищаем память */
-  labex:
-    if( error != ak_error_ok ) handle = ak_oid_delete_object( oid, handle );
-    ak_ptr_wipe( out, sizeof( out ), &((ak_skey)master_key)->generator );
+   /* очищаем стек */
+    ak_ptr_wipe( out, sizeof( out ), &sk->generator );
 
- return handle;
+  return error;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -255,7 +292,8 @@
 
    /* вычисляем производный ключ и сравниваем результат */
     memset( out, 0, 32 );
-    if(( error = ak_skey_derive_kdf256_from_skey( &sk,
+    if(( error = ak_skey_derive_kdf_hmac_from_skey( hmac_hmac256_kdf,
+                                  &sk,
                                   static_label,
                                   sizeof( static_label ),
                                   static_seed,
@@ -361,7 +399,8 @@
   #else
     seed = ctx->ind1 = ( index&tlstree_constant_values[tlstree].c1 );
   #endif
-    if(( error = ak_skey_derive_kdf256( ctx->key,
+    if(( error = ak_skey_derive_kdf_hmac( hmac_hmac256_kdf,
+                                        ctx->key,
                                         32,
                                         (ak_uint8 *) "level1",
                                         6,
@@ -379,7 +418,8 @@
   #else
     seed = ctx->ind2 = ( index&tlstree_constant_values[tlstree].c2 );
   #endif
-    if(( error = ak_skey_derive_kdf256( ctx->key +32,
+    if(( error = ak_skey_derive_kdf_hmac( hmac_hmac256_kdf,
+                                        ctx->key +32,
                                         32,
                                         (ak_uint8 *) "level2",
                                         6,
@@ -397,7 +437,8 @@
   #else
     seed = ctx->ind3 = ( index&tlstree_constant_values[tlstree].c3 );
   #endif
-    if(( error = ak_skey_derive_kdf256( ctx->key +64,
+    if(( error = ak_skey_derive_kdf_hmac( hmac_hmac256_kdf,
+                                        ctx->key +64,
                                         32,
                                         (ak_uint8 *) "level3",
                                         6,
@@ -440,7 +481,8 @@
      #else
        ctx->ind1 = seed;
      #endif
-       if(( error = ak_skey_derive_kdf256( ctx->key,
+       if(( error = ak_skey_derive_kdf_hmac( hmac_hmac256_kdf,
+                                           ctx->key,
                                            32,
                                            (ak_uint8 *) "level1",
                                            6,
@@ -461,7 +503,8 @@
      #else
        ctx->ind2 = seed;
      #endif
-       if(( error = ak_skey_derive_kdf256( ctx->key +32,
+       if(( error = ak_skey_derive_kdf_hmac( hmac_hmac256_kdf,
+                                           ctx->key +32,
                                            32,
                                            (ak_uint8 *) "level2",
                                            6,
@@ -482,7 +525,8 @@
      #else
        ctx->ind3 = seed;
      #endif
-       if(( error = ak_skey_derive_kdf256( ctx->key +64,
+       if(( error = ak_skey_derive_kdf_hmac( hmac_hmac256_kdf,
+                                           ctx->key +64,
                                            32,
                                            (ak_uint8 *) "level3",
                                            6,

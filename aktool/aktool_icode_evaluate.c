@@ -130,15 +130,18 @@
       return ki->handle;
      else {
         ak_oid koid = ((ak_skey)ki->handle)->oid;
+        dkey = ak_oid_new_object( koid );
 
        /* имеем секретный ключ, надо сделать производный того же типа */
-        if(( dkey = ak_skey_new_derive_kdf256_from_skey(
-                       koid,                           /* идентификатор создаваемого ключа */
+        if(( ak_skey_set_derive_kdf_hmac_from_skey(
+                       dkey,
+                       hmac_hmac256_kdf,                              /* используем kdf256 */
                        ki->handle,                                        /* исходный ключ */
                        (ak_uint8*) value, /* метка, в качестве которой выступает имя файла */
                        strlen( value ),                                     /* длина метки */
-                       NULL, 0 )) == NULL ) {
+                       NULL, 0 )) != ak_error_ok ) {
           aktool_error(_("incorrect creation of derivative key (file %s)"), value );
+          if( dkey != NULL ) ak_oid_delete_object( koid, dkey );
           return NULL;
         }
         if( koid->engine != block_cipher ) return dkey;
