@@ -32,9 +32,7 @@
 
     \note Исходный ключ передается в аргументах функции в открытом виде.
 
-    \param type Тип алгоритма hmac.
-     Допустимыми значениями являются hmac_hmc256_kdf, hmac_hmac512_kdf и hmac_nmac_kdf.
-
+    \param type Тип алгоритма hmac, допустимыми значениями являются kdf256, kdf512 и kdfnmac.
     \param master_key Указатель на область памяти.
     \param master_key_size Размер памяти в байтах.
     \param label Используемая в алгоритме метка производного ключа
@@ -68,17 +66,17 @@
 
    /* проверяем тип алгоритма и создаем контекст алгоритма hmac */
     switch( type ) {
-      case hmac_hmac256_kdf:
+      case kdf256:
         if(( error = ak_hmac_create_streebog256( &hctx )) != ak_error_ok )
           return ak_error_message( error, __func__, "incorrect creation of hmac context" );
         break;
 
-      case hmac_nmac_kdf:
+      case kdfnmac:
         if(( error = ak_hmac_create_nmac( &hctx )) != ak_error_ok )
           return ak_error_message( error, __func__, "incorrect creation of hmac context" );
         break;
 
-      case hmac_hmac512_kdf:
+      case kdf512:
         if(( error = ak_hmac_create_streebog512( &hctx )) != ak_error_ok )
           return ak_error_message( error, __func__, "incorrect creation of hmac context" );
         break;
@@ -125,8 +123,7 @@
           в составе указателя на структуру skey или ее наследника, что обеспечивает контроль
           целостности исходной ключевой информации.
 
-    \param type Тип алгоритма hmac.
-     Допустимыми значениями являются hmac_hmc256_kdf, hmac_hmac512_kdf и hmac_nmac_kdf.
+    \param type Тип алгоритма hmac, допустимыми значениями являются kdf256, kdf512 и kdfnmac.
     \param master_key Указатель на корректно созданный ранее контекст секретного ключа `Kin`.
      В качестве типов криптографических механизмов для исходного ключа
      допускаются блочные шифры и ключи выработки hmac. Использование ключей с другим
@@ -200,8 +197,7 @@
           присваивает выработанное значение созданному ранее контексту секретного ключа.
 
     \param next_key Указатель на корректно созданный ранее контекст производного ключа `K`.
-    \param type Тип алгоритма hmac.
-     Допустимыми значениями являются hmac_hmc256_kdf, hmac_hmac512_kdf и hmac_nmac_kdf.
+    \param type Тип алгоритма hmac, допустимыми значениями являются kdf256, kdf512 и kdfnmac.
     \param master_key Указатель на корректно созданный ранее контекст исходного ключа `Kin`.
      В качестве типов криптографических механизмов для исходного ключа
      допускаются блочные шифры и ключи выработки hmac. Использование ключей с другим
@@ -292,7 +288,7 @@
 
    /* вычисляем производный ключ и сравниваем результат */
     memset( out, 0, 32 );
-    if(( error = ak_skey_derive_kdf_hmac_from_skey( hmac_hmac256_kdf,
+    if(( error = ak_skey_derive_kdf_hmac_from_skey( kdf256,
                                   &sk,
                                   static_label,
                                   sizeof( static_label ),
@@ -331,7 +327,7 @@
  *  \details В большинстве приложений библиотеки используется пред-последний случай, а именно,
  *  создание множества из \f$ 2^{16} = 65536\f$ производных ключей, определяемых равенством
  *  `K(i) = TLSTREE( k1, k2, k3 )`, где
- *    -  ключ k3 меняется каждого ключа
+ *    -  ключ k3 меняется для каждого индекса i,
  *    -  ключ k2 меняется каждые \f$ 2^8 = 256 \f$ значений индекса i,
  *    -  ключ k2 меняется каждые \f$ 2^{12} = 4096\f$ значений индекса i. */
  const static struct tlstree_constant_values {
@@ -346,52 +342,39 @@
  };
 
 /* ----------------------------------------------------------------------------------------------- */
-/*! Для генерации производного ключа используется алгоритм, названный в рекомендациях TLSTREE.
-    Вырабатываемый ключ `K` имеет длину 256 бит и определяется равенством
+ #define ak_tlstree_state_get_block( type ) (( type&0x3 ) << 5)
 
-    \code
-      K = KDF256( Kin, index ) =
-           Divers3( Divers2( Divers1( Kin, Str8( index &C1 )), Str8( index &C2 )), Str8( index &C3))
-
-      Divers1( Ki, S ) = KDF256( Ki, "level1", S )
-      Divers2( K,  S ) = KDF256( K,  "level2", S )
-      Divers3( K,  S ) = KDF256( K,  "level3", S )
-    \endcode
-
-    а `Str8` -- запись целого беззнакового числа в виде последовательности 8 байт в big-endian формате
-
-    \note Особенность реализации данной функции состоит в том, что исходный ключ передается
-          в аргументах функции в открытом виде, а результат работы помещается внуть пременной ctx.
-          Для того, чтобы получить значение производного ключа в явном виде
-          желательно использовать функцию int ak_skey_derive_tlstree().
-
-    \param ctx Контекст алгоритма TLSTREE.
-    \param master_key Указатель на область памяти.
-    \param master_key_size Размер памяти в байтах.
+/* ----------------------------------------------------------------------------------------------- */
+/*! \param type Тип алгоритма kdf, допустимыми значениями являются kdf256, kdf512 и kdfnmac
+    \param ctx Контекст алгоритма TLSTREE
+    \param master_key Указатель на область памяти
+    \param master_key_size Размер памяти в байтах
     \param index Порядковый номер вырабатываемого ключа
-    \param tlstree Набор константан, являющийся параметром алгоритма
-    \param out Указатель на область памяти, в которую помещается выработанное значение
-     (память в размере 32 октета должна быть выделена заранее)
-    \param size Размер выделенной памяти
+    \param tlstree Набор констант, являющийся параметром алгоритма
 
     \return В случае возникновения ошибки функция возвращает ее код. В случае успеха
     возвращается \ref ak_error_ok (ноль).                                                          */
 /* ----------------------------------------------------------------------------------------------- */
- int ak_tlstree_state_create( ak_tlstree_state ctx, ak_uint8 *master_key,
+ int ak_tlstree_state_create( kdf_t type, ak_tlstree_state ctx, ak_uint8 *master_key,
                                 const size_t master_key_size, ak_uint64 index, tlstree_t tlstree )
 {
     ak_uint64 seed;
+    size_t b32 = ak_tlstree_state_get_block( type ); /* размер хеш-кода: 32 или 64 */
     int error = ak_error_ok;
 
    /* проверки */
+    if(( type != kdf256 ) && ( type != kdf512 ) && ( type != kdfnmac ))
+      return ak_error_message( ak_error_wrong_key_type, __func__,
+           "using incorrect type of key defivation function (must ne: kdf256, kdf512 or kdfnmac" );
     if( ctx == NULL )
       return ak_error_message( ak_error_null_pointer, __func__,
                                                            "using null-pointer to tlstree state" );
    /* размещаем исходный ключ */
     memset( ctx, 0, sizeof( struct tlstree_state ));
-    memcpy( ctx->key, master_key, ak_min( 32, master_key_size ));
     ctx->key_number = index;
     ctx->state = tlstree;
+    ctx->type = type;
+    memcpy( ctx->key, master_key, ak_min( b32, master_key_size ));
 
    /* первая итерация */
   #ifdef AK_LITTLE_ENDIAN
@@ -399,15 +382,16 @@
   #else
     seed = ctx->ind1 = ( index&tlstree_constant_values[tlstree].c1 );
   #endif
-    if(( error = ak_skey_derive_kdf_hmac( hmac_hmac256_kdf,
+    if(( error = ak_skey_derive_kdf_hmac(
+                                        ctx->type,
                                         ctx->key,
-                                        32,
+                                        b32,
                                         (ak_uint8 *) "level1",
                                         6,
                                         (ak_uint8 *) &seed,
                                         8,
-                                        ctx->key +32,
-                                        32 )) != ak_error_ok ) {
+                                        ctx->key +b32,
+                                        b32 )) != ak_error_ok ) {
       ak_tlstree_state_destroy( ctx );
       return ak_error_message( error, __func__, "incorrect creation of temporary K1 value" );
     }
@@ -418,15 +402,16 @@
   #else
     seed = ctx->ind2 = ( index&tlstree_constant_values[tlstree].c2 );
   #endif
-    if(( error = ak_skey_derive_kdf_hmac( hmac_hmac256_kdf,
-                                        ctx->key +32,
-                                        32,
+    if(( error = ak_skey_derive_kdf_hmac(
+                                        ctx->type,
+                                        ctx->key +b32,
+                                        b32,
                                         (ak_uint8 *) "level2",
                                         6,
                                         (ak_uint8 *) &seed,
                                         8,
-                                        ctx->key +64,
-                                        32 )) != ak_error_ok ) {
+                                        ctx->key + (2*b32),
+                                        b32 )) != ak_error_ok ) {
       ak_tlstree_state_destroy( ctx );
       return ak_error_message( error, __func__, "incorrect creation of temporary K2 value" );
     }
@@ -437,15 +422,16 @@
   #else
     seed = ctx->ind3 = ( index&tlstree_constant_values[tlstree].c3 );
   #endif
-    if(( error = ak_skey_derive_kdf_hmac( hmac_hmac256_kdf,
-                                        ctx->key +64,
-                                        32,
+    if(( error = ak_skey_derive_kdf_hmac(
+                                        ctx->type,
+                                        ctx->key + (2*b32),
+                                        b32,
                                         (ak_uint8 *) "level3",
                                         6,
                                         (ak_uint8 *) &seed,
                                         8,
-                                        ctx->key +96,
-                                        32 )) != ak_error_ok ) {
+                                        ctx->key + (3*b32),
+                                        b32 )) != ak_error_ok ) {
       ak_tlstree_state_destroy( ctx );
       return ak_error_message( error, __func__, "incorrect creation of temporary K3 value" );
     }
@@ -465,6 +451,7 @@
 {
     ak_uint64 seed = 0;
     int error = ak_error_ok;
+    size_t b32 = ak_tlstree_state_get_block( ctx->type ); /* размер хеш-кода: 32 или 64 */
 
     if( ctx == NULL )
       return ak_error_message( ak_error_null_pointer, __func__,
@@ -481,15 +468,16 @@
      #else
        ctx->ind1 = seed;
      #endif
-       if(( error = ak_skey_derive_kdf_hmac( hmac_hmac256_kdf,
+       if(( error = ak_skey_derive_kdf_hmac(
+                                           ctx->type,
                                            ctx->key,
-                                           32,
+                                           b32,
                                            (ak_uint8 *) "level1",
                                            6,
                                            (ak_uint8 *) &seed,
                                            8,
-                                           ctx->key +32,
-                                           32 )) != ak_error_ok ) {
+                                           ctx->key +b32,
+                                           b32 )) != ak_error_ok ) {
          ak_tlstree_state_destroy( ctx );
          return ak_error_message( error, __func__, "incorrect creation of temporary K1 value" );
        }
@@ -503,15 +491,16 @@
      #else
        ctx->ind2 = seed;
      #endif
-       if(( error = ak_skey_derive_kdf_hmac( hmac_hmac256_kdf,
-                                           ctx->key +32,
-                                           32,
+       if(( error = ak_skey_derive_kdf_hmac(
+                                           ctx->type,
+                                           ctx->key +b32,
+                                           b32,
                                            (ak_uint8 *) "level2",
                                            6,
                                            (ak_uint8 *) &seed,
                                            8,
-                                           ctx->key +64,
-                                           32 )) != ak_error_ok ) {
+                                           ctx->key + (2*b32),
+                                           b32 )) != ak_error_ok ) {
          ak_tlstree_state_destroy( ctx );
          return ak_error_message( error, __func__, "incorrect creation of temporary K2 value" );
        }
@@ -525,15 +514,16 @@
      #else
        ctx->ind3 = seed;
      #endif
-       if(( error = ak_skey_derive_kdf_hmac( hmac_hmac256_kdf,
-                                           ctx->key +64,
-                                           32,
+       if(( error = ak_skey_derive_kdf_hmac(
+                                           ctx->type,
+                                           ctx->key + (2*b32),
+                                           b32,
                                            (ak_uint8 *) "level3",
                                            6,
                                            (ak_uint8 *) &seed,
                                            8,
-                                           ctx->key +96,
-                                           32 )) != ak_error_ok ) {
+                                           ctx->key + (3*b32),
+                                           b32 )) != ak_error_ok ) {
          ak_tlstree_state_destroy( ctx );
          return ak_error_message( error, __func__, "incorrect creation of temporary K3 value" );
        }
@@ -554,7 +544,7 @@
       return NULL;
     }
 
-  return ( ctx->key +96 );
+  return ( ctx->key + ( 3*ak_tlstree_state_get_block( ctx->type )));
  }
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -582,36 +572,37 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
-/*! Для генерации производного ключа используется алгоритм, названный в рекомендациях TLSTREE.
-    Вырабатываемый ключ `K` имеет длину 256 бит и определяется равенством
+/*! Вырабатываемый ключ `K` имеет длину 256 или 512 бит и определяется равенством
 
     \code
       K = TLSTREE( Kin, index ) =
            Divers3( Divers2( Divers1( Kin, Str8( index &C1 )), Str8( index &C2 )), Str8( index &C3))
 
-      Divers1( Ki, S ) = KDF256( Ki, "level1", S )
-      Divers2( K,  S ) = KDF256( K,  "level2", S )
-      Divers3( K,  S ) = KDF256( K,  "level3", S )
+      Divers1( Kin, S ) = KDF( Kin, "level1", S )
+      Divers2( K,   S ) = KDF( K,   "level2", S )
+      Divers3( K,   S ) = KDF( K,   "level3", S )
     \endcode
 
+    где `KDF` один из алгоритмов kdf256, kdf512 или kdfnmac,
     а `Str8` -- запись целого беззнакового числа в виде последовательности 8 байт в big-endian формате
 
     \note Особенность реализации данной функции состоит в том, что исходный ключ передается
           в аргументах функции в открытом виде.
 
+    \param type Тип алгоритма kdf, допустимыми значениями являются kdf256, kdf512 и kdfnmac
     \param master_key Указатель на область памяти.
     \param master_key_size Размер памяти в байтах.
     \param index Порядковый номер вырабатываемого ключа
     \param tlstree Набор констант, являющийся параметром алгоритма
     \param out Указатель на область памяти, в которую помещается выработанное значение
-     (память в размере 32 октета должна быть выделена заранее)
+     (память в размере 32 или 64 октета должна быть выделена заранее)
     \param size Размер выделенной памяти
 
     \return В случае возникновения ошибки функция возвращает ее код. В случае успеха
     возвращается \ref ak_error_ok (ноль).                                                          */
 /* ----------------------------------------------------------------------------------------------- */
- int ak_skey_derive_tlstree( ak_uint8 *master_key, const size_t master_key_size, ak_uint64 index,
-                                             tlstree_t tlstree, ak_uint8 *out, const size_t size )
+ int ak_skey_derive_tlstree( kdf_t type, ak_uint8 *master_key, const size_t master_key_size,
+                            ak_uint64 index, tlstree_t tlstree, ak_uint8 *out, const size_t size )
 {
     int error = ak_error_ok;
     struct tlstree_state ctx;
@@ -625,51 +616,53 @@
                                                             "using null-pointer to output buffer");
     if( !size ) return ak_error_message( ak_error_zero_length, __func__,
                                                            "using output buffer with zero length");
+   /* очищаем память */
+    memset( out, 0, size );
+
    /* собственно основной вызов по выработке производного ключа */
-    if(( error = ak_tlstree_state_create( &ctx,
-                                    master_key, master_key_size, index, tlstree )) != ak_error_ok )
+    if(( error = ak_tlstree_state_create( type, &ctx,
+                                   master_key, master_key_size, index, tlstree )) != ak_error_ok )
       ak_error_message( error, __func__, "incorrect creation of derivative secret key");
      else  /* переносим данные */
-       memcpy( out, ctx.key +96, ak_min( size, 32 ));
-
+       memcpy( out, ak_tlstree_state_get_key( &ctx ),
+                                                ak_min( size, ak_tlstree_state_get_block( type )));
     ak_tlstree_state_destroy( &ctx );
  return error;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
-/*! Для генерации производного ключа используется алгоритм, названный в рекомендациях TLSTREE.
-    Вырабатываемый ключ `K` имеет длину 256 бит и определяется равенством
+/*! Вырабатываемый ключ `K` имеет длину 256 или 512 бит и определяется равенством
 
     \code
       K = TLSTREE( Kin, index ) =
            Divers3( Divers2( Divers1( Kin, Str8( index &C1 )), Str8( index &C2 )), Str8( index &C3))
 
-      Divers1( Ki, S ) = KDF256( Ki, "level1", S )
-      Divers2( K,  S ) = KDF256( K,  "level2", S )
-      Divers3( K,  S ) = KDF256( K,  "level3", S )
+      Divers1( Kin, S ) = KDF( Kin, "level1", S )
+      Divers2( K,   S ) = KDF( K,   "level2", S )
+      Divers3( K,   S ) = KDF( K,   "level3", S )
     \endcode
 
+    где `KDF` один из алгоритмов kdf256, kdf512 или kdfnmac,
     а `Str8` -- запись целого беззнакового числа в виде последовательности 8 байт в big-endian формате
 
     \note Особенность реализации данной функции состоит в том, что исходный ключ передается
           в составе указателя на структуру skey или ее насленика, что обеспечивает контроль
           целостности ключевой информации.
 
-    \param master_key Указатель на корректно созданный ранее контекст секретного ключа `Kin`.
-    В качестве типов криптографических механизмов для данного ключа допускаются блочные шифры и
-    ключи выработки hmac. Использование ключей с другим установленным значением типа
-    криптографического механизма приводит к ошибке.
+    \param type Тип алгоритма kdf, допустимыми значениями являются kdf256, kdf512 и kdfnmac
+    \param master_key Указатель на инициализированный контекст исходного секретного ключа
     \param index Порядковый номер вырабатываемого ключа
     \param tlstree Набор констант, являющийся параметром алгоритма
     \param out Указатель на область памяти, в которую помещается выработанное значение
-     (память в размере 32 октета должна быть выделена заранее)
+     (память в размере 32 или 64 октета должна быть выделена заранее)
     \param size Размер выделенной памяти
 
     \return В случае возникновения ошибки функция возвращает ее код. В случае успеха
     возвращается \ref ak_error_ok (ноль).                                                          */
 /* ----------------------------------------------------------------------------------------------- */
- int ak_skey_derive_tlstree_from_skey( ak_pointer master_key, ak_uint64 index,
-                                             tlstree_t tlstree, ak_uint8 *out, const size_t size )
+ int ak_skey_derive_tlstree_from_skey( kdf_t type, ak_pointer master_key,
+                            ak_uint64 index, tlstree_t tlstree, ak_uint8 *out, const size_t size )
+
 {
     int error = ak_error_ok;
     ak_skey master = ( ak_skey ) master_key;
@@ -680,19 +673,19 @@
    /* проверяем, что мастер-ключ установлен */
     if( master->oid->mode != algorithm )
       return ak_error_message( ak_error_oid_mode, __func__,
-                                   "using the master key which is not a cryptographic algorithm" );
+                                              "using the initial secret key with incorrect mode" );
     switch( master->oid->engine ) {
       case block_cipher:
       case hmac_function:
         break;
       default: return ak_error_message_fmt( ak_error_oid_engine, __func__,
-                                            "using the master key with unsupported engine (%s)",
+                                       "using the initial secret key with unsupported engine (%s)",
                                               ak_libakrypt_get_engine_name( master->oid->engine ));
     }
 
     if(( master->flags&key_flag_set_key ) == 0 )
       return ak_error_message( ak_error_key_value, __func__,
-                                                     "using the master key with undefined value" );
+                                             "using the initial secret key with undefined value" );
    /* целостность ключа */
     if( master->check_icode( master ) != ak_true )
       return ak_error_message( ak_error_wrong_key_icode,
@@ -700,7 +693,8 @@
 
   /* только теперь вызываем функцию генерации производного ключа */
     master->unmask( master );
-    error = ak_skey_derive_tlstree( master->key, master->key_size, index, tlstree, out, size );
+    error = ak_skey_derive_tlstree( type,
+                                        master->key, master->key_size, index, tlstree, out, size );
     master->set_mask( master );
 
     if( error != ak_error_ok )
@@ -710,119 +704,43 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
-/*! Для генерации производного ключа используется алгоритм, названный в рекомендациях TLSTREE.
-    Вырабатываемый ключ `K` имеет длину 256 бит и определяется равенством
-
-    \code
-      K = TLSTREE( Kin, index ) =
-           Divers3( Divers2( Divers1( Kin, Str8( index &C1 )), Str8( index &C2 )), Str8( index &C3))
-
-      Divers1( Ki, S ) = KDF256( Ki, "level1", S )
-      Divers2( K,  S ) = KDF256( K,  "level2", S )
-      Divers3( K,  S ) = KDF256( K,  "level3", S )
-    \endcode
-
-     а `Str8` -- запись целого беззнакового числа в виде последовательности 8 байт в big-endian формате
-
-    \note Особенность реализации данной функции состоит в том, что в процессе выполнения функция
-     выделяет в памяти область для нового ключа, инициализирует его и присваивает выработанное
-     значение, а также устанавливает ресурс ключа.
-
-    \param oid Идентификатор создаваемого ключа
-    \param master_key Указатель на корректно созданный ранее контекст секретного ключа `Kin`.
-     В качестве типов криптографических механизмов для данного ключа допускаются блочные шифры и
-     ключи выработки hmac. Использование ключей с другим установленным значением типа
-     криптографического механизма приводит к ошибке.
-    \param index Порядковый номер вырабатываемого ключа
-    \param tlstree Набор констант, являющийся параметром алгоритма
-
-    \return В случае возникновения ошибки функция возвращает NULL, а код ошибки может быть
-    получен с помощью функции ak_error_get_value(). В случае успеха
-    возвращает указатель на созданый контекст секретного ключа.                                    */
-/* ----------------------------------------------------------------------------------------------- */
- ak_pointer ak_skey_new_derive_tlstree_from_skey( ak_oid oid, ak_pointer master_key,
-                                                               ak_uint64 index, tlstree_t tlstree )
+ int ak_skey_set_derive_tlstree_from_skey( ak_pointer derived_key, kdf_t type,
+                                        ak_pointer master_key, ak_uint64 index, tlstree_t tlstree )
 {
+    ak_uint8 out[64]; /* размер 64 определяется масимальной длиной алгоритма kdf512 */
     int error = ak_error_ok;
-    struct tlstree_state ctx;
-    ak_pointer handle = NULL;
-    ak_skey master = ( ak_skey ) master_key;
-
-   /* выполняем проверки */
-    if( oid == NULL ) {
-      ak_error_message( ak_error_null_pointer, __func__, "using null pointer to oid context" );
-      return NULL;
-    }
-    if( oid->func.first.set_key == NULL ) {
-      ak_error_message_fmt( ak_error_undefined_function, __func__,
-                         "using oid (%s) with unsupported key assigning mechanism", oid->name[0] );
-      return NULL;
-    }
+    ak_skey sk = (ak_skey) derived_key;
 
    /* проверяем указатели */
-    if( master_key == NULL )  {
-      ak_error_message( ak_error_null_pointer, __func__, "using null pointer to master key" );
-      return NULL;
-    }
+    if( derived_key == NULL )
+      return ak_error_message( ak_error_null_pointer, __func__,
+                                                     "using null pointer to derived key context" );
+    if( sk->oid == NULL )
+      return ak_error_message( ak_error_wrong_oid, __func__,
+                                  "using uncreated derived key context with null pointer to oid" );
+    if( sk->oid->func.first.set_key == NULL )
+      return ak_error_message_fmt( ak_error_undefined_function, __func__,
+             "using derived key with unsupported key assigning mechanism (%s)", sk->oid->name[0] );
+    if( sk->key_size == 0 )
+      return ak_error_message( ak_error_wrong_key_length, __func__,
+                              "using uncreated derived key context with null size of key buffer" );
+    if( sk->key_size > sizeof( out ))
+      return ak_error_message( ak_error_wrong_key_length, __func__,
+                                 "using derived key context with very llarge size of key buffer" );
 
-   /* проверяем, что мастер-ключ установлен */
-    if( master->oid->mode != algorithm ) {
-      ak_error_message( ak_error_oid_mode, __func__,
-                                   "using the master key which is not a cryptographic algorithm" );
-      return NULL;
-    }
+   /* создаем производный ключ */
+    if(( error = ak_skey_derive_tlstree_from_skey( type, master_key,
+                                             index, tlstree, out, sk->key_size )) != ak_error_ok )
+      return ak_error_message( error, __func__, "incorrect creation of derived key value" );
 
-    switch( master->oid->engine ) {
-      case block_cipher:
-      case hmac_function:
-        break;
-      default: ak_error_message_fmt( ak_error_oid_engine, __func__,
-                                            "using the master key with unsupported engine (%s)",
-                                              ak_libakrypt_get_engine_name( master->oid->engine ));
-               return NULL;
-    }
+   /* присваиваем значение ключа */
+    if(( error = sk->oid->func.first.set_key( sk, out, sk->key_size )) != ak_error_ok )
+      ak_error_message( error, __func__, "incorrect assigning a derived key value" );
 
-    if(( master->flags&key_flag_set_key ) == 0 ) {
-      ak_error_message( ak_error_key_value, __func__,"using the master key with undefined value" );
-      return NULL;
-    }
+   /* очищаем стек */
+    ak_ptr_wipe( out, sizeof( out ), &sk->generator );
 
-   /* целостность ключа */
-    if( master->check_icode( master ) != ak_true ) {
-      ak_error_message( ak_error_wrong_key_icode,
-                                              __func__, "incorrect integrity code of master key" );
-      return NULL;
-    }
-
-   /* только теперь начинаем криптографические преобразования */
-    master->unmask( master );
-    error = ak_tlstree_state_create( &ctx, master->key, master->key_size, index, tlstree );
-    master->set_mask( master );
-
-   /* проверяем, что все выработано */
-    if( error != ak_error_ok ) {
-      ak_error_message( error, __func__, "incorrect creation of derived key" );
-      goto exlab;
-    }
-
-  /* погружаем выработанные данные в новый контекст */
-   if(( handle = ak_oid_new_object( oid )) == NULL ) {
-     ak_error_message( error = ak_error_get_value(), __func__,
-                                                  "incorrect creation of new secret key context" );
-     goto exlab;
-   }
-   if(( error = oid->func.first.set_key( handle, ctx.key +96, 32 )) != ak_error_ok ) {
-     ak_error_message( error, __func__, "incorrect assigning a derivative key value" );
-     goto exlab;
-   }
-
- /* очищаем память */
-  exlab:
-    if( error != ak_error_ok )
-      handle = ak_oid_delete_object( oid, handle );
-    ak_tlstree_state_destroy( &ctx );
-
- return handle;
+  return error;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -882,7 +800,7 @@
    ak_uint8 out[32];
 
   /* первый пример */
-   if(( error = ak_skey_derive_tlstree( inkey611, 32, 5,
+   if(( error = ak_skey_derive_tlstree( kdf256, inkey611, 32, 5,
                                       tlstree_with_kuznyechik_mgm_s, out, 32 )) != ak_error_ok ) {
      ak_error_message( error, __func__,
                         "incorrect creation of derivative secret key, first example in part 6.1" );
@@ -899,7 +817,7 @@
     }
 
   /* второй пример */
-   if(( error = ak_skey_derive_tlstree( inkey612, 32, 5,
+   if(( error = ak_skey_derive_tlstree( kdf256, inkey612, 32, 5,
                                       tlstree_with_kuznyechik_mgm_s, out, 32 )) != ak_error_ok ) {
      ak_error_message( error, __func__,
                        "incorrect creation of derivative secret key, second example in part 6.1" );
@@ -916,7 +834,7 @@
     }
 
   /* третий пример */
-   if(( error = ak_skey_derive_tlstree( inkey613, 32, 5,
+   if(( error = ak_skey_derive_tlstree( kdf256, inkey613, 32, 5,
                                       tlstree_with_kuznyechik_mgm_s, out, 32 )) != ak_error_ok ) {
      ak_error_message( error, __func__,
                         "incorrect creation of derivative secret key, third example in part 6.1" );
@@ -933,7 +851,7 @@
     }
 
   /* четвертый пример */
-   if(( error = ak_skey_derive_tlstree( inkey613, 32, 15,
+   if(( error = ak_skey_derive_tlstree( kdf256, inkey613, 32, 15,
                                       tlstree_with_kuznyechik_mgm_s, out, 32 )) != ak_error_ok ) {
      ak_error_message( error, __func__,
                        "incorrect creation of derivative secret key, fourth example in part 6.1" );
@@ -950,7 +868,7 @@
     }
 
   /* пятый пример */
-   if(( error = ak_skey_derive_tlstree( inkey634, 32, 100,
+   if(( error = ak_skey_derive_tlstree( kdf256, inkey634, 32, 100,
                                            tlstree_with_magma_mgm_l, out, 32 )) != ak_error_ok ) {
      ak_error_message( error, __func__,
                        "incorrect creation of derivative secret key, fourth example in part 6.3" );
@@ -967,7 +885,7 @@
     }
 
   /* шестой пример */
-   if(( error = ak_skey_derive_tlstree( inkey634, 32, 200,
+   if(( error = ak_skey_derive_tlstree( kdf256, inkey634, 32, 200,
                                            tlstree_with_magma_mgm_l, out, 32 )) != ak_error_ok ) {
      ak_error_message( error, __func__,
                         "incorrect creation of derivative secret key, fifth example in part 6.3" );
@@ -985,7 +903,7 @@
 
   /* седьмой пример - проверка эквивалентности вычислений проивзодного ключа двумя способами
    * создаем контекст с расчетом на 4096 производных ключей */
-   if(( error = ak_tlstree_state_create( &ctx, inkey611, 32, 0,
+   if(( error = ak_tlstree_state_create( kdf256, &ctx, inkey611, 32, 0,
                                                  tlstree_with_libakrypt_4096 )) != ak_error_ok ) {
      ak_error_message( error, __func__, "incorrect creation of tlstree context");
      return ak_false;
@@ -994,7 +912,7 @@
   /* вычисляем ключи в цикле и сравниваем */
    do {
        /* вычисляем производный ключ другим способом */
-        if(( error = ak_skey_derive_tlstree( inkey611, 32, ctx.key_number,
+        if(( error = ak_skey_derive_tlstree( kdf256, inkey611, 32, ctx.key_number,
                                         tlstree_with_libakrypt_4096, out, 32 )) != ak_error_ok ) {
           ak_error_message( error, __func__, "incorrect creation of tlstree derive key");
           goto exlab;

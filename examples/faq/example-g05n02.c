@@ -38,26 +38,29 @@
 
    /* основной цикл генерации десяти производных ключей */
     do {
-         ak_bckey psk = ak_skey_new_derive_tlstree_from_skey(
-                              ak_oid_find_by_name( "magma" ),
-                              &master_key,
-                              index,
-                              tlstree_with_libakrypt_65536 );
-         if( psk == NULL ) break;
+         struct bckey ctx;
+         ak_bckey_create_magma( &ctx );
+         if( ak_skey_set_derive_tlstree_from_skey( &ctx, kdf256,
+                           &master_key, index, tlstree_with_libakrypt_65536 ) != ak_error_ok ) {
+           ak_bckey_destroy( &ctx );
+           break;
+         }
 
         /* теперь шифруем данные и выводим шифртекст в консоль */
-         ak_bckey_ctr( psk, data, buffer, sizeof( data ), iv, 4 );
-         printf("key[%03d]: %s ", index,
+         ak_bckey_ctr( &ctx, data, buffer, sizeof( data ), iv, 4 );
+         printf("key[%02d]: %s ", index,
                       ak_ptr_to_hexstr( buffer, sizeof( buffer ), ak_false ));
 
         /* расшифровываем и проверяем совпадение */
-         ak_bckey_ctr( psk, buffer, buffer, sizeof( buffer ), iv, 4 );
-         if( ak_ptr_is_equal_with_log( buffer, data, sizeof( data )))
-           printf("Ok\n");
+         ak_bckey_ctr( &ctx, buffer, buffer, sizeof( buffer ), iv, 4 );
+         if( ak_ptr_is_equal_with_log( buffer, data, sizeof( data ))) printf("Ok\n");
+          else {
+            printf("Wrong\n");
+            ak_error_set_value( ak_error_not_equal_data );
+          }
 
         /* уничтожаем ключ */
-         ak_skey_delete( psk );
-
+         ak_bckey_destroy( &ctx );
     } while ( ++index < 16 );
 
    /* очищаем память */

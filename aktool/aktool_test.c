@@ -108,7 +108,9 @@
     switch( work )
    {
      case do_dynamic:
-       if( ak_libakrypt_dynamic_control_test( )) printf(_("complete crypto test is Ok\n"));
+       if( ak_libakrypt_dynamic_control_test( )) {
+         if( !ki.quiet ) printf(_("complete crypto test is Ok\n"));
+       }
         else {
           aktool_error(_("complete crypto test is Wrong\n"));
           exit_status = EXIT_FAILURE;

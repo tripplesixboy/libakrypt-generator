@@ -215,7 +215,7 @@ set( EXAMPLES_LIST
      g02n01 g02n02 g02n03 g02n04 g02n05 g02n06
      g03n01 g03n02 g03n03 g03n04
      g04n01 g04n02
-     g05n01 g05n02 g05n03 g05n04
+     g05n01 g05n02 g05n03 g05n04 g05n05
      g06n01
    )
 

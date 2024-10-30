@@ -24,10 +24,11 @@
     ak_uint8 out[32];
 
    /* инициализируем библиотеку */
-    ak_libakrypt_create( NULL );
+    ak_log_set_level( ak_log_none );
+    ak_libakrypt_create( ak_function_log_stderr );
 
    /* вырабатываем производный ключ с номером пять */
-    ak_skey_derive_tlstree( key, 32, 5, tlstree_with_kuznyechik_mgm_l, out, 32 );
+    ak_skey_derive_tlstree( kdf256, key, 32, 5, tlstree_with_kuznyechik_mgm_l, out, 32 );
 
    /* сравниваем то, что вычислили с тем, что хотели бы получить */
     if( ak_ptr_is_equal_with_log( out, outkey, 32 ))
