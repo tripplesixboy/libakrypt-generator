@@ -212,7 +212,6 @@ extern "C" {
  dll_export bool_t ak_libakrypt_test_acpkm( void );
 /*! \brief Выполнение тестовых примеров для алгоритмов выработки и проверки электронной подписи */
  dll_export bool_t ak_libakrypt_test_sign( void );
-
 /** @}*/
 /** @}*/
 
@@ -489,6 +488,9 @@ extern "C" {
  dll_export int ak_ptr_wipe( ak_pointer , size_t , ak_random );
 /*! \brief Функция очистки и последующего удаления файла. */
  dll_export int ak_file_delete( const char * , ak_random );
+
+/*! \brief Тест статистической проверки двоичных последовательностей */
+ dll_export bool_t ak_random_dynamic_test( ak_uint8 * , size_t );
 /** @}*/
 
 /* ----------------------------------------------------------------------------------------------- */
