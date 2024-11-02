@@ -60,6 +60,7 @@
      { "list",                0, NULL,  'l' },
      { "input",               1, NULL,  'i' },
      { "search-deleted",      0, NULL,  170 },
+     { "clean",               0, NULL,  171 },
 
     /* аналоги из aktool_key */
      { "key",                 1, NULL,  203 },
@@ -291,6 +292,23 @@
         case 170: /* --search-deleted */
                    ki.search_deleted = ak_true;
                    break;
+
+        case 171: /* --clean */
+                   if(
+                    #ifdef AK_HAVE_UNISTD_H
+                     unlink( aktool_icode_database_file )
+                    #else
+                     remove( aktool_icode_database_file )
+                    #endif
+                   != 0 ) aktool_error(_("file %s cannot be removed (%s)"),
+                                                     aktool_icode_database_file, strerror( errno ));
+                   else
+                   {
+                       printf(_("file %s%s%s successfully removed\n"), ak_error_get_start_string(),
+                                            aktool_icode_database_file, ak_error_get_end_string( ));
+                       exit_status = EXIT_SUCCESS;
+                   }
+                   goto exitlab;
 
         default:  /* обрабатываем ошибочные параметры */
                    if( next_option != -1 ) goto exitlab;
@@ -568,6 +586,7 @@
   }
   printf(_(", default: %s ]\n"), ki.method->name[0] );
   printf(_("                         for keyed authentication mechanism use --key option\n"));
+  printf(_("     --clean             cleaning the existing database with authentication or integrity codes\n"));
   printf(_(" -c, --config            specify the name of the configuration file\n"));
   printf(_("     --dont-show-icode   don't output calculated authentication or integrity codes to the console\n"));
   printf(_("     --dont-show-stat    don't show a statistical results after creation or verification of integrity codes\n"));
