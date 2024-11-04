@@ -119,10 +119,6 @@
   if( aktool_check_command( "key", argv[1] )) return aktool_key( argc, argv );
   if( aktool_check_command( "i", argv[1] )) return aktool_icode( argc, argv );
   if( aktool_check_command( "icode", argv[1] )) return aktool_icode( argc, argv );
-  if( aktool_check_command( "e", argv[1] )) return aktool_encrypt( argc, argv, do_encrypt );
-  if( aktool_check_command( "encrypt", argv[1] )) return aktool_encrypt( argc, argv, do_encrypt );
-  if( aktool_check_command( "d", argv[1] )) return aktool_encrypt( argc, argv, do_decrypt );
-  if( aktool_check_command( "decrypt", argv[1] )) return aktool_encrypt( argc, argv, do_decrypt );
 
  /* ничего не подошло, выводим сообщение об ошибке */
   ak_log_set_function( ak_function_log_stderr );
@@ -412,8 +408,6 @@
   printf(_("  aktool command [options] [files]\n\n"));
   printf(_("available commands (in short and long forms):\n"));
   printf(_("  a, asn1parse  -  decode and print the ASN.1 data\n"));
-  printf(_("  e, encrypt    -  encrypt given file or directory\n"));
-  printf(_("  d, decrypt    -  decrypt given file\n"));
   printf(_("  i, icode      -  calculate or check integrity codes\n"));
   printf(_("  k, key        -  key generation and management functions\n"));
   printf(_("  s, show       -  show useful information\n"));
