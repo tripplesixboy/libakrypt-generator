@@ -489,7 +489,7 @@ extern "C" {
 /*! \brief Функция очистки и последующего удаления файла. */
  dll_export int ak_file_delete( const char * , ak_random );
 
-/*! \brief Тест статистической проверки двоичных последовательностей */
+/*! \brief Статистическая проверка двоичной последовательности */
  dll_export bool_t ak_random_dynamic_test( ak_uint8 * , size_t );
 /** @}*/
 
