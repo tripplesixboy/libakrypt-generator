@@ -673,6 +673,7 @@
    /* считываем данные небольшими фрагментами и формируем контрольную сумму */
     lseek( fm.fd, ki->curmem.st_addr, SEEK_SET );
     ki->icode_clean( dkey );
+
     while( length > 0 ) {
      size_t rlen = read( fm.fd, buffer, ak_min( length, sizeof( buffer )));
      if( rlen == length ) { /* считали последний блок */
@@ -693,8 +694,7 @@
     if( kp->value_length == ki->size +8 ) iptr = ( kp->data + kp->key_length + 8 );
       else iptr = ( kp->data + kp->key_length );
 
-    if( ak_ptr_is_equal_with_log( icode, iptr, ki->size ) != 0 ) {
-//    if( memcmp( icode, iptr, ki->size ) != 0 ) {
+    if( !ak_ptr_is_equal_with_log( icode, iptr, ki->size )) {
       ki->statistical_data.skipped_segments++;
       ak_error_message_fmt( ak_error_not_equal_data, __func__,
                                                      _("segment %s has been modified"), kp->data );
@@ -734,7 +734,7 @@
     if( ki == NULL ) return ak_error_null_pointer;
 
    /* начинаем разбор параметров строки */
-    if( sscanf( buffer, "%lx-%lx %c%c%c%c %lx %x:%x %lu %s",
+    if( sscanf( buffer, "%x-%x %c%c%c%c %x %x:%x %u %s",
                 &ki->curmem.st_addr, &ki->curmem.en_addr, &r, &w, &x, &s, &ki->curmem.offset,
                                                        &major, &minor, &inode, filename ) < 11 ) {
       if( inode != 0 || major != 0 || minor != 0 ) /* иначе это нулевая страница */
@@ -769,7 +769,7 @@
         strncpy( old_name, filename, sizeof( old_name ));
       }
 
-   /* обрабатыаем специальные сегменты */
+   /* обрабатываем специальные сегменты */
     if(( flen = strlen(filename)) == 0 ) {
       ak_error_message_fmt( ak_error_zero_length, __func__,
                          _("process: %d, zero length of loaded file (line %s)"), ki->pid, buffer );
