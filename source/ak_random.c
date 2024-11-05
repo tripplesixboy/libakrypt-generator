@@ -1029,10 +1029,11 @@ slabel:
 
     if( ak_log_get_level() >= ak_log_maximum )
     {
-        ak_error_message_fmt( ak_error_ok, __func__, "size: %llu, binarySum: %llu", size, binsum );
+        ak_error_message_fmt( ak_error_ok, __func__, "size: %u, binarySum: %u",
+                                                        (unsigned int)size, (unsigned int)binsum );
         ak_error_message_fmt( ak_error_ok, __func__,
-                                     "s[0]: %llu, s[1]: %llu, s[2]: %llu, s[3]: %llu, chi: %.6Lf",
-                                             bigrsum[0], bigrsum[1], bigrsum[2], bigrsum[3], chi );
+                   "s[0]: %u, s[1]: %u, s[2]: %u, s[3]: %u, chi: %.6Lf", (unsigned int)bigrsum[0],
+               (unsigned int)bigrsum[1], (unsigned int)bigrsum[2], (unsigned int)bigrsum[3], chi );
     }
 
    /* проверяем граничные условия */

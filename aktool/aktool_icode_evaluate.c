@@ -226,7 +226,8 @@
         goto labexit;
       }
      /* формируем виртуальное имя файла - ключ доступа в виртуальной таблице */
-      ak_snprintf( segment_value, sizeof( segment_value ) -1, "%s/%08jx", value, phdr.p_offset );
+      ak_snprintf( segment_value, sizeof( segment_value ) -1, "%s/%08x", value,
+                                                                    (unsigned int) phdr.p_offset );
      /* при необходимости, формируем производный ключ */
       if(( dkey = aktool_icode_get_derived_key( segment_value, ki, fp.size )) == NULL ) {
         ki->statistical_data.skipped_executables++;
@@ -813,7 +814,7 @@
      else {
       /* формируем строку для поиска */
        ak_snprintf( segment_value, sizeof( segment_value ) -1,
-                                                         "%s/%08jx", filename, ki->curmem.offset );
+                                           "%s/%08x", filename, (unsigned int) ki->curmem.offset );
        if(( kp = ak_htable_get_keypair_str( &ki->icodes, segment_value )) == NULL ) {
          aktool_error(_("process: %d, link to non-controlled segment %s"),
                                                                           ki->pid, segment_value );

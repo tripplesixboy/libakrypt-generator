@@ -20,7 +20,7 @@
  /* вызываем конструктор генератора и вырабатываем случайные данные */
   ak_random_create_hrng( &generator );
 
-  for( int i = 0; i < 10000; i++ )
+  for( int i = 0; i < 1; i++ )
   {
       ak_random_ptr( &generator, buffer, 64 );
 
@@ -34,6 +34,9 @@
  /* вызываем деструктор генератора */
   ak_random_destroy( &generator );
   ak_libakrypt_destroy();
+
+
+
 
  return EXIT_SUCCESS;
 }
