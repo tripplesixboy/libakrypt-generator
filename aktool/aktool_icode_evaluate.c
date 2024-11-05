@@ -693,7 +693,8 @@
     if( kp->value_length == ki->size +8 ) iptr = ( kp->data + kp->key_length + 8 );
       else iptr = ( kp->data + kp->key_length );
 
-    if( memcmp( icode, iptr, ki->size ) != 0 ) {
+    if( ak_ptr_is_equal_with_log( icode, iptr, ki->size ) != 0 ) {
+//    if( memcmp( icode, iptr, ki->size ) != 0 ) {
       ki->statistical_data.skipped_segments++;
       ak_error_message_fmt( ak_error_not_equal_data, __func__,
                                                      _("segment %s has been modified"), kp->data );
