@@ -1,5 +1,5 @@
 #!/bin/bash
-compilerList="gcc-9 gcc-10 gcc-11 gcc-12 gcc-13 gcc-14 gcc-15 musl-gcc clang-11 clang-12 clang-13 clang-14 clang-15 clang-16 clang-17 clang-18 tcc"
+compilerList="gcc-9 gcc-10 gcc-11 gcc-12 gcc-13 gcc-14 gcc-15 gcc-16 gcc-17 musl-gcc clang-11 clang-12 clang-13 clang-14 clang-15 clang-16 clang-17 clang-18 clang-19 clang-20 clang-21 tcc"
 buildDir="../build.global"
 
 # формируем каталог для проведения экспериментов
