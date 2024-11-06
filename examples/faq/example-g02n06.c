@@ -43,12 +43,13 @@
      }
 
   /* выводим содержимое таблицы */
-    printf(" таблица содержит %lu списков\n", ht.count );
+    printf(" таблица содержит %u списков\n", (unsigned int) ht.count );
     for( size_t i = 0; i < ht.count; i++ ) {
       ak_list list = &ht.list[i];
       cnt += list->count;
       if( list->count == 0 ) continue;
-      printf(" - список: %2lu содержит %lu элементов\n", i, list->count );
+      printf(" - список: %2u содержит %u элементов\n",
+                                                    (unsigned int) i, (unsigned int) list->count );
       ak_list_first( list );
       do{
          ak_keypair kp = (ak_keypair)list->current->data;
@@ -57,7 +58,7 @@
       }
        while( ak_list_next( list ));
     }
-    printf(" таблица содержит %lu элементов\n", cnt );
+    printf(" таблица содержит %u элементов\n", (unsigned int) cnt );
 
   /* удаляем остатки пришеств */
    ak_htable_destroy( &ht );

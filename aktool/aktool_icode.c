@@ -55,6 +55,7 @@
      { "only-one-pid",        1, NULL,  166 },
      { "min-pid",             1, NULL,  167 },
      { "max-pid",             1, NULL,  168 },
+     { "exclude-link",        1, NULL,  172 },
 #endif
      { "add",                 0, NULL,  169 },
      { "list",                0, NULL,  'l' },
@@ -84,6 +85,9 @@
   memset( &ki, 0, sizeof( aktool_ki_t ));
   ak_htable_create( &ki.exclude_path, 16 );
   ak_htable_create( &ki.exclude_file, 16 );
+ #ifdef AK_HAVE_GELF_H
+  ak_htable_create( &ki.exclude_link, 16 );
+ #endif
   ki.pattern =
   #ifdef _WIN32
    strdup("*.*");
@@ -163,6 +167,12 @@
         case 'e' : /* --exclude устанавливаем имя исключаемого файла или каталога */
                    aktool_icode_add_control_object( &ki, "exclude", optarg );
                    break;
+
+      #ifdef AK_HAVE_GELF_H
+        case 172 : /* --exclude-link устанавливаем имя исключаемой ссылки на файл */
+                   aktool_icode_add_control_object( &ki, "exclude-link", optarg );
+                   break;
+      #endif
 
         case 'p' : /* --pattern устанавливаем дополнительную маску для поиска файлов */
                    if( ki.pattern != NULL ) free( ki.pattern );
@@ -424,6 +434,9 @@
     ak_list_destroy( &ki.include_file );
     ak_htable_destroy( &ki.exclude_file );
     ak_htable_destroy( &ki.exclude_path );
+   #ifdef AK_HAVE_GELF_H
+    ak_htable_destroy( &ki.exclude_link );
+   #endif
     ak_htable_destroy( &ki.icodes );
     aktool_destroy_libakrypt();
 
@@ -471,6 +484,20 @@
                                        ak_list_node_new_string( value )) != ak_error_ok ) return 0;
         else return 1;
     }
+
+   #ifdef AK_HAVE_GELF_H
+    if( memcmp( name, "exclude-link", 12 ) == 0 ) {
+      switch( permissions ) {
+       /* добавляем только файлы */
+        case DT_REG:
+          if( ak_htable_add_str_str( &ki->exclude_link, value, "file" ) != ak_error_ok ) return 0;
+           else return 1;
+        default:
+          return 1;
+      }
+    }
+   #endif
+
     if( memcmp( name, "exclude", 7 ) == 0 ) {
       switch( permissions ) {
         case DT_DIR:
@@ -535,7 +562,7 @@
   /* список пропускаемых файлов */
    if( ki->exclude_file.count ) {
      size_t i = 0;
-     ak_error_message( ak_error_ok, __func__, _("exclude file:"));
+     ak_error_message( ak_error_ok, __func__, _("exclude file(s):"));
      for( i = 0; i < ki->exclude_file.count; i++ ) {
        ak_list list = &ki->exclude_file.list[i];
        if( list->count ) {
@@ -547,6 +574,24 @@
        }
      }
    }
+
+  /* список пропускаемых cсылок */
+  #ifdef AK_HAVE_GELF_H
+   if( ki->exclude_link.count ) {
+     size_t i = 0;
+     ak_error_message( ak_error_ok, __func__, _("exclude link(s):"));
+     for( i = 0; i < ki->exclude_link.count; i++ ) {
+       ak_list list = &ki->exclude_link.list[i];
+       if( list->count ) {
+         ak_list_first( list );
+         do{
+             ak_keypair kp = (ak_keypair)list->current->data;
+             ak_error_message_fmt( ak_error_ok, __func__, " - %s", (char *)kp->data );
+         } while( ak_list_next( list ));
+       }
+     }
+   }
+  #endif
 
   /* установленные пользователем настройки программы */
    if( strlen( ki->pubkey_file ) != 0 ) {
@@ -591,6 +636,9 @@
   printf(_("     --dont-show-icode   don't output calculated authentication or integrity codes to the console\n"));
   printf(_("     --dont-show-stat    don't show a statistical results after creation or verification of integrity codes\n"));
   printf(_(" -e, --exclude           specify the name of excluded files or directories\n"));
+#ifdef AK_HAVE_GELF_H
+  printf(_("     --exclude-link      specify a link to the file in the memory of the process that should be excluded\n"));
+#endif
   printf(_("     --format            set the format of output hash table [ enabled values: binary linux bsd, default: binary ]\n"));
   printf(_("     --hash-table-nodes  number of high-level nodes in the generated hash table [ default: %llu ]\n"),
                                                                   (unsigned long long int) ki.icode_lists_count );

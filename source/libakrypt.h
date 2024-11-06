@@ -932,7 +932,7 @@ extern "C" {
 /*! \brief Хеширование заданной области памяти. */
  dll_export int ak_hash_ptr( ak_hash , const ak_pointer , const size_t , ak_pointer , const size_t );
 /*! \brief Хеширование заданного файла. */
- dll_export int ak_hash_file( ak_hash , const char*, ak_pointer , const size_t );
+ dll_export int ak_hash_file( ak_hash , const char *, ak_pointer , const size_t );
 /** @}*/
 
 /* ----------------------------------------------------------------------------------------------- */

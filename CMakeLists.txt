@@ -102,7 +102,20 @@ if( IS_BIG_ENDIAN )
 else()
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAK_LITTLE_ENDIAN" )
 endif()
-message("-- Used compile flags ${CMAKE_C_FLAGS}")
+
+# -------------------------------------------------------------------------------------------------- #
+# Проверка разрядности системы
+string( COMPARE EQUAL ${CMAKE_SIZEOF_VOID_P} "4" AK_SIZEOF_VOID_P_IS_4 )
+string( COMPARE EQUAL ${CMAKE_SIZEOF_VOID_P} "8" AK_SIZEOF_VOID_P_IS_8 )
+
+if( AK_SIZEOF_VOID_P_IS_4 )
+  message("-- Using 32-bit architecture")
+  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAK_SIZEOF_VOID_P_IS_4" )
+endif()
+if( AK_SIZEOF_VOID_P_IS_8 )
+  message("-- Using 64-bit architecture")
+  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAK_SIZEOF_VOID_P_IS_8" )
+endif()
 
 # -------------------------------------------------------------------------------------------------- #
 # Подключаем модули CMake для тонкой настройки параметров сборки
@@ -156,6 +169,8 @@ add_compile_options( -DLIBAKRYPT_VERSION="${FULL_VERSION}" )
 add_compile_options( -DLIBAKRYPT_COMPILER_NAME="${CMAKE_C_COMPILER_ID}" )
 add_compile_options( -DLIBAKRYPT_COMPILER_VERSION="${CMAKE_C_COMPILER_VERSION}" )
 add_compile_options( -DLIBAKRYPT_CA_PATH="${AK_CA_PATH}" )
+message("-- Used compile flags ${CMAKE_C_FLAGS}")
+#
 if( AK_LOCALE_PATH )
 else()
   if( CMAKE_HOST_UNIX )

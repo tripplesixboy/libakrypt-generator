@@ -726,17 +726,27 @@
     ak_keypair kp = NULL;
     size_t inode, flen = 0;
     aktool_ki_t *ki = inptr;
-    int error = ak_error_ok;
-    unsigned int major, minor;
+    int error = ak_error_ok;    unsigned int major, minor;
     char filename[FILENAME_MAX], segment_value[FILENAME_MAX];
 
    /* базовые проверки */
     if( ki == NULL ) return ak_error_null_pointer;
 
    /* начинаем разбор параметров строки */
+   #ifdef AK_SIZEOF_VOID_P_IS_4
     if( sscanf( buffer, "%x-%x %c%c%c%c %x %x:%x %u %s",
                 &ki->curmem.st_addr, &ki->curmem.en_addr, &r, &w, &x, &s, &ki->curmem.offset,
                                                        &major, &minor, &inode, filename ) < 11 ) {
+
+   #else
+     #ifdef AK_SIZEOF_VOID_P_IS_8
+       if( sscanf( buffer, "%lx-%lx %c%c%c%c %lx %x:%x %lu %s",
+                &ki->curmem.st_addr, &ki->curmem.en_addr, &r, &w, &x, &s, &ki->curmem.offset,
+                                                       &major, &minor, &inode, filename ) < 11 ) {
+     #else
+       #error "Unsupported sizeof(void *) value"
+     #endif
+   #endif
       if( inode != 0 || major != 0 || minor != 0 ) /* иначе это нулевая страница */
         ak_error_message_fmt( ak_error_undefined_value, __func__,
                                      _("process: %d, unexpected map's line %s"), ki->pid, buffer );
@@ -805,6 +815,18 @@
 
    /* рассматриваем каждый случай отдельно */
     if( elf_kind(e) != ELF_K_ELF ) {
+      if( ki->verbose ) {
+           printf(_("found file:    %s\n"), filename );
+      }
+
+     /* проверяем, надо ли исключать данный файл */
+      if( ak_htable_get_keypair_str( &ki->exclude_link, filename ) != NULL ) {
+        if( ak_log_get_level() >= ak_log_maximum ) {
+          ak_error_message_fmt( ak_error_ok, __func__, "link to the file %s excluded", filename );
+        }
+        ki->statistical_data.skipped_links++;
+        goto exlabx;
+      }
       if(( kp = ak_htable_get_keypair_str( &ki->icodes, filename )) == NULL ) {
         aktool_error(_("process: %d, link to non-controlled file %s"), ki->pid, filename );
         error = ak_error_message_fmt( ak_error_htable_key_not_found, __func__,
@@ -816,6 +838,9 @@
       /* формируем строку для поиска */
        ak_snprintf( segment_value, sizeof( segment_value ) -1,
                                            "%s/%08x", filename, (unsigned int) ki->curmem.offset );
+       if( ki->verbose ) {
+           printf(_("found segment: %s\n"), segment_value );
+       }
        if(( kp = ak_htable_get_keypair_str( &ki->icodes, segment_value )) == NULL ) {
          aktool_error(_("process: %d, link to non-controlled segment %s"),
                                                                           ki->pid, segment_value );
@@ -828,6 +853,7 @@
         }
      }
 
+    exlabx:
    /* освобождаем память */
     elf_end(e);
     ak_file_close( &fp );
@@ -920,6 +946,7 @@
    /* обнуляем статистику */
     ki->statistical_data.processes =
     ki->statistical_data.skipped_processes =
+    ki->statistical_data.skipped_links =
     ki->statistical_data.segments =
     ki->statistical_data.skipped_segments = 0;
 
@@ -990,6 +1017,10 @@
         if( ki->statistical_data.skipped_segments )
           printf(_(" %6llu segments have been skipped\n"),
                                   (long long unsigned int) ki->statistical_data.skipped_segments );
+       /* сознательно пропущенные ссылки на файлы */
+        if( ki->statistical_data.skipped_links )
+          printf(_(" %6llu links have been excluded\n"),
+                                     (long long unsigned int) ki->statistical_data.skipped_links );
       }
     }
 

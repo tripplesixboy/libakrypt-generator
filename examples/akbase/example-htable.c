@@ -50,12 +50,13 @@
     ak_htable_add_str_str( tbl, "Алексей Константинович Толстой", "Князь серебрянный" );
 
   /* реализуем последовательный обход всех элементов таблицы */
-    printf(" таблица содержит %lu списков\n", tbl->count );
+    printf(" таблица содержит %u списков\n", (unsigned int) tbl->count );
     size_t cnt = 0;
     for( size_t i = 0; i < tbl->count; i++ ) {
       ak_list list = &tbl->list[i];
       cnt += list->count;
-      printf(" - список: %2lu содержит %lu элементов\n", i, list->count );
+      printf(" - список: %2u содержит %u элементов\n",
+                                                    (unsigned int) i, (unsigned int) list->count );
       if( list->count == 0 ) continue;
       ak_list_first( list );
       do{
@@ -68,7 +69,7 @@
       }
        while( ak_list_next( list ));
     }
-    printf(" таблица содержит %lu элементов\n", cnt );
+    printf(" таблица содержит %u элементов\n", (unsigned int) cnt );
 
   /* и только сейчас, главная цель применения хэш-таблиц */
   /* быстрый поиск элементов с заданными ключами */

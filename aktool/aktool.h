@@ -158,13 +158,15 @@
       size_t executables;
      /* количество отброшенных исполняемых файлов */
       size_t skipped_executables;
+     /* количество отброшенных ссылок */
+      size_t skipped_links;
      /* полное количество процессов тестируемых провессов */
       size_t processes;
      /* количество отброшенных процессов */
       size_t skipped_processes;
      /* количество сегментов */
       size_t segments;
-     /* количнество неверных сегментов */
+     /* количество неверных сегментов */
       size_t skipped_segments;
  #endif
      /* общее количество строк в обрабатываемом файле */
@@ -189,6 +191,10 @@
    struct list include_file;
   /* список исключений среди файлов */
    struct htable exclude_file;
+#ifdef AK_HAVE_GELF_H
+  /* список исключений среди ссылок в памяти процесса на файлы */
+   struct htable exclude_link;
+#endif
   /* список исключений среди каталогов */
    struct htable exclude_path;
   /* флаг рекурсивной обработки каталогов */

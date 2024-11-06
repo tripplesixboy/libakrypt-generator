@@ -46,7 +46,7 @@
 
    /* выводим статистику  */
     if(( !ki->quiet ) && ( !ki->dont_show_stat )) {
-      printf(_("the database contains %llu values\n"), (long long unsigned int) cnt );
+      printf(_("the database contains %llu value(s)\n"), (long long unsigned int) cnt );
     }
 
  return EXIT_SUCCESS;
