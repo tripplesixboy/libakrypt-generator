@@ -3,7 +3,13 @@
 #
 # CMakeLists.txt
 # -------------------------------------------------------------------------------------------------- #
-cmake_minimum_required( VERSION 3.5 )
+# Минимальная версия cmake для сборки
+string( COMPARE EQUAL ${CMAKE_HOST_SYSTEM_NAME} "Minix" AK_MINIX )
+if( AK_MINIX )
+  cmake_minimum_required( VERSION 2.8 )
+else()
+  cmake_minimum_required( VERSION 3.5 )
+endif()
 
 # -------------------------------------------------------------------------------------------------- #
 set( HEAD_VERSION 0 )
@@ -41,6 +47,7 @@ string( COMPARE EQUAL ${CMAKE_HOST_SYSTEM_NAME} "FreeBSD" AK_FREEBSD )
 if( CMAKE_BUILD_TYPE )
 else()
  set( CMAKE_BUILD_TYPE Release )
+ set( CMAKE_C_FLAGS_RELEASE -DNDEBUG )
 endif()
 
 # -------------------------------------------------------------------------------------------------- #
@@ -109,11 +116,11 @@ string( COMPARE EQUAL ${CMAKE_SIZEOF_VOID_P} "4" AK_SIZEOF_VOID_P_IS_4 )
 string( COMPARE EQUAL ${CMAKE_SIZEOF_VOID_P} "8" AK_SIZEOF_VOID_P_IS_8 )
 
 if( AK_SIZEOF_VOID_P_IS_4 )
-  message("-- Using 32-bit architecture")
+  message("-- Using 32-bit architecture (sizeof(void *) == ${CMAKE_SIZEOF_VOID_P})")
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAK_SIZEOF_VOID_P_IS_4" )
 endif()
 if( AK_SIZEOF_VOID_P_IS_8 )
-  message("-- Using 64-bit architecture")
+  message("-- Using 64-bit architecture (sizeof(void *) == ${CMAKE_SIZEOF_VOID_P})")
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAK_SIZEOF_VOID_P_IS_8" )
 endif()
 
@@ -170,19 +177,12 @@ add_compile_options( -DLIBAKRYPT_COMPILER_NAME="${CMAKE_C_COMPILER_ID}" )
 add_compile_options( -DLIBAKRYPT_COMPILER_VERSION="${CMAKE_C_COMPILER_VERSION}" )
 add_compile_options( -DLIBAKRYPT_CA_PATH="${AK_CA_PATH}" )
 message("-- Used compile flags ${CMAKE_C_FLAGS}")
-#
-if( AK_LOCALE_PATH )
-else()
-  if( CMAKE_HOST_UNIX )
-    if( AK_FREEBSD )
-      set( AK_LOCALE_PATH "/usr/local/share/locale" )
-    else()
-      set( AK_LOCALE_PATH "/usr/share/locale" )
-    endif()
-    add_compile_options( -DLIBAKRYPT_LOCALE_PATH="${AK_LOCALE_PATH}" )
-  endif()
+if( CMAKE_BUILD_TYPE STREQUAL Release )
+  message("-- Used release compile flags ${CMAKE_C_FLAGS_RELEASE}")
 endif()
 
+# -------------------------------------------------------------------------------------------------- #
+# формируем команды для сборки библиотеки
 if( AK_SHARED_LIB )
   add_library( akbase-shared SHARED ${MAIN_HEADERS} ${AKBASE_SOURCES} )
   set_target_properties( akbase-shared PROPERTIES VERSION ${MAJOR_VERSION} SOVERSION ${FULL_VERSION} )
@@ -355,6 +355,21 @@ message("-- Sources for aktool utility:" )
 foreach( filename ${AKTOOL_SOURCES} )
   message("      ${filename}" )
 endforeach()
+
+# -------------------------------------------------------------------------------------------------- #
+# Определяем путь для локали
+if( AK_LOCALE_PATH )
+else()
+  if( CMAKE_HOST_UNIX )
+    if( AK_FREEBSD )
+      set( AK_LOCALE_PATH "/usr/local/share/locale" )
+    else()
+      set( AK_LOCALE_PATH "/usr/share/locale" )
+    endif()
+    add_compile_options( -DLIBAKRYPT_LOCALE_PATH="${AK_LOCALE_PATH}" )
+    message("-- Locale path ${AK_LOCALE_PATH}" )
+  endif()
+endif()
 
 # -------------------------------------------------------------------------------------------------- #
 # дополнительный (опциональный) функционал утилиты aktool
