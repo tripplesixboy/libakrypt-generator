@@ -163,6 +163,19 @@
                                        ak_list_node_new_string( value )) != ak_error_ok ) return 0;
         else return 1;
     }
+
+   #ifdef AK_HAVE_GELF_H
+    if( memcmp( name, "exclude-link", 12 ) == 0 ) {
+      switch( permissions ) {
+        case DT_REG:
+          if( ak_htable_add_str_str( &ki->exclude_link, value, "file" ) != ak_error_ok ) return 0;
+           else return 1;
+        default:
+          return 1;
+      }
+    }
+   #endif
+
     if( memcmp( name, "exclude", 7 ) == 0 ) {
       switch( permissions ) {
         case DT_DIR:
