@@ -18,7 +18,7 @@
  static int aktool_icode_ini_options( aktool_ki_t *ki,
                                          const char *section, const char *name, const char *value )
 {
-   /* --input устанавливаем имя для файла с результатами */
+   /* --database устанавливаем имя для файла с результатами */
     if(( memcmp( name, "input", 5 ) == 0 ) ||
        ( memcmp( name, "output", 6 ) == 0  ) ||
        ( memcmp( name, "database", 8 ) == 0 )) {

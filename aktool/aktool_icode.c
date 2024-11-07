@@ -43,7 +43,7 @@
      { "reverse-order",       0, NULL,  254 },
      { "tag",                 0, NULL,  250 },
      { "hash-table-nodes",    1, NULL,  222 },
-     { "output",              1, NULL,  'o' },
+     { "database",            1, NULL,  'd' },
      { "no-derive",           0, NULL,  160 },
      { "dont-show-stat",      0, NULL,  161 },
      { "dont-show-icode",     0, NULL,  162 },
@@ -112,7 +112,7 @@
 #endif
  /* разбираем опции командной строки */
   do {
-       next_option = getopt_long( argc, argv, "he:rp:o:a:c:vli:", long_options, NULL );
+       next_option = getopt_long( argc, argv, "he:rp:d:a:c:vli:", long_options, NULL );
        switch( next_option )
       {
         aktool_common_functions_run( aktool_icode_help );
@@ -151,7 +151,7 @@
                    ki.icode_lists_count = ak_min( 4096, ak_max( 16, atoi( optarg )));
                    break;
 
-        case 'o' : /* --output устанавливаем имя файла c результатами вычислений */
+        case 'd' : /* --database устанавливаем имя файла c результатами вычислений */
                   #ifdef _WIN32
                    GetFullPathName( optarg, FILENAME_MAX, ki.pubkey_file, NULL );
                   #else
@@ -595,8 +595,7 @@
 
   /* установленные пользователем настройки программы */
    if( strlen( ki->pubkey_file ) != 0 ) {
-     ak_error_message_fmt( ak_error_ok, __func__, _("database file: %s"),
-                                                                                 ki->pubkey_file );
+     ak_error_message_fmt( ak_error_ok, __func__, _("database file: %s"), ki->pubkey_file );
      ak_error_message_fmt( ak_error_ok, __func__, _("database format: %s"),
           ki->field == format_binary ? "binary" : ( ki->field == format_linux ? "linux" : "bsd" ));
      ak_error_message_fmt( ak_error_ok, __func__, _("database nodes: %u"), ki->icode_lists_count );
@@ -633,6 +632,8 @@
   printf(_("                         for keyed authentication mechanism use --key option\n"));
   printf(_("     --clean             cleaning the existing database with authentication or integrity codes\n"));
   printf(_(" -c, --config            specify the name of the configuration file\n"));
+  printf(_(" -d, --database          specify the name of database with authentication or integrity codes\n"));
+  printf(_("                         [ default name: %s]\n"), aktool_icode_database_file );
   printf(_("     --dont-show-icode   don't output calculated authentication or integrity codes to the console\n"));
   printf(_("     --dont-show-stat    don't show a statistical results after creation or verification of integrity codes\n"));
   printf(_(" -e, --exclude           specify the name of excluded files or directories\n"));
@@ -658,8 +659,6 @@
   printf(_("     --only-one-pid      verify only one process with given identifier (pid)\n"));
   printf(_("     --only-segments     create or verify authentication or integrity codes only for downloadable segments\n"));
 #endif
-  printf(_(" -o, --output            set the output file for created authentication or integrity codes\n"));
-  printf(_("                         [ default name: %s]\n"), aktool_icode_database_file );
   printf(_(" -p, --pattern           set the pattern which is used to find files\n"));
 #ifdef AK_HAVE_GELF_H
   printf(_("     --pid               short form of --only-one-pid option\n"));

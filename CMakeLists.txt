@@ -4,12 +4,7 @@
 # CMakeLists.txt
 # -------------------------------------------------------------------------------------------------- #
 # Минимальная версия cmake для сборки
-string( COMPARE EQUAL ${CMAKE_HOST_SYSTEM_NAME} "Minix" AK_MINIX )
-if( AK_MINIX )
-  cmake_minimum_required( VERSION 2.8 )
-else()
-  cmake_minimum_required( VERSION 3.5 )
-endif()
+cmake_minimum_required( VERSION 3.5 )
 
 # -------------------------------------------------------------------------------------------------- #
 set( HEAD_VERSION 0 )
@@ -116,11 +111,11 @@ string( COMPARE EQUAL ${CMAKE_SIZEOF_VOID_P} "4" AK_SIZEOF_VOID_P_IS_4 )
 string( COMPARE EQUAL ${CMAKE_SIZEOF_VOID_P} "8" AK_SIZEOF_VOID_P_IS_8 )
 
 if( AK_SIZEOF_VOID_P_IS_4 )
-  message("-- Using 32-bit architecture (sizeof(void *) == ${CMAKE_SIZEOF_VOID_P})")
+  message("-- Using 32-bit architecture")
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAK_SIZEOF_VOID_P_IS_4" )
 endif()
 if( AK_SIZEOF_VOID_P_IS_8 )
-  message("-- Using 64-bit architecture (sizeof(void *) == ${CMAKE_SIZEOF_VOID_P})")
+  message("-- Using 64-bit architecture")
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAK_SIZEOF_VOID_P_IS_8" )
 endif()
 
@@ -367,7 +362,7 @@ else()
       set( AK_LOCALE_PATH "/usr/share/locale" )
     endif()
     add_compile_options( -DLIBAKRYPT_LOCALE_PATH="${AK_LOCALE_PATH}" )
-    message("-- Locale path ${AK_LOCALE_PATH}" )
+    message("-- Locale path is ${AK_LOCALE_PATH}" )
   endif()
 endif()
 
@@ -500,7 +495,7 @@ set( CPACK_SOURCE_IGNORE_FILES
 
 # в зависимостях можно указать в явном виде стандартную библиотеку языка Си,
 # но она и так входит в перечень
-set( CPACK_DEBIAN_PACKAGE_DEPENDS "libbz2-1.0, libelf-dev" )
+set( CPACK_DEBIAN_PACKAGE_DEPENDS "libbz2-1.0, libelf1" )
 set( CPACK_PACKAGE_VERSION_MAJOR ${HEAD_VERSION} )
 set( CPACK_PACKAGE_VERSION_MINOR ${MAIN_VERSION} )
 set( CPACK_PACKAGE_VERSION_PATCH ${MINOR_VERSION} )
