@@ -399,6 +399,36 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
+/*! @param file указатель на контекст файла
+    @param offset размер сдвига (в октетах)
+    @param whence указатель на то, откуда отмеряется сдвиг
+            - SEEK_SET сдинуть указатель с начала файла
+            - SEEK_CUR сдвинуть указатель с текущего места
+            - SEEK_END сдвинуть указатель с конца файла
+    @return В случае успеха в качестве результата возвращается результирующий сдвиг от начала файла,
+            в случае ошибки возвращается -1.                                                      */
+/* ----------------------------------------------------------------------------------------------- */
+ ak_int64 ak_file_lseek( ak_file file, ak_int64 offset, int whence )
+{
+ #ifdef AK_HAVE_WINDOWS_H
+
+   /* пока обрабатываем только небольшие файлы */
+    ak_int64 wb = SetFilePointer( file->hFile, (ak_uint32)offset, NULL, whence );
+    if( wb == INVALID_SET_FILE_POINTER ) {
+      ak_error_message( ak_error_lseek_file, __func__, "unable to seek file" );
+      return -1;
+    }
+     else return wb;
+
+ #else
+   ak_int64 wb = lseek( file->fd, (off_t)offset, whence );
+   if( wb == -1 ) ak_error_message_fmt( ak_error_lseek_file, __func__,
+                                                    "unable to seek file (%s)", strerror( errno ));
+  return wb;
+ #endif
+}
+
+/* ----------------------------------------------------------------------------------------------- */
  ssize_t ak_file_printf( ak_file outfile, const char *format, ... )
 {
   va_list args;

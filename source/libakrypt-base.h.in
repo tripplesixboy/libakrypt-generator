@@ -263,6 +263,8 @@ extern "C" {
  #define ak_error_mmap_file                   (-25)
 /*! \brief Ошибка удаления файла из памяти */
  #define ak_error_unmap_file                  (-26)
+/*! \brief Ошибка сдвига файлового указателя */
+ #define ak_error_lseek_file                  (-27)
 
 /*! \brief Ошибка выполнения библиотеки на неверной архитектуре. */
  #define ak_error_wrong_endian                (-31)
@@ -584,6 +586,8 @@ extern "C" {
  dll_export ssize_t ak_file_read( ak_file , ak_pointer , size_t );
 /*! \brief Функция записывает заданное количество байт в файл. */
  dll_export ssize_t ak_file_write( ak_file , ak_const_pointer , size_t );
+/*! \brief Функция сдвигает файловый указатель на заданное количество байт. */
+ dll_export ak_int64 ak_file_lseek( ak_file , ak_int64 , int );
 /*! \brief Функция записывает в файл строку символов. */
  dll_export ssize_t ak_file_printf( ak_file , const char * , ... );
 /*! \brief Отображение заданного файла в память. */
@@ -602,6 +606,21 @@ extern "C" {
  dll_export int ak_realpath( const char * , char * , size_t );
 /*! \brief Функция получает домашний каталог пользователя. */
  dll_export int ak_homepath( char * , const size_t );
+
+/* ----------------------------------------------------------------------------------------------- */
+/* дообпределяем макросы для функции ak_file_lseek */
+#ifdef AK_HAVE_WINDOWS_H
+ #ifndef SEEK_SET
+   #define SEEK_SET FILE_BEGIN
+ #endif
+ #ifndef SEEK_CUR
+   #define SEEK_CUR FILE_CURRENT
+ #endif
+ #ifndef SEEK_END
+   #define SEEK_END FILE_END
+ #endif
+#endif
+
 /** @} */
 
 /* ----------------------------------------------------------------------------------------------- */

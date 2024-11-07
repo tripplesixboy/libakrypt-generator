@@ -214,6 +214,7 @@ set( BASE_EXAMPLES_LIST
      ini
      ini-file
      file
+     file-seek
      mmap
      realpath
      htable
