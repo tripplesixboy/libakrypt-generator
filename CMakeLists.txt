@@ -495,6 +495,7 @@ set( CPACK_SOURCE_IGNORE_FILES
   "scratch*"
 )
 
+
 # в зависимостях можно указать в явном виде стандартную библиотеку языка Си,
 # но она и так входит в перечень
 set( CPACK_DEBIAN_PACKAGE_DEPENDS "libbz2-1.0, libelf1" )
