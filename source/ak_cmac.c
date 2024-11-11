@@ -519,6 +519,102 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
+/*! \note Реализация данной функции не использует методы класса \ref mac, поскольку
+    функция ak_bckey_cmac_finalize() не может принимать данные нелевой длины.
+
+    \note Специальное значение data_size = -1 может быть использовано для указания того,
+    что имитовставка вычисляется от всех данных до конца файла.
+
+    @param key Контекст ключа алгоритма блочного шифрования.
+    @param filename Имя файла, для котрого вычисляется хеш-код.
+    @param offset смещение от начала файла (в октетах)
+    @param data_size размер фрагмента (в октетах), для которого вычисляется результат
+    сжимающего преобразования.
+    @param out Область памяти, куда будет помещен результат. Память должна быть заранее выделена.
+    Размер выделяемой памяти должен быть не менее значения поля key.bsize.
+    @param out_size Размер области памяти (в октетах), в которую будет помещен результат.
+
+    @return В случае успеха функция возвращает ноль (\ref ak_error_ok). В противном случае
+    возвращается код ошибки.                                                                       */
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_bckey_cmac_file_offset( ak_bckey key, const char *filename,
+                       ak_int64 offset, ak_int64 data_size, ak_pointer out, const size_t out_size )
+{
+  struct file file;
+  int error = ak_error_ok;
+  size_t block_size = 4096; /* оптимальная длина блока для Windows, по-прежнему, не ясна */
+  ak_uint8 *localbuffer = NULL; /* место для локального считывания информации */
+  ak_int64 len = 0, total_len = 0;
+
+ /* выполняем необходимые проверки */
+  if( key == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                "use a null pointer to block cipher key context" );
+  if( filename == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                                "use a null pointer to filename" );
+  if(( error = ak_file_open_to_read( &file, filename )) != ak_error_ok ) {
+    if( ak_log_get_level() > ak_log_none )
+      ak_error_message_fmt( error, __func__, "incorrect access to file %s (%s)",
+                                                                      filename, strerror( errno ));
+    return error;
+  }
+
+ /* вычисляем сколько октетов нам надо обработать */
+  if( offset >= file.size ) total_len = 0;
+   else total_len = ( data_size == -1 ) ?
+                               ( file.size - offset ) : ( ak_min( data_size, file.size - offset ));
+
+ /* для файла нулевой длины результатом будет хеш от вектора нулевой длины,
+                                 см. замечания к реализации ak_bckey_cmac() */
+  if(( !file.size ) || ( total_len == 0 )) {
+    ak_file_close( &file );
+    return ak_bckey_cmac( key, NULL, 0, out, out_size );
+  }
+
+ /* сдвигаем указатель на заданое число байт */
+  if(( ak_file_lseek( &file, offset, SEEK_SET )) == -1 ) {
+    ak_file_close( &file );
+    return ak_error_message( ak_error_lseek_file, __func__, "incorrect seeking to offset" );
+  }
+
+ /* готовим область для хранения данных */
+  block_size = ak_max( ( size_t )file.blksize, 512 );
+ /* здесь мы выделяем локальный буффер для считывания/обработки данных */
+  if(( localbuffer = ( ak_uint8 * ) ak_aligned_malloc( block_size )) == NULL ) {
+    ak_file_close( &file );
+    return ak_error_message( ak_error_out_of_memory, __func__ ,
+                                                      "memory allocation error for local buffer" );
+  }
+
+ /* теперь обрабатываем файл с данными */
+  ak_bckey_cmac_clean( key );
+  read_label:
+   len = ( size_t ) ak_file_read( &file, localbuffer, ak_min( total_len, block_size ));
+   if( len == total_len ) { /* считан последний большой блок */
+     size_t qcnt = len / key->bsize,
+            tail = len - qcnt*key->bsize;
+     if( tail == 0 ) {
+       if( qcnt > 0 ) { qcnt--; tail = key->bsize; }
+         else {
+           error = ak_error_message( ak_error_read_data, __func__,
+                                                           "unexpected length of input data");
+           goto labex;
+         }
+     }
+     if( qcnt ) ak_bckey_cmac_update( key, localbuffer, qcnt*key->bsize );
+     error = ak_bckey_cmac_finalize(key, localbuffer + qcnt*key->bsize, tail, out, out_size );
+   }
+    else {
+           ak_bckey_cmac_update( key, localbuffer, len );
+           total_len -= len;
+           goto read_label;
+         }
+  labex:
+   if( localbuffer != NULL ) ak_aligned_free( localbuffer );
+   ak_file_close( &file );
+ return error;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
 /*! Функция реализует последовательную комбинацию режимов из ГОСТ Р 34.12-2015. В начале
     вычисляется имитовставка от объединения ассоциированных данных и
     данных, подлежащих зашифрования. При этом предполагается, что ассоциированные данные

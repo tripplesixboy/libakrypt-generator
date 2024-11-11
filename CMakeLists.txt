@@ -294,6 +294,7 @@ set ( ARITHMETIC_TESTS_LIST
       hash01
       hash02
       kuznechik01
+      mac-offset
     )
 
 if( AK_TESTS_GMP )

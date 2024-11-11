@@ -151,7 +151,6 @@
  /* начинаем с того, что обрабатываем все переданные данные */
   if( ak_mac_update( mctx, in, size ) != ak_error_ok )
     return ak_error_message( ak_error_get_value(), __func__ , "incorrect updating input data" );
-
  /* потом обрабатываем хвост, оставшийся во временном буффере, и выходим */
  return mctx->finalize( mctx->ctx, mctx->data, mctx->length, out, out_size );
 }
@@ -178,7 +177,7 @@
   if( mctx == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
                                                              "using null pointer to mac context" );
   if(( error = ak_mac_clean( mctx )) != ak_error_ok )
-    ak_error_message( error, __func__, "incorrect cleaning of mac context" );
+    return ak_error_message( error, __func__, "incorrect cleaning of mac context" );
 
   if(( error = ak_mac_finalize( mctx, in, size, out, out_size )) != ak_error_ok )
     return ak_error_message( error, __func__, "incorrect updating mac context" );
@@ -245,8 +244,7 @@
            size_t qcnt = len / mctx->bsize,
                   tail = len - qcnt*mctx->bsize;
            if( qcnt ) ak_mac_update( mctx, localbuffer, qcnt*mctx->bsize );
-           error = ak_mac_finalize( mctx,
-                                             localbuffer + qcnt*mctx->bsize, tail, out, out_size );
+           error = ak_mac_finalize( mctx, localbuffer + qcnt*mctx->bsize, tail, out, out_size );
          }
  /* очищаем за собой данные, содержащиеся в контексте */
   ak_mac_clean( mctx );
@@ -254,6 +252,101 @@
   ak_file_close( &file );
   ak_aligned_free( localbuffer );
  return error;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! Функция вычисляет результат сжимающего отображения для фрагмента файла,
+    начинающегося со смещения offset и имеющего длину не более data_size октетов, и помещает
+    результат вычисленияв область памяти, на которую указывает out.
+
+    \note Специальное значение data_size = -1 может быть использовано для указания того,
+    что сжимаются все данные до конца файла.
+
+    @param mctx Указатель на контекст итерационного сжатия.
+    @param filename имя сжимаемого файла
+    @param offset смещение от начала файла (в октетах)
+    @param data_size размер фрагмента (в октетах), для которого вычисляется результат
+    сжимающего преобразования.
+    @param out Область памяти, куда будет помещен результат. Память должна быть заранее выделена.
+    Размер выделяемой памяти должен быть не менее значения поля hsize для класса-родителя и может
+    быть определен с помощью вызова соответствующей функции, например, ak_hash_context_get_tag_size().
+    @param out_size Размер области памяти (в октетах), в которую будет помещен результат.
+
+    @return В случае успеха функция возвращает ноль (\ref ak_error_ok). В противном случае
+    возвращается код ошибки.                                                                       */
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_mac_file_offset( ak_mac mctx, const char* filename,
+                       ak_int64 offset, ak_int64 data_size, ak_pointer out, const size_t out_size )
+{
+    struct file file;
+    int error = ak_error_ok;
+    size_t block_size = 4096; /* оптимальная длина блока для Windows пока не ясна */
+    size_t len = 0, total_len = 0;
+    ak_uint8 *localbuffer = NULL; /* место для локального считывания информации */
+
+   /* в начале проверяем, нельзя ли свалить свою работу на чужие плечи? */
+    if(( offset == 0 ) && ( data_size == -1 ))
+      return ak_mac_file( mctx, filename, out, out_size );
+
+   /* дальше - делать нечего, принимаемся за работу */
+    if( mctx == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                              "use a null pointer to mac context" );
+    if( filename == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                                 "use a null pointer to filename" );
+    if(( error = ak_mac_clean( mctx )) != ak_error_ok )
+      return ak_error_message( error, __func__, "incorrect cleaning a mac context");
+
+    if(( error = ak_file_open_to_read( &file, filename )) != ak_error_ok ) {
+      if( ak_log_get_level() > ak_log_none )
+        ak_error_message_fmt( error, __func__, "incorrect access to file %s", filename );
+      return error;
+    }
+
+   /* для файла нулевой длины результатом будет хеш от нулевого вектора */
+    if(( !file.size ) || ( offset >= file.size )) {
+      ak_file_close( &file );
+      return ak_mac_finalize( mctx, "", 0, out, out_size );
+    }
+
+   /* сдвигаем указатель на заданое число байт */
+    if(( ak_file_lseek( &file, offset, SEEK_SET )) == -1 ) {
+      ak_file_close( &file );
+      return ak_error_message( ak_error_lseek_file, __func__, "incorrect seeking to offset" );
+    }
+
+   /* готовим область для хранения данных */
+    block_size = ak_max( ( size_t )file.blksize, mctx->bsize );
+   /* здесь мы выделяем локальный буффер для считывания/обработки данных */
+    if(( localbuffer = ( ak_uint8 * ) ak_aligned_malloc( block_size )) == NULL ) {
+      ak_file_close( &file );
+      return ak_error_message( ak_error_out_of_memory, __func__ ,
+                                                       "memory allocation error for local buffer" );
+    }
+
+   /* вычисляем сколько октетов нам надо обработать */
+    total_len = ( data_size == -1 ) ?
+                                ( file.size - offset ) : ( ak_min( data_size, file.size - offset ));
+
+   /* теперь цикл последовательной обработки */
+    read_label: len = ( size_t ) ak_file_read( &file, localbuffer, ak_min( block_size, total_len ));
+    if( len == block_size ) {
+      ak_mac_update( mctx, localbuffer, block_size ); /* добавляем считанные данные */
+      total_len -= len;
+      goto read_label;
+    } else {
+             size_t qcnt = len / mctx->bsize,
+                    tail = len - qcnt*mctx->bsize;
+             if( qcnt ) ak_mac_update( mctx, localbuffer, qcnt*mctx->bsize );
+             error = ak_mac_finalize( mctx, localbuffer + qcnt*mctx->bsize, tail, out, out_size );
+         }
+
+   /* очищаем за собой данные, содержащиеся в контексте */
+    ak_mac_clean( mctx );
+   /* закрываем данные */
+    ak_file_close( &file );
+    ak_aligned_free( localbuffer );
+
+  return error;
 }
 
 /* ----------------------------------------------------------------------------------------------- */

@@ -767,6 +767,51 @@
 }
 
 /* ----------------------------------------------------------------------------------------------- */
+/*! @note Специальное значение data_size = -1 может быть использовано для указания того,
+    что сжимаются все данные до конца файла.
+
+    @param sctx Kонтекст секретного ключа алгоритма электронной подписи.
+    @param generator Генератор случайной последовательности,
+    используемой в алгоритме подписи
+    @param filename Строка с именем файла для которого вычисляется электронная подпись.
+    @param offset смещение от начала файла (в октетах)
+    @param data_size размер фрагмента (в октетах), для которого вычисляется электронная подпись.
+    @param out Область памяти, куда будет помещен результат. Память должна быть заранее выделена.
+    @param out_size Размер выделенной под выработанную ЭП памяти.
+
+    @return Функция возвращает NULL, если указатель out не есть NULL, в противном случае
+    возвращается указатель на буффер, содержащий вектор с электронной подписью. В случае
+    возникновения ошибки возвращается NULL, при этом код ошибки может быть получен с помощью
+    вызова функции ak_error_get_value().                                                           */
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_signkey_sign_file_offset( ak_signkey sctx, ak_random generator,
+       const char *filename, ak_int64 offset, ak_int64 data_size, ak_pointer out, size_t out_size )
+{
+  int error = ak_error_ok;
+  ak_uint8 hash[128]; /* выбираем максимально возможный размер */
+
+ /* необходимые проверки */
+  if( sctx == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
+                                                 "using null pointer to secret key context" );
+  if( generator == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
+                                                 "using null pointer to random number generator" );
+  if( filename == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
+                                                          "using null pointer to file name" );
+  if( sctx->ctx.data.sctx.hsize > 64 ) return ak_error_message( ak_error_wrong_length,
+                             __func__, "using hash function with very large hash code size" );
+
+ /* вычисляем значение хеш-кода, а после подписываем его */
+  memset( hash, 0, sizeof( hash ));
+  if(( error = ak_hash_file_offset( &sctx->ctx, filename,
+                                        offset, data_size, hash, sizeof( hash ))) != ak_error_ok )
+    return ak_error_message( error, __func__, "wrong calculation of hash value" );
+
+ /* выработанный хеш-код представляет собой последовательность байт
+    данная последовательность не зависит от используемой архитектуры используемой ЭВМ */
+ return ak_signkey_sign_hash( sctx, generator, hash, sctx->ctx.data.sctx.hsize, out, out_size );
+}
+
+/* ----------------------------------------------------------------------------------------------- */
 /*                     функции для работы с открытыми ключами электронной подписи                  */
 /* ----------------------------------------------------------------------------------------------- */
 /*! @param pctx Контекст открытого ключа электронной подписи
@@ -1064,6 +1109,50 @@
   }
   memset( hash, 0, 64 );
   ak_hash_file( &pctx->ctx, filename, hash, sizeof( hash ));
+  if(( error = ak_error_get_value()) != ak_error_ok ) {
+    ak_error_message( error, __func__, "wrong calculation of hash value" );
+    return ak_false;
+  }
+
+ return ak_verifykey_verify_hash( pctx, hash, pctx->ctx.data.sctx.hsize, sign );
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! @note Специальное значение data_size = -1 может быть использовано для указания того,
+    что сжимаются все данные до конца файла.
+
+    @param pctx контекст открытого ключа.
+    @param filename имя файла, для которого проверяется подпись
+    @param offset смещение от начала файла (в октетах)
+    @param data_size размер фрагмента (в октетах), для которого проверяется электронная подпись.
+    @param sign электронная подпись, для которой выполняется проверка.
+    @return Функция возыращает истину, если подпись верна. Если функция не верна или если
+    возникла ошибка, то возвращается ложь. Код шибки может получен с помощью
+    вызова функции ak_error_get_value().                                                           */
+/* ----------------------------------------------------------------------------------------------- */
+ bool_t ak_verifykey_verify_file_offset( ak_verifykey pctx, const char *filename,
+                                             ak_int64 offset, ak_int64 data_size, ak_pointer sign )
+{
+  ak_uint8 hash[128];
+  int error = ak_error_ok;
+
+ /* необходимые проверки */
+  if( pctx == NULL ) {
+    ak_error_message( ak_error_null_pointer, __func__,
+                                                 "using null pointer to secret key context" );
+    return ak_false;
+  }
+  if( filename == NULL ) {
+    ak_error_message( ak_error_null_pointer, __func__, "using null pointer to filename" );
+    return ak_false;
+  }
+  if( pctx->ctx.data.sctx.hsize > sizeof( hash )) {
+    ak_error_message( ak_error_wrong_length, __func__,
+                                            "using hash function with large hash code size" );
+    return ak_false;
+  }
+  memset( hash, 0, 64 );
+  ak_hash_file_offset( &pctx->ctx, filename, offset, data_size, hash, sizeof( hash ));
   if(( error = ak_error_get_value()) != ak_error_ok ) {
     ak_error_message( error, __func__, "wrong calculation of hash value" );
     return ak_false;

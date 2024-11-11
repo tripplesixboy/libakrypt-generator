@@ -1224,18 +1224,20 @@
  static inline void ak_hash_context_streebog_sadd( ak_streebog ctx,  const ak_uint64 *data )
 {
    int i = 0;
-   ak_uint64 carry = 0;
+   ak_uint64 xdata[8], carry = 0;
+
+   memcpy( xdata, data, 64 );
    for( i = 0; i < 8; i++ )
    {
     #ifdef AK_LITTLE_ENDIAN
       if( carry ) {
-                    ctx->sigma[i] ++;
+                    ctx->sigma[i]++;
                     if( ctx->sigma[i] ) carry = 0;
       }
-      ctx->sigma[i] += data[i];
-      if( ctx->sigma[i] < data[i] ) carry = 1;
+      ctx->sigma[i] += xdata[i];
+      if( ctx->sigma[i] < xdata[i] ) carry = 1;
     #else
-      ak_uint64 val_data = bswap_64( data[i] ),
+      ak_uint64 val_data = bswap_64( xdata[i] ),
                val_sigma = bswap_64( ctx->sigma[i] );
       if( carry ) {
                     val_sigma++;
@@ -1277,7 +1279,8 @@
       ak_hash_context_streebog_g( cx, cx->n, dt );
       ak_hash_context_streebog_add( cx, 512 );
       ak_hash_context_streebog_sadd( cx, dt );
-      quot--; dt += 8;
+      quot--;
+      dt += 8;
   } while( quot > 0 );
 
  return ak_error_ok;
@@ -1591,11 +1594,36 @@
     @return В случае успеха функция возвращает ноль (\ref ak_error_ok). В противном случае
     возвращается код ошибки.                                                                       */
 /* ----------------------------------------------------------------------------------------------- */
- int ak_hash_file( ak_hash hctx, const char * filename, ak_pointer out, const size_t out_size )
+ int ak_hash_file( ak_hash hctx, const char *filename, ak_pointer out, const size_t out_size )
 {
   if( hctx == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
                                                             "using null pointer to hash context" );
  return ak_mac_file( &hctx->mctx, filename, out, out_size );
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/*! @note Специальное значение data_size = -1 может быть использовано для указания того,
+    что сжимаются все данные до конца файла.
+
+    @param hctx Контекст функции хеширования
+    @param filename Имя файла, для котрого вычисляется хеш-код.
+    @param offset смещение от начала файла (в октетах)
+    @param data_size размер фрагмента (в октетах), для которого вычисляется результат
+    сжимающего преобразования.
+    @param out Область памяти, куда будет помещен результат. Память должна быть заранее выделена.
+    Размер выделяемой памяти должен быть не менее значения поля hsize и может
+    быть определен с помощью вызова функции ak_hash_context_get_tag_size().
+    @param out_size Размер области памяти (в октетах), в которую будет помещен результат.
+
+    @return В случае успеха функция возвращает ноль (\ref ak_error_ok). В противном случае
+    возвращается код ошибки.                                                                       */
+/* ----------------------------------------------------------------------------------------------- */
+ int ak_hash_file_offset( ak_hash hctx, const char *filename,
+                       ak_int64 offset, ak_int64 data_size, ak_pointer out, const size_t out_size )
+{
+  if( hctx == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
+                                                            "using null pointer to hash context" );
+ return ak_mac_file_offset( &hctx->mctx, filename, offset, data_size, out, out_size );
 }
 
 /* ----------------------------------------------------------------------------------------------- */

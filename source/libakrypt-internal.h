@@ -67,6 +67,8 @@
  int ak_mac_ptr( ak_mac , ak_pointer , const size_t , ak_pointer , const size_t );
 /*! \brief Применение сжимающего отображения к заданному файлу. */
  int ak_mac_file( ak_mac , const char* , ak_pointer , const size_t );
+/*! \brief Применение сжимающего отображения к фрагменту заданного файла. */
+ int ak_mac_file_offset( ak_mac , const char* , ak_int64 , ak_int64 , ak_pointer , const size_t );
 /** @} */
 
 /* ----------------------------------------------------------------------------------------------- */

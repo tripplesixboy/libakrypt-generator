@@ -5,7 +5,16 @@
 
  - исправлены некоторые ошибки при контроле целостности процессов в памяти
    для 32х битных архитектур
- - добавлена функция ak_file_lseek()
+ - добавлены функции 
+    - ak_file_lseek(), 
+    - ak_mac_file_offset(), 
+    - ak_hash_file_offset(), 
+    - ak_hmac_file_offset() 
+    - ak_bckey_cmac_file_offset()
+    - ak_signkey_sign_file_offset()
+    - ak_verifykey_verify_file_offset()
+ - исправлена скрытая ошибка в функции ak_hash_context_streebog_sadd() для 
+   поддержки некоторых 32х битных платформ 
  - изменения в утилите aktool icode
     - опция -o, --output заменена на опцию -d, --database
     - добавлена опция --exclude-link 

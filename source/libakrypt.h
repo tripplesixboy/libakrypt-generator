@@ -826,6 +826,9 @@ extern "C" {
                                                                        ak_pointer , const size_t );
 /*! \brief Вычисление имитовставки для заданного файла. */
  dll_export int ak_bckey_cmac_file( ak_bckey , const char * , ak_pointer , const size_t );
+/*! \brief Вычисление имитовставки для фрагмента заданного файла. */
+ dll_export int ak_bckey_cmac_file_offset( ak_bckey , const char * ,
+                                                  ak_int64 , ak_int64 , ak_pointer , const size_t );
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Функция очистки контекста хеширования. */
@@ -928,11 +931,15 @@ extern "C" {
 /*! \brief Обновление состояния контекста хеширования. */
  dll_export int ak_hash_update( ak_hash , const ak_pointer , const size_t );
 /*! \brief Обновление состояния и вычисление результата применения алгоритма хеширования. */
- dll_export int ak_hash_finalize( ak_hash , const ak_pointer , const size_t , ak_pointer , const size_t );
+ dll_export int ak_hash_finalize( ak_hash , const ak_pointer ,
+                                                         const size_t , ak_pointer , const size_t );
 /*! \brief Хеширование заданной области памяти. */
- dll_export int ak_hash_ptr( ak_hash , const ak_pointer , const size_t , ak_pointer , const size_t );
+ dll_export int ak_hash_ptr( ak_hash , const ak_pointer, const size_t , ak_pointer , const size_t );
 /*! \brief Хеширование заданного файла. */
  dll_export int ak_hash_file( ak_hash , const char *, ak_pointer , const size_t );
+/*! \brief Хеширование фрагмента заданного файла. */
+ dll_export int ak_hash_file_offset( ak_hash , const char * ,
+                                                  ak_int64 , ak_int64 , ak_pointer , const size_t );
 /** @}*/
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -1163,12 +1170,15 @@ extern "C" {
  dll_export int ak_hmac_update( ak_hmac , const ak_pointer , const size_t );
 /*! \brief Завершение алгоритма выработки имитовставки HMAC. */
  dll_export int ak_hmac_finalize( ak_hmac , const ak_pointer , const size_t ,
-                                                                       ak_pointer , const size_t );
+                                                                        ak_pointer , const size_t );
 /*! \brief Вычисление имитовставки для заданной области памяти. */
  dll_export int ak_hmac_ptr( ak_hmac , const ak_pointer , const size_t ,
-                                                                       ak_pointer , const size_t );
+                                                                        ak_pointer , const size_t );
 /*! \brief Вычисление имитовставки для заданного файла. */
  dll_export int ak_hmac_file( ak_hmac , const char* , ak_pointer , const size_t );
+/*! \brief Вычисление имитовставки для заданного файла. */
+ dll_export int ak_hmac_file_offset( ak_hmac , const char* ,
+                                                  ak_int64 , ak_int64 , ak_pointer , const size_t );
 /*! \brief Развертка ключевого вектора из пароля (согласно Р 50.1.111-2016, раздел 4) */
  dll_export int ak_hmac_pbkdf2_streebog512( const ak_pointer , const size_t ,
                    const ak_pointer , const size_t, const size_t , const size_t , ak_pointer );
@@ -2141,6 +2151,9 @@ extern "C" {
 /*! \brief Выработка электронной подписи для заданного файла. */
  dll_export int ak_signkey_sign_file( ak_signkey , ak_random ,
                                                               const char * , ak_pointer , size_t );
+/*! \brief Выработка электронной подписи для фрагмента заданного файла. */
+ dll_export int ak_signkey_sign_file_offset( ak_signkey , ak_random ,
+                                        const char * , ak_int64 , ak_int64 , ak_pointer , size_t );
 /*! \brief Проверка электронной подписи для вычисленного заранее значения хеш-функции. */
  dll_export bool_t ak_verifykey_verify_hash( ak_verifykey , const ak_pointer ,
                                                                        const size_t , ak_pointer );
@@ -2149,6 +2162,9 @@ extern "C" {
                                                                        const size_t , ak_pointer );
 /*! \brief Проверка электронной подписи для заданного файла. */
  dll_export bool_t ak_verifykey_verify_file( ak_verifykey , const char * , ak_pointer );
+/*! \brief Проверка электронной подписи для фрагмента заданного файла. */
+ dll_export bool_t ak_verifykey_verify_file_offset( ak_verifykey , const char * ,
+                                                                ak_int64 , ak_int64 , ak_pointer );
 
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Параметры запроса на сертификат открытого ключа */
