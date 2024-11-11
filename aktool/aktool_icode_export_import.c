@@ -62,6 +62,9 @@
     FILE *fp = NULL;
     int exit_status = EXIT_FAILURE;
 
+   /* провеяем, надо ли вообще что-то делать */
+    if( ki->dont_save_database ) return EXIT_SUCCESS;
+
    /* определяемся с выводом в формате bsd */
     if( ki->tag ) ki->field = format_bsd;
     if( ki->field == format_bsd ) ki->tag = ak_true;

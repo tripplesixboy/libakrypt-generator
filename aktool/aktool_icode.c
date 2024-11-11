@@ -62,6 +62,7 @@
      { "input",               1, NULL,  'i' },
      { "search-deleted",      0, NULL,  170 },
      { "clean",               0, NULL,  171 },
+     { "no-database",         0, NULL,  'n' },
 
     /* аналоги из aktool_key */
      { "key",                 1, NULL,  203 },
@@ -110,9 +111,11 @@
   ki.min_pid = 1;
   ki.max_pid = 2147483647; /* максимальное знаковое четырехбайтное целое */
 #endif
+  ki.dont_save_database = ak_false;
+
  /* разбираем опции командной строки */
   do {
-       next_option = getopt_long( argc, argv, "he:rp:d:a:c:vli:", long_options, NULL );
+       next_option = getopt_long( argc, argv, "he:rp:d:a:c:vli:n", long_options, NULL );
        switch( next_option )
       {
         aktool_common_functions_run( aktool_icode_help );
@@ -166,6 +169,10 @@
 
         case 'e' : /* --exclude устанавливаем имя исключаемого файла или каталога */
                    aktool_icode_add_control_object( &ki, "exclude", optarg );
+                   break;
+
+        case 'n' : /* --no-database отключает сохранение вычисленных кодов в базу данных */
+                   ki.dont_save_database = ak_true;
                    break;
 
       #ifdef AK_HAVE_GELF_H
@@ -634,8 +641,8 @@
   printf(_(" -c, --config            specify the name of the configuration file\n"));
   printf(_(" -d, --database          specify the name of database with authentication or integrity codes\n"));
   printf(_("                         [ default name: %s]\n"), aktool_icode_database_file );
-  printf(_("     --dont-show-icode   don't output calculated authentication or integrity codes to the console\n"));
-  printf(_("     --dont-show-stat    don't show a statistical results after creation or verification of integrity codes\n"));
+  printf(_("     --dont-show-icode   do not output calculated authentication or integrity codes to the console\n"));
+  printf(_("     --dont-show-stat    do not show a statistical results after creation or verification of integrity codes\n"));
   printf(_(" -e, --exclude           specify the name of excluded files or directories\n"));
 #ifdef AK_HAVE_GELF_H
   printf(_("     --exclude-link      specify a link to the file in the memory of the process that should be excluded\n"));
@@ -653,6 +660,7 @@
   printf(_("     --max-pid           set the maximal identifier of verified process [default: %d]\n"), ki.max_pid );
   printf(_("     --min-pid           set the minimal identifier of verified process [default: %d]\n"), ki.min_pid );
 #endif
+  printf(_(" -n, --no-database       do not save the calculated authentication or integrity codes to the database\n"));
   printf(_("     --no-derive         do not use the keyed authentication mechanism's derived key for each controlled entity\n"));
   printf(_("                         this may cause an error due to the exhaustion of a key resource\n"));
 #ifdef AK_HAVE_GELF_H
