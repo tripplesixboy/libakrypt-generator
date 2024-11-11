@@ -39,6 +39,7 @@
       }
      /* устанавливаем указатели на обработчики */
       ki->icode_file = ( ak_function_icode_file *) ak_hash_file;
+      ki->icode_file_offset = ( ak_function_icode_file_offset *) ak_hash_file_offset;
      #ifdef AK_HAVE_GELF_H
       ki->icode_ptr = ( ak_function_icode_ptr *) ak_hash_ptr;
       ki->icode_clean = ( ak_function_clean *) ak_hash_clean;
@@ -67,6 +68,7 @@
     switch( koid->engine ) {
        case hmac_function:
          ki->icode_file = ( ak_function_icode_file *) ak_hmac_file;
+         ki->icode_file_offset = ( ak_function_icode_file_offset *) ak_hmac_file_offset;
        #ifdef AK_HAVE_GELF_H
          ki->icode_ptr = ( ak_function_icode_ptr *) ak_hmac_ptr;
          ki->icode_clean = ( ak_function_clean *) ak_hmac_clean;
@@ -86,6 +88,7 @@
            return ak_error_oid_name;
          }
          ki->icode_file = ( ak_function_icode_file *) ak_bckey_cmac_file;
+         ki->icode_file_offset = ( ak_function_icode_file_offset *) ak_bckey_cmac_file_offset;
         #ifdef AK_HAVE_GELF_H
          ki->icode_ptr = ( ak_function_icode_ptr *) ak_bckey_cmac;
          ki->icode_clean = ( ak_function_clean *) ak_bckey_cmac_clean;
@@ -284,7 +287,10 @@
         return ak_error_null_pointer;
       }
      /* вычисляем контрольную сумму от заданного файла и помещаем ее в таблицу */
-      error = ki->icode_file( dkey, value, icode, ki->size );
+      if(( ki->offset == 0 ) && ( ki->data_size = -1 ))
+        error = ki->icode_file( dkey, value, icode, ki->size );
+       else
+        error = ki->icode_file_offset( dkey, value, ki->offset, ki->data_size, icode, ki->size );
       if( dkey != ki->handle ) ak_skey_delete( dkey );
      /* проверка результата и его сохнение в хеш-таблице */
       if( error == ak_error_ok ) {

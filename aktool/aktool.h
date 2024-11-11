@@ -43,6 +43,8 @@
  typedef int ( ak_function_icode_ptr ) ( ak_pointer , const ak_pointer ,
                                                        const size_t , ak_pointer , const size_t );
  typedef int ( ak_function_icode_file ) ( ak_pointer , const char * , ak_pointer , const size_t );
+ typedef int ( ak_function_icode_file_offset ) ( ak_pointer , const char * ,
+                                                ak_int64 , ak_int64 , ak_pointer , const size_t );
 
 /* ----------------------------------------------------------------------------------------------- */
  typedef struct {
@@ -89,6 +91,8 @@
 #endif
   /* указатель на функцию криптографического сжатия информации */
    ak_function_icode_file *icode_file;
+  /* указатель на функцию криптографического сжатия фрагмента информации */
+   ak_function_icode_file_offset *icode_file_offset;
   /* идентификатор алгоритма генерации случайных значений */
    ak_oid oid_of_generator;
   /* имя файла со случайными последовательностями (как правило, специальное блочное устройство) */
@@ -219,6 +223,10 @@
    bool_t dont_show_stat;
   /* при установленном флаге программа не сохраняет вычисленные коды в базу данных */
    bool_t dont_save_database;
+  /* размер смещения о начала файла */
+   ak_int64 offset;
+  /* размер обрабатываемого фрагмента */
+   ak_int64 data_size;
 #ifdef AK_HAVE_GELF_H
   /* текущий процесс для проверки целостности */
    pid_t pid;

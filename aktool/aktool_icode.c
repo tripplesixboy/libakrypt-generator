@@ -63,6 +63,8 @@
      { "search-deleted",      0, NULL,  170 },
      { "clean",               0, NULL,  171 },
      { "no-database",         0, NULL,  'n' },
+     { "offset",              1, NULL,  173 },
+     { "size",                1, NULL,  174 },
 
     /* аналоги из aktool_key */
      { "key",                 1, NULL,  203 },
@@ -112,6 +114,8 @@
   ki.max_pid = 2147483647; /* максимальное знаковое четырехбайтное целое */
 #endif
   ki.dont_save_database = ak_false;
+  ki.offset = 0;
+  ki.data_size = -1;
 
  /* разбираем опции командной строки */
   do {
@@ -327,6 +331,47 @@
                    }
                    goto exitlab;
 
+        case 173: /* --offset */
+                   if( strncmp( "0x", optarg, 2 ) == 0 ) {
+                     ki.offset = strtoll( optarg, NULL, 16 );
+                     break;
+                   }
+                   else {
+                    if(
+                      (strchr( optarg, 'a' ) != NULL ) ||
+                      (strchr( optarg, 'b' ) != NULL ) ||
+                      (strchr( optarg, 'c' ) != NULL ) ||
+                      (strchr( optarg, 'd' ) != NULL ) ||
+                      (strchr( optarg, 'e' ) != NULL ) ||
+                      (strchr( optarg, 'f' ) != NULL )
+                    )
+                     ki.offset = strtoll( optarg, NULL, 16 );
+                    else ki.offset = strtoll( optarg, NULL, 10 );
+                   }
+                   break;
+
+        case 174: /* --size */
+                   if( strncmp( "0x", optarg, 2 ) == 0 ) {
+                     ki.data_size = strtoll( optarg, NULL, 16 );
+                   }
+                    else {
+                     if(
+                       (strchr( optarg, 'a' ) != NULL ) ||
+                       (strchr( optarg, 'b' ) != NULL ) ||
+                       (strchr( optarg, 'c' ) != NULL ) ||
+                       (strchr( optarg, 'd' ) != NULL ) ||
+                       (strchr( optarg, 'e' ) != NULL ) ||
+                       (strchr( optarg, 'f' ) != NULL )
+                     )
+                      ki.data_size = strtoll( optarg, NULL, 16 );
+                     else ki.data_size = strtoll( optarg, NULL, 10 );
+                    }
+                   if( !ki.data_size ) {
+                     aktool_error(_("unxpected zero value of --size option"));
+                     goto exitlab;
+                   }
+                   break;
+
         default:  /* обрабатываем ошибочные параметры */
                    if( next_option != -1 ) goto exitlab;
                    break;
@@ -365,8 +410,14 @@
   switch( work ) {
     case do_hash:
       /* аудит */
-       if( ak_log_get_level() > ak_log_standard ) ak_error_message( ak_error_ok, __func__,
-                                                                       _("calculation procedure"));
+       if( ak_log_get_level() > ak_log_standard ) {
+         ak_error_message( ak_error_ok, __func__, _("calculation procedure"));
+         ak_error_message_fmt( ak_error_ok, __func__, _("fragment offset: %lld"), ki.offset );
+         if( ki.data_size == -1 )
+           ak_error_message( ak_error_ok, __func__, _("fragment size:  -1"));
+         else
+           ak_error_message_fmt( ak_error_ok, __func__, _("fragment size:   %lld"), ki.data_size );
+       }
       /* создаем таблицу для хранения контрольных сумм */
        if( ak_htable_create( &ki.icodes, ki.icode_lists_count ) != ak_error_ok ) goto exitlab;
       /* выполняем вычисления и сохраняем результат */
@@ -663,6 +714,8 @@
   printf(_(" -n, --no-database       do not save the calculated authentication or integrity codes to the database\n"));
   printf(_("     --no-derive         do not use the keyed authentication mechanism's derived key for each controlled entity\n"));
   printf(_("                         this may cause an error due to the exhaustion of a key resource\n"));
+  printf(_("     --offset            set the offset from the beginning of the file\n"));
+  printf(_("                         defines the beginning of the file fragment being processed\n"));
 #ifdef AK_HAVE_GELF_H
   printf(_("     --only-one-pid      verify only one process with given identifier (pid)\n"));
   printf(_("     --only-segments     create or verify authentication or integrity codes only for downloadable segments\n"));
@@ -674,6 +727,8 @@
   printf(_(" -r, --recursive         recursive search of files\n"));
   printf(_("     --reverse-order     output of authentication or integrity code in reverse byte order\n"));
   printf(_("     --search-deleted    additional search for deleted files in the process of verifying directories\n"));
+  printf(_("     --size              set the size of the file fragment being processed\n"));
+  printf(_("                         the value -1 determines the size of the data to the end of the file\n"));
   printf(_("     --tag               create a BSD-style hash table format\n"));
   printf(_(" -v, --verify            verify previously created authentication or integrity codes\n"));
 #ifdef AK_HAVE_GELF_H
