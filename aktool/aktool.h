@@ -198,6 +198,8 @@
 #ifdef AK_HAVE_GELF_H
   /* список исключений среди ссылок в памяти процесса на файлы */
    struct htable exclude_link;
+  /* список, содержащий длины необработанных фрагментов фалов, загруженных в память */
+   struct htable fragments_lens;
 #endif
   /* список исключений среди каталогов */
    struct htable exclude_path;

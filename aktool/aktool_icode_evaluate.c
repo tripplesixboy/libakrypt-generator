@@ -702,7 +702,14 @@
       else { /* здесь обрабатываем обычные (не elf) файлы */
         if( ki->curmem.offset == 0 )
         {
-          iptr = ( kp->data + kp->key_length );
+          if(( ak_htable_get_keypair_str( &ki->fragments_lens, (char *)kp->data )) != NULL ) {
+             ak_keypair_delete( ak_htable_exclude_keypair_str( &ki->fragments_lens,
+                                                                               (char *)kp->data ));
+             ki->icode_file_offset( ki->handle, (char *) kp->data, 0, length, ic2, ki->size );
+             iptr = ic2;
+          }
+           else
+             iptr = ( kp->data + kp->key_length );
         }
          else {
            /* на месте вычисляем контрольную сумму от файла на диске */
@@ -833,9 +840,7 @@
 
    /* рассматриваем каждый случай отдельно */
     if( elf_kind(e) != ELF_K_ELF ) {
-      if( ki->verbose ) {
-           printf(_("found file:    %s\n"), filename );
-      }
+      if( ki->verbose ) printf(_("found file:    %s\n"), filename );
 
      /* проверяем, надо ли исключать данный файл */
       if( ak_htable_get_keypair_str( &ki->exclude_link, filename ) != NULL ) {
@@ -852,18 +857,27 @@
       }
        else {
 	       ak_int64 tmp;
-	       if( ki->curmem.offset != 0 ) tmp = fp.size - ki->curmem.offset;
-	         else tmp = fp.size;
+           if( ki->curmem.offset != 0 ) {
+             tmp = fp.size - ki->curmem.offset;
+             ak_htable_add_str_value( &ki->fragments_lens,
+                                        filename, &ki->curmem.offset, sizeof( ki->curmem.offset ));
+           }
+             else {
+               ak_keypair kp = NULL;
+               tmp = fp.size;
+               if(( kp = ak_htable_get_keypair_str( &ki->fragments_lens, filename )) != NULL ) {
+                 tmp = ((ak_uint64 *)(kp->data + kp->key_length))[0];
+               }
+             }
 	       error = aktool_icode_check_maps_segment( tmp, kp, ki ); 
-            }    
+       }
     }
      else {
       /* формируем строку для поиска */
        ak_snprintf( segment_value, sizeof( segment_value ) -1,
                                            "%s/%08x", filename, (unsigned int) ki->curmem.offset );
-       if( ki->verbose ) {
-           printf(_("found segment: %s\n"), segment_value );
-       }
+       if( ki->verbose ) printf(_("found segment: %s\n"), segment_value );
+
        if(( kp = ak_htable_get_keypair_str( &ki->icodes, segment_value )) == NULL ) {
          aktool_error(_("process: %d, link to non-controlled segment %s"),
                                                                           ki->pid, segment_value );

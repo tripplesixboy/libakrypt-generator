@@ -90,6 +90,7 @@
   ak_htable_create( &ki.exclude_file, 16 );
  #ifdef AK_HAVE_GELF_H
   ak_htable_create( &ki.exclude_link, 16 );
+  ak_htable_create( &ki.fragments_lens, 16 );
  #endif
   ki.pattern =
   #ifdef _WIN32
@@ -494,6 +495,7 @@
     ak_htable_destroy( &ki.exclude_path );
    #ifdef AK_HAVE_GELF_H
     ak_htable_destroy( &ki.exclude_link );
+    ak_htable_destroy( &ki.fragments_lens );
    #endif
     ak_htable_destroy( &ki.icodes );
     aktool_destroy_libakrypt();
