@@ -1425,8 +1425,6 @@
     if( ak_ptr_is_equal_with_log( out, streebog256_testM1, sizeof( out )) != ak_true )
       return ak_error_message( ak_error_not_equal_data, __func__ ,
                                              "the 1st test from GOST R 34.11-2012 is wrong" );
-    if( ak_log_get_level() >= ak_log_maximum )
-      ak_error_message( ak_error_ok, __func__ , "the 1st test from GOST R 34.11-2012 is Ok" );
   }
 
   return ak_hash_context_streebog_clean( &hctx->data.sctx );
@@ -1464,8 +1462,6 @@
     if( ak_ptr_is_equal_with_log( out, streebog512_testM1, sizeof( out )) != ak_true )
       return ak_error_message( ak_error_not_equal_data, __func__ ,
                                              "the 1st test from GOST R 34.11-2012 is wrong" );
-    if( ak_log_get_level() >= ak_log_maximum )
-      ak_error_message( ak_error_ok, __func__ , "the 1st test from GOST R 34.11-2012 is Ok" );
   }
 
   return ak_hash_context_streebog_clean( &hctx->data.sctx );

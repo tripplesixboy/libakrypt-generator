@@ -645,9 +645,10 @@
  static int aktool_icode_check_maps_segment( size_t length, ak_keypair kp, aktool_ki_t *ki )
 {
     struct file fm;
-    ak_uint8 *iptr = NULL;
+    ak_uint8 ic2[128], *iptr = NULL;
     ak_pointer dkey = NULL;
     char fmemory[128], icode[128], buffer[4096];
+
 
    /* формируем имя */
     memset( fmemory, 0, sizeof( fmemory ));
@@ -698,7 +699,18 @@
 
    /* сравниваем значения */
     if( kp->value_length == ki->size +8 ) iptr = ( kp->data + kp->key_length + 8 );
-      else iptr = ( kp->data + kp->key_length );
+      else { /* здесь обрабатываем обычные файлы */
+        if( ki->curmem.offset == 0 )
+        {
+          iptr = ( kp->data + kp->key_length );
+        }
+         else {
+           /* на месте вычисляем контрольную сумму от файла на диске */
+            ki->icode_file_offset( ki->handle,
+                                         (char *) kp->data, ki->curmem.offset, -1, ic2, ki->size );
+            iptr = ic2;
+         }
+      }
 
     if( !ak_ptr_is_equal_with_log( icode, iptr, ki->size )) {
       ki->statistical_data.skipped_segments++;
