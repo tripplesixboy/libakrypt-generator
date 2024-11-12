@@ -648,7 +648,7 @@
     ak_uint8 ic2[128], *iptr = NULL;
     ak_pointer dkey = NULL;
     char fmemory[128], icode[128], buffer[4096];
-
+    size_t dlength = length;
 
    /* формируем имя */
     memset( fmemory, 0, sizeof( fmemory ));
@@ -686,7 +686,9 @@
      if( rlen == length ) { /* считали последний блок */
        ki->icode_finalize( dkey, buffer, rlen, icode, ki->size );
      }
-      else ki->icode_update( dkey, buffer, rlen );
+      else { 
+	      ki->icode_update( dkey, buffer, rlen );
+      }   
      length -= rlen;
     }
 
@@ -705,7 +707,7 @@
           if(( ak_htable_get_keypair_str( &ki->fragments_lens, (char *)kp->data )) != NULL ) {
              ak_keypair_delete( ak_htable_exclude_keypair_str( &ki->fragments_lens,
                                                                                (char *)kp->data ));
-             ki->icode_file_offset( ki->handle, (char *) kp->data, 0, length, ic2, ki->size );
+             ki->icode_file_offset( ki->handle, (char *) kp->data, 0, dlength, ic2, ki->size );
              iptr = ic2;
           }
            else
@@ -857,19 +859,22 @@
       }
        else {
 	       ak_int64 tmp;
-           if( ki->curmem.offset != 0 ) {
-             tmp = fp.size - ki->curmem.offset;
-             ak_htable_add_str_value( &ki->fragments_lens,
-                                        filename, &ki->curmem.offset, sizeof( ki->curmem.offset ));
-           }
-             else {
-               ak_keypair kp = NULL;
-               tmp = fp.size;
-               if(( kp = ak_htable_get_keypair_str( &ki->fragments_lens, filename )) != NULL ) {
-                 tmp = ((ak_uint64 *)(kp->data + kp->key_length))[0];
+	       char value[9];
+	       
+               if( ki->curmem.offset != 0 ) {
+                 tmp = fp.size - ki->curmem.offset;
+	         memset( value, 0, sizeof( value ));
+	         ak_snprintf( value, sizeof( value ), "%x", ki->curmem.offset );
+                 ak_htable_add_str_str( &ki->fragments_lens, filename, value );
+              }
+               else {
+                 ak_keypair kp = NULL;
+                 tmp = fp.size;
+                 if(( kp = ak_htable_get_keypair_str( &ki->fragments_lens, filename )) != NULL ) {
+                   tmp = strtoll( (char *)( kp->data + kp->key_length ), NULL, 16 );
+                 }
                }
-             }
-	       error = aktool_icode_check_maps_segment( tmp, kp, ki ); 
+	      error = aktool_icode_check_maps_segment( tmp, kp, ki ); 
        }
     }
      else {
