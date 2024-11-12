@@ -699,7 +699,7 @@
 
    /* сравниваем значения */
     if( kp->value_length == ki->size +8 ) iptr = ( kp->data + kp->key_length + 8 );
-      else { /* здесь обрабатываем обычные файлы */
+      else { /* здесь обрабатываем обычные (не elf) файлы */
         if( ki->curmem.offset == 0 )
         {
           iptr = ( kp->data + kp->key_length );
@@ -850,7 +850,12 @@
         error = ak_error_message_fmt( ak_error_htable_key_not_found, __func__,
                              _("process: %d, link to non-controlled file %s"), ki->pid, filename );
       }
-       else error = aktool_icode_check_maps_segment( fp.size, kp, ki );
+       else {
+	       ak_int64 tmp;
+	       if( ki->curmem.offset != 0 ) tmp = fp.size - ki->curmem.offset;
+	         else tmp = fp.size;
+	       error = aktool_icode_check_maps_segment( tmp, kp, ki ); 
+            }    
     }
      else {
       /* формируем строку для поиска */
