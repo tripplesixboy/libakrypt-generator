@@ -683,12 +683,9 @@
 
     while( length > 0 ) {
      size_t rlen = read( fm.fd, buffer, ak_min( length, sizeof( buffer )));
-     if( rlen == length ) { /* считали последний блок */
+     if( rlen == length ) /* считали последний блок */
        ki->icode_finalize( dkey, buffer, rlen, icode, ki->size );
-     }
-      else { 
-	      ki->icode_update( dkey, buffer, rlen );
-      }   
+      else ki->icode_update( dkey, buffer, rlen );
      length -= rlen;
     }
 
@@ -842,7 +839,7 @@
 
    /* рассматриваем каждый случай отдельно */
     if( elf_kind(e) != ELF_K_ELF ) {
-      if( ki->verbose ) printf(_("found file:    %s\n"), filename );
+      if(( !ki->quiet ) && ( ki->verbose )) printf(_("found file:    %s\n"), filename );
 
      /* проверяем, надо ли исключать данный файл */
       if( ak_htable_get_keypair_str( &ki->exclude_link, filename ) != NULL ) {
@@ -861,27 +858,29 @@
 	       ak_int64 tmp;
 	       char value[9];
 	       
-               if( ki->curmem.offset != 0 ) {
-                 tmp = fp.size - ki->curmem.offset;
+           if( ki->curmem.offset != 0 )
+           {
+             tmp = fp.size - ki->curmem.offset;
 	         memset( value, 0, sizeof( value ));
 	         ak_snprintf( value, sizeof( value ), "%x", ki->curmem.offset );
                  ak_htable_add_str_str( &ki->fragments_lens, filename, value );
-              }
-               else {
-                 ak_keypair kp = NULL;
-                 tmp = fp.size;
-                 if(( kp = ak_htable_get_keypair_str( &ki->fragments_lens, filename )) != NULL ) {
-                   tmp = strtoll( (char *)( kp->data + kp->key_length ), NULL, 16 );
-                 }
-               }
-	      error = aktool_icode_check_maps_segment( tmp, kp, ki ); 
+           }
+            else
+            {
+                ak_keypair kp = NULL;
+                tmp = fp.size;
+                if(( kp = ak_htable_get_keypair_str( &ki->fragments_lens, filename )) != NULL ) {
+                  tmp = strtoll( (char *)( kp->data + kp->key_length ), NULL, 16 );
+                }
+            }
+           error = aktool_icode_check_maps_segment( tmp, kp, ki );
        }
     }
      else {
       /* формируем строку для поиска */
        ak_snprintf( segment_value, sizeof( segment_value ) -1,
                                            "%s/%08x", filename, (unsigned int) ki->curmem.offset );
-       if( ki->verbose ) printf(_("found segment: %s\n"), segment_value );
+       if(( !ki->quiet ) && ( ki->verbose )) printf(_("found segment: %s\n"), segment_value );
 
        if(( kp = ak_htable_get_keypair_str( &ki->icodes, segment_value )) == NULL ) {
          aktool_error(_("process: %d, link to non-controlled segment %s"),
@@ -925,6 +924,8 @@
     ak_snprintf( cat, sizeof(cat), "/proc/%d", ki->pid );
     if( ak_log_get_level() > ak_log_standard )
       ak_error_message_fmt( ak_error_ok, __func__, _("checking the pid %llu"),
+                                                                (long long unsigned int) ki->pid );
+    if(( !ki->quiet ) && ( ki->verbose )) printf(_("checking the pid %llu\n"),
                                                                 (long long unsigned int) ki->pid );
    /* статистика */
     ki->statistical_data.processes++;
