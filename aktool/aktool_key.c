@@ -870,6 +870,7 @@
 /* ----------------------------------------------------------------------------------------------- */
  int aktool_key_new_blom_pairwise( void )
 {
+  ssize_t len = 0;
   struct blomkey abonent;
   int exitcode = EXIT_FAILURE;
 
@@ -943,7 +944,8 @@
       aktool_error(_("incorrect key file creation"));
       goto labex1;
     }
-    if( ak_file_write( &fs, key, abonent.count ) != abonent.count ) {
+    len = ak_file_write( &fs, key, abonent.count );
+    if(( len < 0 ) || ( (size_t)len != abonent.count )) {
       aktool_error(_("incorrect write to %s%s%s file"),
                               ak_error_get_start_string(), ki.os_file, ak_error_get_end_string( ));
     }

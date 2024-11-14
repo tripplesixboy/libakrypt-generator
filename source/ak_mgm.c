@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------------------------- */
-/*  Copyright (c) 2017 - 2021 by Axel Kenzo, axelkenzo@mail.ru                                     */
+/*  Copyright (c) 2017 - 2021, 2024 by Axel Kenzo, axelkenzo@mail.ru                               */
 /*                                                                                                 */
 /*  Файл ak_mgm.c                                                                                  */
 /*  - содержит функции, реализующие аутентифицированное шифрование
@@ -251,10 +251,12 @@
     astep128( temp.b );
   } else { /* теперь тоже самое, но для 64-битного шифра */
 
+  /* для 32х битной архитектуры нижеследующее сравнение бессмысленно */
+   #ifdef AK_SIZEOF_VOID_P_IS_8
      if(( ctx->abitlen > 0xFFFFFFFF ) || ( ctx->pbitlen > 0xFFFFFFFF ))
        return ak_error_message( ak_error_overflow, __func__,
                                                         "using an algorithm with very long data" );
-
+   #endif
 #ifdef AK_LITTLE_ENDIAN
      temp.w[0] = (ak_uint32) ctx->pbitlen;
      temp.w[1] = (ak_uint32) ctx->abitlen;
@@ -681,7 +683,8 @@
      длины корректны для Магмы и для Кузнечика
 
      на 64-х битной архитектуре много может быть только для Магмы => проверяем */
-   if(( sizeof ( ak_pointer ) > 4 ) && ( bsize != 16 )) {
+  #ifdef AK_SIZEOF_VOID_P_IS_8
+   if( bsize != 16 ) {
      if( aval > 0x0000000100000000LL ) return ak_error_message( ak_error_wrong_length, __func__,
                                                        "length of assosiated data is very large");
      if( pval > 0x0000000100000000LL ) return ak_error_message( ak_error_wrong_length, __func__,
@@ -689,7 +692,9 @@
      if( temp > 0x0000000100000000LL ) return ak_error_message( ak_error_wrong_length, __func__,
                                        "total length of assosiated and plain data is very large");
    }
-
+  #else
+   (void) bsize;
+  #endif
  return ak_error_ok;
 }
 

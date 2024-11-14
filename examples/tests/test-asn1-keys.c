@@ -191,20 +191,22 @@
 /* --------------------------------------------------------------------------------------------- */
  int signkey_test( ak_oid curvoid )
 {
-  int result = EXIT_SUCCESS;
-  ak_oid oid = NULL;
-  ak_uint8 testkey[64] = {
+   int result = EXIT_SUCCESS;
+   ak_oid oid = NULL;
+   ak_uint8 testkey[64] = {
     0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x27, 0x01, 0x10, 0x32, 0x54, 0x76, 0x98, 0xba, 0xdc, 0xfe,
     0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00, 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x38,
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
     0xf1, 0xe2, 0xd3, 0xc4, 0xb5, 0xa6, 0x97, 0x88, 0x79, 0x6a, 0x5b, 0x4c, 0x3d, 0x2e, 0x1f, 0x00 };
-  ak_uint8 sign[128];
-  char filename[128], tname[256];
-  struct signkey skey, lkey;
-  struct verifykey vkey;
-  struct random generator;
+   ak_uint8 sign[128];
+   char filename[128], tname[256];
+   struct signkey skey, lkey;
+   struct verifykey vkey;
+   struct random generator;
 
-  ak_random_create_lcg( &generator );
+   ak_random_create_lcg( &generator );
+  /* добавляем случайность в вырабатываемую ключевую информацию */
+   ak_random_ptr( &generator, testkey, 64 );
 
    if(( curvoid->engine == identifier ) && ( curvoid->mode == wcurve_params )) {
      ak_signkey_create( &skey, (ak_wcurve)curvoid->data );

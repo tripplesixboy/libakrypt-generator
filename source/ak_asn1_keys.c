@@ -1329,7 +1329,11 @@
     return ak_error_message( ak_error_wrong_oid, __func__,
                                                          "incorrect value of content identifier" );
  /* определяем тип контента ( нас интересует только хранение секретных ключей ) */
-  switch(( content_type = ((ak_uint64) oid->data )&0xFF )) {
+ #ifdef AK_SIZEOF_VOID_P_IS_8
+  switch(( content_type = ((ak_uint64)oid->data)&0xFF )) {
+ #else
+  switch(( content_type = ((ak_uint32)oid->data)&0xFF )) {
+ #endif
     case symmetric_key_content:
     case secret_key_content:
       break;
