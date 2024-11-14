@@ -265,6 +265,7 @@
                      goto exitlab;
                    }
                  #endif
+                   break;
 
         case 160: /* --no-derive */
                    ki.key_derive = ak_false;

@@ -627,6 +627,9 @@
  static inline int ak_ctr_hmac_authentication_clean( ak_pointer actx,
                                       ak_pointer akey, const ak_pointer iv, const size_t iv_size )
 {
+  (void)actx;
+  (void)iv;
+  (void)iv_size;
   return ak_hmac_clean( (ak_hmac) akey );
 }
 
@@ -636,6 +639,7 @@
  static inline int ak_ctr_hmac_encryption_clean( ak_pointer ectx,
                                       ak_pointer ekey, const ak_pointer iv, const size_t iv_size )
 {
+  (void)ectx;
  /* в случае имитозащиты без шифрования ключ шифрования может быть не определен */
   if( ekey != NULL ) return ak_bckey_ctr( ekey, NULL, NULL, 0, iv, iv_size );
  return ak_error_ok;
@@ -647,6 +651,7 @@
  static inline int ak_ctr_hmac_authentication_update( ak_pointer actx,
                                   ak_pointer akey, const ak_pointer adata, const size_t adata_size )
 {
+  (void)actx;
   return ak_hmac_update(( ak_hmac )akey, adata, adata_size );
 }
 
@@ -654,6 +659,7 @@
  static inline int ak_ctr_hmac_authentication_finalize( ak_pointer actx,
                                   ak_pointer akey, ak_pointer out, const size_t out_size )
 {
+  (void)actx;
   return ak_hmac_finalize(( ak_hmac )akey, NULL, 0, out, out_size );
 }
 
@@ -661,6 +667,7 @@
  static int ak_ctr_hmac_encryption_update( ak_pointer ectx, ak_pointer ekey,
                            ak_pointer akey, const ak_pointer in, ak_pointer out, const size_t size )
 {
+  (void)ectx;
   int error = ak_hmac_update( ( ak_hmac )akey, in, size );
   if( error != ak_error_ok )
     return ak_error_message( error, __func__, "incorrect updating an internal mac context" );
@@ -678,6 +685,7 @@
   int error = ak_error_ok;
 
  /* в случае имитозащиты без шифрования ключ шифрования может быть не определен */
+  (void)ectx;
   if( ekey != NULL ) {
     if(( error = ak_bckey_ctr( ekey, in, out, size, NULL, 0 )) != ak_error_ok ) {
       return ak_error_message( error, __func__, "incorrect decryption of input data" );

@@ -5,6 +5,7 @@
                         по разбору данных, считываемых из ini-файла */
  int user_handler( void *user , const char *section , const char *name , const char *value )
 {
+ (void) user;
  printf("section [%s]: name [%s] = value [%s]\n", section, name, value );
  return 1; /* ненулевое значение - успешное завершение обработчика */
 }

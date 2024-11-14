@@ -7,7 +7,7 @@
 /* ----------------------------------------------------------------------------------------------- */
  int main( void )
 {
-  int j, i = 0, count;
+  size_t j, i = 0, count;
   FILE *fp = NULL;
   struct bckey key;
   ak_uint8 buffer[13] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -55,21 +55,21 @@
 
    /* хешируем память */
     printf("cmac (%s): ",  ak_bckey_cmac( &key, data, i, imito, key.bsize ) == ak_error_ok ? "Ok" : "Wrong" );
-    for( int k = 0; k < key.bsize; k++ ) printf("%02X ", imito[k] );
-    printf("  [%2d octets]\n", i );
+    for( size_t k = 0; k < key.bsize; k++ ) printf("%02X ", imito[k] );
+    printf("  [%2d octets]\n", (int) i );
    /* хешируем файл */
     fp = fopen( "testdata", "wb" );
     fwrite( data, 1, i, fp );
     fclose( fp );
     printf("cmac (%s): ",  ak_bckey_cmac_file( &key, "testdata", check1, key.bsize ) == ak_error_ok ? "Ok" : "Wrong" );
-    for( int k = 0; k < key.bsize; k++ ) printf("%02X ", check1[k] );
+    for( size_t k = 0; k < key.bsize; k++ ) printf("%02X ", check1[k] );
     count += (1 - ( result = ak_ptr_is_equal( imito, check1, key.bsize )));
     printf(" %s\n", result == ak_true ? "Ok" : "Wrong" );
   }
 
   ak_bckey_destroy( &key );
   if( count > 0 ) {
-    printf("%d differences found\n", count );
+    printf("%d differences found\n", (int) count );
     return EXIT_FAILURE;
   }
 
@@ -108,21 +108,21 @@
     key.key.resource.value.counter = 65536;
    /* хешируем память */
     printf("cmac (%s): ",  ak_bckey_cmac( &key, data, i, imito, key.bsize ) == ak_error_ok ? "Ok" : "Wrong" );
-    for( int k = 0; k < key.bsize; k++ ) printf("%02X ", imito[k] );
-    printf("  [%2d octets]\n", i );
+    for( size_t k = 0; k < key.bsize; k++ ) printf("%02X ", imito[k] );
+    printf("  [%2d octets]\n", (int) i );
    /* хешируем файл */
     fp = fopen( "testdata", "wb" );
     fwrite( data, 1, i, fp );
     fclose( fp );
     printf("cmac (%s): ",  ak_bckey_cmac_file( &key, "testdata", check1, key.bsize ) == ak_error_ok ? "Ok" : "Wrong" );
-    for( int k = 0; k < key.bsize; k++ ) printf("%02X ", check1[k] );
+    for( size_t k = 0; k < key.bsize; k++ ) printf("%02X ", check1[k] );
     count += (1 - ( result = ak_ptr_is_equal( imito, check1, key.bsize )));
     printf(" %s\n", result == ak_true ? "Ok" : "Wrong" );
   }
 
   ak_bckey_destroy( &key );
   if( count > 0 ) {
-    printf("%d differences found\n", count );
+    printf("%d differences found\n", (int) count );
     return EXIT_FAILURE;
   }
  return EXIT_SUCCESS;

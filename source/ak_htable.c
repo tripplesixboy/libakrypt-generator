@@ -385,6 +385,7 @@
 {
     size_t i;
     struct file fp;
+    ssize_t result;
     ak_uint64 count = 0;
     ak_list list = NULL;
     ak_keypair kp = NULL;
@@ -447,8 +448,8 @@
           }
 
          /* собственно данные */
-          if( ak_file_write( &fp, kp->data, kp->key_length + kp->value_length )
-                                                       != ( kp->key_length + kp->value_length )) {
+          result = ak_file_write( &fp, kp->data, kp->key_length + kp->value_length );
+          if(( result < 0 ) || ( (size_t) result != ( kp->key_length + kp->value_length ))) {
             error = ak_error_message( ak_error_get_value(), __func__, "unable to write user data" );
             goto exlab;
           }
@@ -465,6 +466,7 @@
 {
     size_t i, j;
     struct file fp;
+    ssize_t result;
     ak_uint64 count = 0;
     ak_uint8 buffer[1024];
     int error = ak_error_ok;
@@ -559,7 +561,8 @@
          }
 
         /* считываем память */
-         if( ak_file_read( &fp, key, key_size + value_size ) != key_size + value_size ) {
+         result = ak_file_read( &fp, key, key_size + value_size );
+         if(( result < 0 ) || ((size_t) result != key_size + value_size )) {
            error = ak_error_message( ak_error_read_data, __func__,
                                                                "unable to read the keypair data" );
            free(key);

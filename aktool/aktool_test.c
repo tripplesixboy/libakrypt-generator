@@ -322,7 +322,7 @@
 {
   clock_t timea = 1;
   double iter = 0, avg = 0;
-  int i, j, error = ak_error_ok;
+  int error = ak_error_ok;
   size_t size = 0, sum = 0, isum = 0, secbytes = 0;
   int exit_status = EXIT_FAILURE;
   ak_pointer encryptionKey = NULL, authenticationKey = NULL;
@@ -366,7 +366,7 @@
   printf("%3d. %s, %s\n", index, oid->name[0],
          ( oid->mode == algorithm ) ? _("ecb mode") : _( ak_libakrypt_get_mode_name( oid->mode )));
   if( large_array_test ) {
-    for( i = min_length_mb; i <= max_length_mb; i += 8 ) {
+    for( ak_uint32 i = min_length_mb; i <= max_length_mb; i += 8 ) {
        ak_uint8 *data = malloc( size = ( size_t ) i*1024*1024 );
        memset( data, (ak_uint8)i+13, size );
 
@@ -510,13 +510,13 @@
 
     sum = isum = 0;
     packet = malloc( 1500*(pcount+10) );
-    for( i = 0; i < 1500*(pcount+10); i++ ) packet[i] = (ak_uint8)((1+i)*(i+2));
+    for( size_t i = 0; i < 1500*(pcount+10); i++ ) packet[i] = (ak_uint8)((1+i)*(i+2));
 
     size_t epacketlen = 0;
     size_t rlen = sizeof(rlens)/sizeof( size_t);
     size_t headlen = 8;
 
-    for( j = 0; j < rlen; j++ ) {
+    for( size_t j = 0; j < rlen; j++ ) {
        printf("%s %s", _(packets), "\r" ); fflush( stdout );
 
        size = 0;
@@ -528,7 +528,7 @@
        switch( oid->mode ) {
           case algorithm:
             timea = clock();
-            for( i = 0; i < pcount; i++, size += lens[j] ) {
+            for( size_t i = 0; i < pcount; i++, size += lens[j] ) {
               ak_bckey_encrypt_ecb( encryptionKey, packet+size, out, lens[j] );
             }
             timea = clock() - timea;
@@ -536,7 +536,7 @@
 
           case encrypt_mode: /* базовый режим с одним ключом и синхропосылкой */
             timea = clock();
-            for( i = 0; i < pcount; i++, size += lens[j] ) {
+            for( size_t i = 0; i < pcount; i++, size += lens[j] ) {
                error = oid->func.direct(
                  encryptionKey,     /* ключ шифрования */
                  packet+size,       /* указатель на зашифровываемые данные */
@@ -551,7 +551,7 @@
 
           case mac: /* имитовставка */
             timea = clock();
-            for( i = 0; i < pcount; i++, size += lens[j] ) {
+            for( size_t i = 0; i < pcount; i++, size += lens[j] ) {
                error = oid->func.direct(
                  encryptionKey,     /* ключ шифрования */
                  packet+size,       /* указатель на данные для которых вычисляется имитовставка */
@@ -570,7 +570,7 @@
              else secbytes = 16*ak_libakrypt_get_option_by_name( "acpkm_section_kuznechik_block_count" );
 
             timea = clock();
-            for( i = 0; i < pcount; i++, size += lens[j] ) {
+            for( size_t i = 0; i < pcount; i++, size += lens[j] ) {
                error = oid->func.direct(
                  encryptionKey,     /* ключ шифрования */
                  packet+size,              /* указатель на зашифровываемые данные */
@@ -586,7 +586,7 @@
 
           case encrypt2k_mode: /* шифрование с двумя ключами */
             timea = clock();
-            for( i = 0; i < pcount; i++, size += lens[j] ) {
+            for( size_t i = 0; i < pcount; i++, size += lens[j] ) {
                error = oid->func.direct(
                  encryptionKey,     /* ключ шифрования */
                  authenticationKey, /* ключ имитозащиты */
@@ -602,7 +602,7 @@
 
           case aead: /* двухключевое шифрование и имитозащита */
             timea = clock();
-            for( i = 0; i < pcount; i++, size += lens[j] ) {
+            for( size_t i = 0; i < pcount; i++, size += lens[j] ) {
                error = oid->func.direct(
                  encryptionKey,       /* ключ шифрования */
                  authenticationKey,   /* ключ имитозащиты */
@@ -623,6 +623,7 @@
           default:
           break;
        }
+       if( error != ak_error_ok ) aktool_error(_("incorrect incryption"));
 
        double sec = (double) timea / (double) CLOCKS_PER_SEC;
        size_t persec = (size_t) ((double)pcount / sec );
@@ -661,7 +662,7 @@
   clock_t timea = 1;
   double iter = 0, avg = 0;
   ak_uint8 *data, icode[64];
-  int i, error = ak_error_ok, exit_status = EXIT_FAILURE;
+  int error = ak_error_ok, exit_status = EXIT_FAILURE;
   ak_pointer ctx;
 
   if( oid->mode != algorithm ) {
@@ -681,7 +682,7 @@
   fflush( stdout );
 
  /* теперь собственно тестирование скорости реализации */
-  for( i = min_length_mb; i <= max_length_mb; i += 8 ) {
+  for( ak_uint32 i = min_length_mb; i <= max_length_mb; i += 8 ) {
     data = malloc( size = ( size_t ) i*1024*1024 );
     memset( data, (ak_uint8)i+13, size );
 
@@ -722,7 +723,7 @@
   clock_t timea = 1;
   double iter = 0, avg = 0;
   ak_uint8 *data, icode[64];
-  int i, error = ak_error_ok, exit_status = EXIT_FAILURE;
+  int error = ak_error_ok, exit_status = EXIT_FAILURE;
   ak_pointer authenticationKey = NULL;
 
   if( oid->mode != algorithm ) {
@@ -747,7 +748,7 @@
   fflush( stdout );
 
  /* теперь собственно тестирование скорости реализации */
-  for( i = min_length_mb; i <= max_length_mb; i += 8 ) {
+  for( ak_uint32 i = min_length_mb; i <= max_length_mb; i += 8 ) {
     data = malloc( size = ( size_t ) i*1024*1024 );
     memset( data, (ak_uint8)i+13, size );
 
@@ -832,6 +833,7 @@
   ak_signkey ctx = NULL;
   struct random generator;
 
+  (void) index;
   if( oid->mode != algorithm ) {
     printf(_("using unsupported mode %s"), ak_libakrypt_get_mode_name( oid->mode ));
     return EXIT_SUCCESS;

@@ -127,6 +127,7 @@
 {
     int permissions = 0;
 
+    (void) section;
    /* проверяем права доступа к файлу на этапе чтения конфигурационного файла */
     switch( permissions = ak_file_or_directory( value )) {
       case 0:

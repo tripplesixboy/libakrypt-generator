@@ -298,8 +298,8 @@
  /* поскольку длина bckey->ivector слишком велика,
     мы можем хранить в нем не только текущее значение шифртекста,
     но и фрагмент открытого текста */
-  memcpy( lastout, inptr, bkey->ivector_size = ( tail > 0 ? tail : bkey->bsize ));
-
+  memcpy( lastout, inptr, bkey->ivector_size = ( tail > 0 ? (size_t) tail : bkey->bsize ));
+                                            /* здесь приведение для положительного значения tail */
  return ak_error_ok;
 }
 
@@ -542,9 +542,10 @@
 {
   struct file file;
   int error = ak_error_ok;
+  ssize_t result;
+  size_t len = 0, total_len = 0;
   size_t block_size = 4096; /* оптимальная длина блока для Windows, по-прежнему, не ясна */
   ak_uint8 *localbuffer = NULL; /* место для локального считывания информации */
-  ak_int64 len = 0, total_len = 0;
 
  /* выполняем необходимые проверки */
   if( key == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
@@ -588,7 +589,14 @@
  /* теперь обрабатываем файл с данными */
   ak_bckey_cmac_clean( key );
   read_label:
-   len = ( size_t ) ak_file_read( &file, localbuffer, ak_min( total_len, block_size ));
+   result = ak_file_read( &file, localbuffer, ak_min( total_len, block_size ));
+   if( result < 0 ) {
+     error = ak_error_message( ak_error_read_data, __func__,
+                                                        "incorrect reading a block of input data");
+     goto labex;
+   }
+    else len = ( size_t ) result;
+
    if( len == total_len ) { /* считан последний большой блок */
      size_t qcnt = len / key->bsize,
             tail = len - qcnt*key->bsize;
@@ -811,6 +819,9 @@
   ak_mac ctx = actx;
   ak_bckey authenticationKey = akey;
 
+  (void)iv;
+  (void)iv_size;
+
   if( ctx == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
                                                      "using null pointer to internal mac context");
   if( authenticationKey == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
@@ -840,6 +851,7 @@
  static int ak_ctr_cmac_authentication_update( ak_pointer actx,
                                   ak_pointer akey, const ak_pointer adata, const size_t adata_size )
 {
+  (void)akey;
   return ak_mac_update(( ak_mac )actx, adata, adata_size );
 }
 
@@ -847,6 +859,7 @@
  static int ak_ctr_cmac_authentication_finalize( ak_pointer actx,
                                   ak_pointer akey, ak_pointer out, const size_t out_size )
 {
+  (void)akey;
   return ak_mac_finalize(( ak_mac )actx, NULL, 0, out, out_size );
 }
 
@@ -860,6 +873,7 @@
 
   if( ekey != NULL ) return ak_bckey_ctr( ekey, in, out, size, NULL, 0 );
 
+  (void)akey;
   /* в случае имитозащиты без шифрования ключ шифрования может быть не определен */
  return ak_error_ok;
 }
@@ -871,6 +885,7 @@
   int error = ak_error_ok;
 
  /* в случае имитозащиты без шифрования ключ шифрования может быть не определен */
+  (void)akey;
   if( ekey != NULL ) {
     if(( error = ak_bckey_ctr( ekey, in, out, size, NULL, 0 )) != ak_error_ok ) {
       return ak_error_message( error, __func__, "incorrect decryption of input data" );

@@ -330,7 +330,7 @@
  *    -  ключ k3 меняется для каждого индекса i,
  *    -  ключ k2 меняется каждые \f$ 2^8 = 256 \f$ значений индекса i,
  *    -  ключ k2 меняется каждые \f$ 2^{12} = 4096\f$ значений индекса i. */
- const static struct tlstree_constant_values {
+ static const struct tlstree_constant_values {
    ak_uint64 c1, c2, c3;
  } tlstree_constant_values[] = {
     { 0xf800000000000000, 0xfffffff000000000, 0xffffffffffffe000 },
@@ -1088,8 +1088,12 @@
                                                   + максимальное количество ключей (8 октетов) */
       state->number = 0;
       state->max = ( ak_uint64 )count;
-      resource = ak_libakrypt_get_option_by_name( "magma_cipher_resource" );
-      if( state->max*( 1+ state->state_size / state->block_size ) > resource ) {
+      if(( resource = ak_libakrypt_get_option_by_name( "magma_cipher_resource" )) < 0 ) {
+        ak_error_message( ak_error_undefined_value, __func__,
+                                               "incorrect value of magma_cipher_resource option" );
+        goto labex;
+      }
+      if( state->max*( 1+ state->state_size / state->block_size ) > (size_t) resource ) {
         ak_error_message_fmt( error = ak_error_low_key_resource, __func__,
                   "the expected number of derivative keys is very large (must be less than %ld)",
                                             resource/( 1+ state->state_size / state->block_size ));
@@ -1113,8 +1117,12 @@
                                                   + максимальное количество ключей (8 октетов) */
       state->number = 0;
       state->max = ( ak_uint64 )count;
-      resource = ak_libakrypt_get_option_by_name( "kuznechik_cipher_resource" );
-      if( state->max*( 1+ state->state_size / state->block_size ) > resource ) {
+      if(( resource = ak_libakrypt_get_option_by_name( "kuznechik_cipher_resource" )) < 0 ) {
+        ak_error_message( ak_error_undefined_value, __func__,
+                                           "incorrect value of kuznechik_cipher_resource option" );
+        goto labex;
+      }
+      if( state->max*( 1+ state->state_size / state->block_size ) > (size_t) resource ) {
         ak_error_message_fmt( error = ak_error_low_key_resource, __func__,
                   "the expected number of derivative keys is very large (must be less than %ld)",
                                             resource/( 1+ state->state_size / state->block_size ));
@@ -1139,8 +1147,12 @@
                                                   + максимальное количество ключей (8 октетов) */
       state->number = 0;
       state->max = ( ak_uint64 )count;
-      resource = ak_libakrypt_get_option_by_name( "hmac_key_count_resource" );
-      if( 2*state->max > resource ) {
+      if(( resource = ak_libakrypt_get_option_by_name( "hmac_key_count_resource" )) < 0 ) {
+        ak_error_message( ak_error_undefined_value, __func__,
+                                               "incorrect value of magma_cipher_resource option" );
+        goto labex;
+      }
+      if( 2*state->max > (size_t) resource ) {
         ak_error_message_fmt( error = ak_error_low_key_resource, __func__,
                    "the expected number of derivative keys is very large (must be less than %ld)",
                                                                                       resource/2 );
@@ -1165,8 +1177,12 @@
                                                   + максимальное количество ключей (8 октетов) */
       state->number = 0;
       state->max = ( ak_uint64 )count;
-      resource = ak_libakrypt_get_option_by_name( "hmac_key_count_resource" );
-      if( 2*state->max > resource ) {
+      if(( resource = ak_libakrypt_get_option_by_name( "hmac_key_count_resource" )) < 0 ) {
+        ak_error_message( ak_error_undefined_value, __func__,
+                                               "incorrect value of magma_cipher_resource option" );
+        goto labex;
+      }
+      if( 2*state->max > (size_t) resource ) {
         ak_error_message_fmt( error = ak_error_low_key_resource, __func__,
                    "the expected number of derivative keys is very large (must be less than %ld)",
                                                                                       resource/2 );
@@ -1191,8 +1207,12 @@
                                                   + максимальное количество ключей (8 октетов) */
       state->number = 0;
       state->max = ( ak_uint64 )count;
-      resource = ak_libakrypt_get_option_by_name( "hmac_key_count_resource" );
-      if( 2*state->max > resource ) {
+      if(( resource = ak_libakrypt_get_option_by_name( "hmac_key_count_resource" )) < 0 ) {
+        ak_error_message( ak_error_undefined_value, __func__,
+                                               "incorrect value of magma_cipher_resource option" );
+        goto labex;
+      }
+      if( 2*state->max > (size_t) resource ) {
         ak_error_message_fmt( error = ak_error_low_key_resource, __func__,
                    "the expected number of derivative keys is very large (must be less than %ld)",
                                                                                       resource/2 );

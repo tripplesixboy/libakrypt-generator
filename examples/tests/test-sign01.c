@@ -60,5 +60,8 @@
   exlab:
     ak_random_destroy( &generator );
     ak_libakrypt_destroy();
+
+    (void)argc; /* здоровый формализм еще ни кому не мешал */
+
  return result;
 }

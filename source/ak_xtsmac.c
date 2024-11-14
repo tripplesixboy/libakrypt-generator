@@ -231,6 +231,11 @@
                                       ak_pointer ekey, const ak_pointer iv, const size_t iv_size )
 {
   ak_xtsmac_ctx ctx = ectx;
+
+  (void)ekey;
+  (void)iv;
+  (void)iv_size;
+
   if(( ctx->flags&ak_aead_initialization_bit ) == 0 )
     return ak_error_message( ak_error_aead_initialization, __func__ ,
                                                              "using non initialized aead context");
@@ -391,7 +396,7 @@
 
   if( blocks == 0 ) {
    /* если данных нет совсем или их меньше одного блока, то инициируем ошибку */
-    if( tail < encryptionKey->bsize )
+    if( (size_t) tail < encryptionKey->bsize )
       return ak_error_message( ak_error_wrong_length, __func__ ,
                                 "xtsmac mode cannot encrypt short messages "
                                              "(length must be equal or more than one block size)");
@@ -483,6 +488,7 @@
   const ak_uint8 *inptr = in;
   ak_uint8 *outptr = out;
 
+  (void)akey;
  /* проверка указателя */
   if( ekey == NULL ) return ak_error_message( ak_error_null_pointer, __func__,
                                                          "using null pointer to encryption key" );
@@ -505,7 +511,7 @@
     ak_uint64 buf[1];
 
    /* если данных нет совсем или их меньше одного блока, то инициируем ошибку */
-    if( tail < encryptionKey->bsize )
+    if(( size_t ) tail < encryptionKey->bsize )
       return ak_error_message( ak_error_wrong_length, __func__ ,
                                 "xtsmac mode cannot decrypt short messages "
                                              "(length must be equal or more than one block size)");

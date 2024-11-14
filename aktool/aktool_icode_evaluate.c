@@ -126,7 +126,7 @@
 {
     struct file infp;
     ak_pointer dkey = NULL;
-    size_t total_size = 0, blocks = 0;
+    ssize_t total_size = 0, blocks = 0;
 
    /* проверяем надо ли делать производный ключ */
     if(( ki->method->engine == hash_function ) || ( ki->key_derive == ak_false ))

@@ -8,7 +8,7 @@
  #include <string.h>
  #include <libakrypt.h>
 
- int main( int argc, char *argv[] )
+ int main( void )
 {
   ak_oid oid = NULL;
   struct signkey sk;

@@ -581,7 +581,7 @@
   ak_uint64 q = 0;
   ak_mpznmax z, s;
 
-  if( p[size-1] != -1 ) q = u[size-1]/(1+p[size-1]);
+  if( p[size-1] != 0xffffffffffffffff ) q = u[size-1]/(1+p[size-1]);
 
  /* проверяем, нужно ли приведение, или же вычет меньше модуля */
   if( q == 0 ) {

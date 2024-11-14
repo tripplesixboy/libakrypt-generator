@@ -757,7 +757,7 @@ slabel:
   /*! \brief массив выработанных значений */
    ak_uint8 buffer[64];
   /*! \brief текущее количество доступных для выдачи октетов */
-   size_t capacity;
+   int capacity;
  } *ak_random_hrng;
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -822,7 +822,7 @@ slabel:
  */
  static int ak_random_hrng_random( ak_random rnd, const ak_pointer ptr, const ssize_t size )
 {
-  ssize_t cursize = size;
+  int cursize = size;
   ak_uint8 *outbuf = ptr;
   ak_random_hrng hrng = NULL;
 

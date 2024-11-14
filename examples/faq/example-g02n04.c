@@ -8,7 +8,9 @@
 
  int main( void )
 {
-  int i = 0, error = ak_error_ok;
+  size_t i = 0;
+  int error = ak_error_ok;
+
  /* данные для преобразования в base64 и обратно */
   ak_uint8 in[26] =
     { 0x1a, 0x2b, 0x3c, 0x4d, 0xe5, 0xf6, 0x07, 0x18, 0x29, 0x30, 0x4a, 0x5b,
@@ -55,7 +57,7 @@
     exlab1:
      if( newbuf != out ) {
        free( newbuf );
-       printf("memory freed for index %d\n", i );
+       printf("memory freed for index %d\n", (int) i );
      }
      if( error != ak_error_ok ) return EXIT_FAILURE;
   }

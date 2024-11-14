@@ -2264,9 +2264,11 @@ int ak_asn1_get_length_from_der( ak_uint8** pp_data, size_t *p_len )
                                                             "using null pointer to asn1 element" );
   if( string != NULL ) {
     size_t i = 0;
-    for( i = 0; i < strlen( string ); i++ )
-       if( string[i] > 127 ) return ak_error_message( ak_error_wrong_asn1_encode, __func__,
+    for( i = 0; i < strlen( string ); i++ ) {
+      if( (unsigned char)string[i] > 127 )
+        return ak_error_message( ak_error_wrong_asn1_encode, __func__,
                                                                    "string has unexpected symbol");
+    }
    /* создаем элемент и выделяем память */
     if(( tlv = ak_tlv_new_primitive( TIA5_STRING,
                                   strlen(string), (ak_pointer) string, ak_true )) == NULL )
