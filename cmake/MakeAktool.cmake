@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------- #
-# Copyright (c) 2014 - 2023 by Axel Kenzo, axelkenzo@mail.ru
+# Copyright (c) 2014 - 2024 by Axel Kenzo, axelkenzo@mail.ru
 #
 # MakeAktool.cmake
 # -------------------------------------------------------------------------------------------------- #
@@ -27,9 +27,9 @@ else()
 endif()
 
 # -------------------------------------------------------------------------------------------------- #
-message("-- Sources for aktool utility:" )
+message( STATUS "Sources for aktool utility:" )
 foreach( filename ${AKTOOL_SOURCES} )
-  message("      ${filename}" )
+  message( NOTICE "      ${filename}" )
 endforeach()
 
 # -------------------------------------------------------------------------------------------------- #
@@ -43,7 +43,7 @@ else()
       set( AK_LOCALE_PATH "/usr/share/locale" )
     endif()
     add_compile_options( -DLIBAKRYPT_LOCALE_PATH="${AK_LOCALE_PATH}" )
-    message("-- Locale path is ${AK_LOCALE_PATH}" )
+    message( STATUS "Locale path is ${AK_LOCALE_PATH}" )
   endif()
 endif()
 
@@ -57,13 +57,13 @@ macro( try_aktool_lib _lib _header )
      find_library( LIB${_lib}_LIB lib${_lib}.so )
    endif()
    if( LIB${_lib}_LIB )
-     message("-- lib${_lib} found (${LIB${_lib}_LIB})" )
+     message( STATUS "lib${_lib} found (${LIB${_lib}_LIB})" )
       find_file( AK_HAVE_${_header}_H ${_header}.h )
       if( AK_HAVE_${_header}_H )
-        message("-- ${_header}.h found")
+        message(  STATUS "${_header}.h found")
         set( LIBAKRYPT_LIBS ${LIBAKRYPT_LIBS} ${LIB${_lib}_LIB} )
         set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D${AKTOOL_LIB_HEADER}" )
-        message("   added compile flag -D${AKTOOL_LIB_HEADER}")
+        message( STATUS "Added compile flag -D${AKTOOL_LIB_HEADER}")
       endif()
    endif()
 endmacro( try_aktool_lib )
@@ -78,16 +78,24 @@ try_aktool_lib( intl libintl )
 try_aktool_lib( iconv iconv )
 
 if( LIBAKRYPT_LIBS )
-  message("-- Additional libraries for aktool is ${LIBAKRYPT_LIBS}")
+  message( STATUS "Additional libraries for aktool is ${LIBAKRYPT_LIBS}")
 endif()
 
 add_executable( aktool ${AKTOOL_SOURCES} )
 target_include_directories( aktool PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/aktool" )
 
 if( AK_STATIC_LIB )
-  target_link_libraries( aktool akrypt-static akbase-static ${LIBAKRYPT_LIBS} )
+  if( AK_BASE )
+    target_link_libraries( aktool akrypt-static akbase-static ${LIBAKRYPT_LIBS} )
+  else()
+    target_link_libraries( aktool akrypt-static ${LIBAKRYPT_LIBS} )
+  endif()
 else()
-  target_link_libraries( aktool akrypt-shared akbase-shared ${LIBAKRYPT_LIBS} )
+  if( AK_BASE )
+    target_link_libraries( aktool akrypt-shared akbase-shared ${LIBAKRYPT_LIBS} )
+  else()
+    target_link_libraries( aktool akrypt-shared ${LIBAKRYPT_LIBS} )
+  endif()
 endif()
 
 # -------------------------------------------------------------------------------------------------- #
@@ -116,3 +124,7 @@ if( GZIP )
 else()
   install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/aktool/aktool.1 DESTINATION ${AK_MAN_PATH} )
 endif()
+
+# -------------------------------------------------------------------------------------------------- #
+#                                                                                      Aktool.cmake  #
+# -------------------------------------------------------------------------------------------------- #
