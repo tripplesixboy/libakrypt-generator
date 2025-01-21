@@ -1056,6 +1056,166 @@ slabel:
   return ak_true;
 }
 
+/* -----------------------------------------------------------------------------------------------  */
+/*                           реализация Вихря Мерсенна                                              */
+/* ------------------------------------------------------------------------------------------------ */
+/*! @brief Класс с параметрами для Вихря Мерсенна */
+typedef struct random_mersenne {
+  /*! @brief Внутреннее состояние генератора. */
+  ak_uint32 state[624];
+  /*! @brief Количество использованных байт в векторе */
+  ak_uint32 current_index;
+ } *mersenne_data;
+
+ /* ----------------------------------------------------------------------------------------------- */
+/**
+ * @brief  Инициализирует NLFSR генератор специального вида переданными параметрами.
+ *
+ * @param rnd NLFSR генератор.
+ * @param ptr Указатель на данные для инициализации NLFSR генератора.
+ * @param size Количество параметров для инициализации.
+ * @return int В случае успеха, функция возвращает \ref ak_error_ok. В противном случае
+           возвращается код ошибки.
+ */
+ static int ak_random_mersenne_randomize_ptr( ak_random rnd, const ak_pointer ptr, const ssize_t size )
+{
+  mersenne_data ctx = NULL;
+  if (rnd == NULL) return ak_error_message(ak_error_null_pointer, __func__,
+      "use a null pointer to a random generator");
+  if (ptr == NULL) return ak_error_message(ak_error_null_pointer, __func__,
+      "use a null pointer to initial vector");
+  if (size != 4) return ak_error_message(ak_error_wrong_length, __func__,
+      "use initial vector with wrong length");
+
+  ctx = rnd->data.ctx;
+  ctx->state[0] = *(ak_uint32*)ptr;
+  ctx->current_index = 1;
+
+  ak_uint32 i;
+  ak_uint32 N = 624;
+
+  for (i = 1; i < N; ++i) {
+      ctx->state[i] = (1812433253UL * (ctx->state[i - 1] ^ (ctx->state[i - 1] >> 30)) + i);
+  }
+
+  return ak_error_ok;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/**
+ * @brief Генерирует новый байт с помощью NLFSR генератора специального вида.
+ * @param rnd NLFSR генератор.
+ * @return char Новый байт.
+ */
+ static int ak_random_mersenne_next(ak_random rnd)
+{
+  ak_uint32 kk;
+  ak_uint32 y;
+  static const ak_uint32 mag01[2] = { 0x0, 0x9908b0df };
+  mersenne_data ctx = rnd->data.ctx;
+
+  ak_uint32 N = 624;
+  ak_uint32 M = 397;
+  ak_uint32 UPPER_MASK = 0x7fffffff;
+  ak_uint32 LOWER_MASK = 0x80000000;
+
+  for (kk = 0; kk < N - M; kk++) {
+      y = (ctx->state[kk] & UPPER_MASK) | (ctx->state[kk + 1] & LOWER_MASK);
+      ctx->state[kk] = ctx->state[kk + M] ^ (y >> 1) ^ mag01[y & 0x1];
+  }
+  for (; kk < N - 1; kk++) {
+      y = (ctx->state[kk] & UPPER_MASK) | (ctx->state[kk + 1] & LOWER_MASK);
+      ctx->state[kk] = ctx->state[kk + (M - N)] ^ (y >> 1) ^ mag01[y & 0x1];
+  }
+  y = (ctx->state[N - 1] & UPPER_MASK) | (ctx->state[0] & LOWER_MASK);
+  ctx->state[N - 1] = ctx->state[M - 1] ^ (y >> 1) ^ mag01[y & 0x1];
+
+  ctx->current_index = 0;
+
+  return ak_error_ok;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/**
+ * @brief Функция выработки последователности псевдо-случайных байт NLFSR генератором.
+ *
+ * @param rnd NLFSR генератор.
+ * @param buffer Указатель на вырабатываемую последовательность.
+ * @param size Размер после5довательности в байтах.
+ * @return int В случае успеха, функция возвращает \ref ak_error_ok. В противном случае
+             возвращается код ошибки.
+ */
+ static int ak_random_mersenne_random(ak_random rnd, const ak_pointer buffer, const ssize_t size)
+{
+  if (rnd == NULL) return ak_error_message(ak_error_null_pointer, __func__,
+      "use a null pointer to a random generator");
+  if (buffer == NULL) return ak_error_message(ak_error_null_pointer, __func__,
+      "use a null pointer to data");
+  if (size <= 0) return ak_error_message(ak_error_wrong_length, __func__,
+      "use a data vector with wrong length");
+
+  ak_uint8* buf = (ak_uint8*)buffer;
+  mersenne_data ctx = rnd->data.ctx;
+  ak_uint8* output = (ak_uint8*)ctx->state;
+  ssize_t sz = size;
+  while (sz-- > 0)
+  {
+      *buf++ = output[ctx->current_index++];
+      if (ctx->current_index == 624)
+          ak_random_mersenne_next(rnd);
+  }
+
+  return ak_error_ok;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/**
+ * @brief Функция освобождения внутреннего состояния NLFSR генератора.
+ *
+ * @param rnd Контекст создаваемого генератора.
+ * @return int В случае успеха, функция возвращает \ref ak_error_ok. В противном случае
+             возвращается код ошибки.
+ */
+ static int ak_random_mersenne_free(ak_random rnd)
+{
+  if (rnd == NULL) return ak_error_message(ak_error_null_pointer, __func__,
+      "use a null pointer to a random generator");
+  if (rnd->data.ctx != NULL)
+      free(rnd->data.ctx);
+
+  return ak_error_ok;
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/**
+ * @param rnd контекст генератора псевдослучайных чисел
+   @return int В случае успеха, функция возвращает \ref ak_error_ok. В противном случае
+            возвращается код ошибки.
+ */
+ int ak_random_create_mersenne( ak_random rnd )
+{
+  int error = ak_error_ok;
+
+  if ((error = ak_random_create(rnd)) != ak_error_ok)
+      return ak_error_message(error, __func__, "wrong initialization of random generator");
+
+  rnd->oid = ak_oid_find_by_name("mersenne");
+  rnd->next = ak_random_mersenne_next;
+  rnd->randomize_ptr = ak_random_mersenne_randomize_ptr;
+  rnd->random = ak_random_mersenne_random;
+  rnd->free = ak_random_mersenne_free;
+
+  if ((rnd->data.ctx = calloc(1, sizeof(struct random_mersenne))) == NULL) {
+      ak_random_destroy(rnd);
+      return ak_error_message(ak_error_null_pointer, __func__, "incorrect memory allocation ");
+  }
+
+  ak_uint64 seed = ak_random_value();
+  rnd->randomize_ptr(rnd, &seed, 4);
+
+  return error;
+}
+
 /* ----------------------------------------------------------------------------------------------- */
 /*                                                                                    ak_random.c  */
 /* ----------------------------------------------------------------------------------------------- */

@@ -474,6 +474,9 @@ extern "C" {
  dll_export int ak_random_create_nlfsr_with_params( ak_random , size_t , ak_uint64 );
 /*! \brief Инициализация контекста генератора на основе функции хеширования согласно Р 1323565.1.006-2017. */
  dll_export int ak_random_create_hrng( ak_random );
+/*! \brief Инициализация контекста вихря Мерсенна.                                                         */
+ dll_export int ak_random_create_mersenne( ak_random );
+
 /*! \brief Инициализация контекста генератора по заданному OID алгоритма генерации псевдо-случайных чисел. */
  dll_export int ak_random_create_oid( ak_random, ak_oid );
 /*! \brief Установка внутреннего состояния генератора псевдо-случайных чисел. */
